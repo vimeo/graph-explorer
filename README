@@ -1,0 +1,30 @@
+# Graph explorer #
+
+Given:
+* a generated list of all metrics available in your graphite system
+* a bunch of small template files which define which graphs can be generated based on which available metrics you have
+
+it generates a list of graphs with simple names.  on the webpage you can then type a pattern which is matched against all possible graphs,
+and all the matching ones are shown.
+
+## Dependencies ##
+
+* python2
+
+## Installation ##
+
+* git clone graph-explorer
+
+## Configuration
+
+* cd graph-explorer
+* make sure you have a list of your metrics in json format, you can easily get it like so:
+
+    host=graphitemachine
+    curl http://$host/metrics/index.json > metrics.json
+
+* $EDITOR config.py
+
+## Running ##
+`./app.py` and your page is available at `<ip>:8080`
+
