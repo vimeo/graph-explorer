@@ -1,0 +1,3 @@
+[submodule "graphitejs"]
+	path = graphitejs
+	url = git@github.com:Dieterbe/graphitejs.git
