@@ -19,7 +19,6 @@
       }
     </style>
     <link href="../assets/css/bootstrap-responsive.min.css" rel="stylesheet">
-    <link href="../assets/css/rickshaw.min.css" rel="stylesheet">
 
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
@@ -57,9 +56,8 @@
 
     <script src="../assets/js/jquery-1.7.2.min.js"></script>
     <script src="../assets/js/bootstrap.js"></script>
-    <script src="../assets/js/d3.min.js"></script>
-    <script src="../assets/js/d3.layout.min.js"></script>
-    <script src="../assets/js/rickshaw.js"></script>
+    %include snippet.graph-deps
+
 {{!body}}
 
   </body>

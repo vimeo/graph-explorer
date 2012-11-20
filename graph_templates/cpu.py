@@ -2,14 +2,17 @@ from graph_template import GraphTemplate
 class CpuTemplate(GraphTemplate):
     pattern = "^servers\.([^\.]+)\.cpu\."
 
-    def graph_name (self, matchObject):
-        self.server = matchObject.groups(1)[0]
-        return "%s_cpu" % self.server
+    def graph_name (self):
+        self.server = self.match.groups(1)[0]
+        return "cpu_%s" % self.server
 
-    def graph_build(self, name):
-        parts = ['format=raw']
-        parts_server = ['cpu.total.user', 'cpu.total.system', 'cpu.total.steal', 'cpu.total.softirq']
-        url = 'render/?%s&%s' % ('&'.join(parts), '&'.join(["%s.%s" % (self.server, p) for p in parts_server]))
-        return url
+    def graph_targets(self):
+        targets = []
+        for p in ['total.user', 'total.system', 'total.steal', 'total.softirq']:
+            t = {}
+            t['name'] = '%s %s' % (self.server, p)
+            t['target'] = 'servers.%s.cpu.%s' % (self.server, p)
+            targets.append(t)
+        return targets
 
 # vim: ts=4 et sw=4:

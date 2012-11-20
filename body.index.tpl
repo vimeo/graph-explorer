@@ -10,6 +10,7 @@
           <input type="submit" style="display:none;"/>
           <input type="text" data-provide="typeahead" id="pattern" name="pattern" value="{{pattern}}"/>
           </form></li>
+          <li><a href="#" id="clearzoom">clear zoom</a></li>
         </ul>
         <script type="text/javascript">
           function update_graphs() {

@@ -16,23 +16,25 @@ def match(graphs, pattern):
     """
     pattern = pattern.replace(' ','.*')
     object = re.compile(pattern)
-    for (graph,url) in graphs.items():
-            match = object.search(graph)
+    for (name, data) in graphs.items():
+            match = object.search(name)
             if match is not None:
-                yield (graph,url)
+                yield (name,data)
 
 def load_metrics():
     f = open('metrics.json', 'r')
     return json.load(f)
 
-@route('/assets/:path#.*#')
+@route('<path:re:/assets/.*>')
+@route('<path:re:/graphitejs/.*js>')
+@route('<path:re:/graphitejs/.*css>')
 def static(path):
-    return static_file(path, root='assets')
+    return static_file(path, root='.')
 
 @route('/', method='GET')
 @route('/index', method='GET')
 @route('/index/', method='GET')
-@route('/index/:pattern', method='GET')
+@route('/index/<pattern>', method='GET')
 def index(pattern = ''):
     metrics = load_metrics()
     graphs = t.build_graphs(metrics)
@@ -52,16 +54,18 @@ def view_debug():
     return str(output)
 
 @route('/graphs/', method='POST')
-def graphs():
-    pattern = request.forms.get('pattern')
+@route('/graphs/<pattern>', method='GET') # used for manually testing
+def graphs(pattern = ''):
+    if not pattern:
+        pattern = request.forms.get('pattern')
     metrics = load_metrics()
     graphs = t.build_graphs(metrics)
-    out = ''
-    for i in [template('snippet.graph', base_url = base_url, graph = graph, url = url) for (graph, url) in match(graphs, pattern)]:
-        out += i
+    out = ''.join(template('snippet.graph', base_url = base_url, graph_name = graph_name, graph_data = graph_data) for (graph_name, graph_data) in match(graphs, pattern))
+    if out and request.headers.get('X-Requested-With') != 'XMLHttpRequest':
+        out = template('snippet.graph-deps') + out
     if not out:
         out = "No graphs matching pattern '%s'" % pattern
-    return str(out)
+    return out
 
 debug(True)
 run(reloader=True, host=listen_host)
