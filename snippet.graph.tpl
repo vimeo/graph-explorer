@@ -1,4 +1,3 @@
-<div class="hero-unit">
 <h2>{{graph_name}}</h2>
 %#base_url url
 %import json
@@ -25,4 +24,3 @@
 	        $("#chart_flot_{{graph_name}}").graphiteFlot(graph_flot_{{graph_name}}, function(err) { console.log(err); });
 	});
         </script>
-</div>

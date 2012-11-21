@@ -1,7 +1,8 @@
 .chart_container {
     display: inline-block;
     font-family: Arial, Helvetica, sans-serif;
-    background-color: black;
+    margin-bottom: 18px;
+    padding: 10px;
 }
 .rickshaw_legend {
     background-color: inherit;
