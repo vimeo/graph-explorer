@@ -7,8 +7,15 @@ from config import *
 # we basically want to import all templates in a given directory, instantiate objects from their classes,
 # and keep a list of all of them
 from graph_templates.cpu import CpuTemplate
-t = CpuTemplate()
-templates = ["cpu"]
+from graph_templates.swift_object import SwiftObjectTemplate
+template_objects = [CpuTemplate(), SwiftObjectTemplate()]
+templates = ["cpu", "swift_object"]
+
+def build_graphs (metrics):
+    graphs = {}    
+    for t_o in template_objects:
+        graphs.update(t_o.build_graphs(metrics))
+    return graphs
 
 def match(graphs, pattern):
     """
@@ -37,7 +44,7 @@ def static(path):
 @route('/index/<pattern>', method='GET')
 def index(pattern = ''):
     metrics = load_metrics()
-    graphs = t.build_graphs(metrics)
+    graphs = build_graphs(metrics)
     graphs_js = '["%s"]' % '","'.join(graphs.keys()) # something like ["graph1","graph2","graph3"]
     output = template('page', body = template('body.index', graphs_js = graphs_js, pattern = pattern))
     return str(output)
@@ -49,7 +56,7 @@ def index_post():
 @route('/debug')
 def view_debug():
     metrics = load_metrics()
-    graphs = t.build_graphs(metrics)
+    graphs = build_graphs(metrics)
     output = template('page', body = template('body.debug', metrics = metrics, templates = templates, graphs = graphs))
     return str(output)
 
@@ -59,7 +66,7 @@ def graphs(pattern = ''):
     if not pattern:
         pattern = request.forms.get('pattern')
     metrics = load_metrics()
-    graphs = t.build_graphs(metrics)
+    graphs = build_graphs(metrics)
     out = ''.join(template('snippet.graph', base_url = base_url, graph_name = graph_name, graph_data = graph_data) for (graph_name, graph_data) in match(graphs, pattern))
     if out and request.headers.get('X-Requested-With') != 'XMLHttpRequest':
         out = template('snippet.graph-deps') + out
