@@ -1,0 +1,27 @@
+.chart_container {
+    display: inline-block;
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: black;
+}
+.rickshaw_legend {
+    background-color: inherit;
+}
+.chart {
+    float: left;
+}
+.legend {
+    float: left;
+}
+.offset_form {
+    float: left;
+    margin: 2em 0 0 15px;
+    font-size: 13px;
+}
+.chart_y_axis {
+    float: left;
+    width: 40px;
+    background-color: white;
+}
+.toggler {
+    color: white;
+}
