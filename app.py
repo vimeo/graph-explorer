@@ -147,7 +147,7 @@ def graphs(pattern = ''):
     out += "# graphs matching: %i<br/>" % len_graphs_matching
     out += "# graphs from matching targets: %i<br/>" % len_graphs_targets_matching
     out += "# total graphs: %i<br/>" % len_graphs_matching_all
-    out += ''.join(template('snippet.graph', base_url = base_url, graph_name = title, graph_data = data) for (title, data) in graphs_matching.items())
+    out += ''.join(template('snippet.graph', graphite_url = graphite_url, graph_name = title, graph_data = data) for (title, data) in graphs_matching.items())
     return out
 
 debug(True)

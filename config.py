@@ -1,2 +1,2 @@
-base_url = 'http://graphitemachine'
+graphite_url='http://graphitemachine'
 listen_host='127.0.0.1'

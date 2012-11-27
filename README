@@ -52,8 +52,8 @@ Examples:
 * cd graph-explorer
 * make sure you have a list of your metrics in json format, you can easily get it like so:
 
-    host=graphitemachine
-    curl http://$host/metrics/index.json > metrics.json
+    source config.py
+    curl http://$graphite_url/metrics/index.json > metrics.json
 
 * $EDITOR config.py
 
