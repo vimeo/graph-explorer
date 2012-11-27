@@ -1,18 +1,31 @@
 from graph_template import GraphTemplate
 class CpuTemplate(GraphTemplate):
-    pattern = "^servers\.([^\.]+)\.cpu\."
+    '''
+    only pass targets for total cpu metrics, not all cores individually
+    '''
+    pattern       = "^servers\.([^\.]+)\.cpu\.total\.(.*)$"
+    pattern_graph = "^servers\.([^\.]+)\.cpu\.total\.user$"
 
-    def graph_name (self):
-        self.server = self.match.groups(1)[0]
-        return "cpu_%s" % self.server
+    def generate_targets(self, match):
+        server = match.groups()[0]
+        type = match.groups()[1]
+        t = {
+            'target' : 'servers.%s.cpu.total.%s' % (server, type),
+            'tags'   : {'server': server, 'type': type},
+            'names'  : {'server': type, 'type': server},
+            'default_group_by': 'server'
+        }
+        return {t['target']: t}
 
-    def graph_targets(self):
+    def generate_graphs(self, match):
+        server = match.groups()[0]
+        name = 'cpu-%s' % server
         targets = []
-        for p in ['total.user', 'total.system', 'total.steal', 'total.softirq']:
+        for type in ['total.user', 'total.system', 'total.steal', 'total.softirq']:
             t = {}
-            t['name'] = '%s %s' % (self.server, p)
-            t['target'] = 'servers.%s.cpu.%s' % (self.server, p)
+            t['name'] = '%s %s' % (server, type)
+            t['target'] = 'servers.%s.cpu.%s' % (server, type)
             targets.append(t)
-        return targets
+        return {name: {'targets': targets}}
 
 # vim: ts=4 et sw=4:
