@@ -1,10 +1,10 @@
 <h2>{{graph_name}}</h2>
-%#base_url url
+%graph_id = graph_name.replace('.','') # JS doesn't allow dots in var names
 %import json
-        <div class="chart_container flot" id="chart_container_flot_{{graph_name}}">
-            <div class="chart" id="chart_flot_{{graph_name}}" height="300px" width="700px"></div>
-            <div class="legend" id="legend_flot_{{graph_name}}" height="300px" width="50px" style="height:300px; width: 50px"></div>
-            <form class="toggler" id="line_stack_form_flot_{{graph_name}}"></form>
+        <div class="chart_container flot" id="chart_container_flot_{{graph_id}}">
+            <div class="chart" id="chart_flot_{{graph_id}}" height="300px" width="700px"></div>
+            <div class="legend" id="legend_flot_{{graph_id}}" height="300px" width="50px" style="height:300px; width: 50px"></div>
+            <form class="toggler" id="line_stack_form_flot_{{graph_id}}"></form>
         </div>
         <script language="javascript">
 	    $(document).ready(function () {
@@ -15,12 +15,12 @@
 		    until: "now",
 		    height: "300",
 		    width: "740",
-		    line_stack_toggle: 'line_stack_form_flot_{{graph_name}}',
+		    line_stack_toggle: 'line_stack_form_flot_{{graph_id}}',
 		    series: {stack: true, lines: { show: true, lineWidth: 0, fill: true }},
 		    xaxis: { mode: "time" },
-		    legend: { container: '#legend_flot_{{graph_name}}', noColumns: 1 },
+		    legend: { container: '#legend_flot_{{graph_id}}', noColumns: 1 },
 		};
-		var graph_flot_{{graph_name}} = $.extend({}, defaults, graph_data);
-	        $("#chart_flot_{{graph_name}}").graphiteFlot(graph_flot_{{graph_name}}, function(err) { console.log(err); });
+		var graph_flot_{{graph_id}} = $.extend({}, defaults, graph_data);
+	        $("#chart_flot_{{graph_id}}").graphiteFlot(graph_flot_{{graph_id}}, function(err) { console.log(err); });
 	});
         </script>
