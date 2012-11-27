@@ -719,15 +719,12 @@ pre {
   padding: 0 3px 2px;
   font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
   font-size: 12px;
-  color: #282828;
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
   border-radius: 3px;
 }
 code {
   padding: 2px 4px;
-  color: #d14;
-  background-color: #f7f7f9;
   border: 1px solid #e1e1e8;
 }
 pre {
@@ -740,7 +737,6 @@ pre {
   word-wrap: break-word;
   white-space: pre;
   white-space: pre-wrap;
-  background-color: #f5f5f5;
   border: 1px solid #ccc;
   border: 1px solid rgba(0, 0, 0, 0.15);
   -webkit-border-radius: 4px;
@@ -4998,8 +4994,7 @@ textarea,
   font-family: 'Droid Sans', sans-serif;
   color: #999999;
 }
-code,
-pre {
+.hilight {
   background-color: #eeeeee;
 }
 blockquote {
