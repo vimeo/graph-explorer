@@ -57,7 +57,7 @@ def index_post():
 def view_debug():
     metrics = load_metrics()
     graphs = build_graphs(metrics)
-    output = template('page', body = template('body.debug', metrics = metrics, templates = templates, graphs = graphs))
+    output = template('page', page = 'debug', body = template('body.debug', metrics = metrics, templates = templates, graphs = graphs))
     return str(output)
 
 @route('/graphs/', method='POST')

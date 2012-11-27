@@ -1,3 +1,4 @@
+% setdefault('page', 'index')
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -46,8 +47,13 @@
           <a class="brand" href="/index">Graph explorer</a>
           <div class="nav-collapse">
             <ul class="nav">
-              <li class="active"><a href="/index">Home</a></li>
-              <li><a href="/debug">Debug</a></li>
+	% for (key, title) in [('index', 'Home'), ('debug', 'Debug')]:
+		% if page == key:
+              <li class="active"><a href="/{{key}}">{{title}}</a></li>
+		% else:
+              <li><a href="/{{key}}">{{title}}</a></li>
+		% end
+	% end
             </ul>
           </div><!--/.nav-collapse -->
         </div>
