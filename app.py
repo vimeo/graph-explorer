@@ -67,10 +67,7 @@ def static(path):
 @route('/index/', method='GET')
 @route('/index/<pattern>', method='GET')
 def index(pattern = ''):
-    metrics = load_metrics()
-    graphs = build_graphs(metrics)
-    graphs_js = '["%s"]' % '","'.join(graphs.keys()) # something like ["graph1","graph2","graph3"]
-    output = template('page', body = template('body.index', graphs_js = graphs_js, pattern = pattern))
+    output = template('page', body = template('body.index', pattern = pattern))
     return str(output)
 
 @route('/index', method='POST')
