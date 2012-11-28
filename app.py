@@ -8,8 +8,9 @@ from config import *
 # and keep a list of all of them (pref. alphabetically ordered)
 from graph_templates.cpu import CpuTemplate
 from graph_templates.swift_object_server import SwiftObjectServerTemplate
-template_objects = [CpuTemplate(), SwiftObjectServerTemplate()]
-templates = ["cpu", "swift_object_server"]
+from graph_templates.swift_tempauth import SwiftTempauthTemplate
+template_objects = [CpuTemplate(), SwiftObjectServerTemplate(), SwiftTempauthTemplate()]
+templates = ["cpu", "swift_object_server", "swift_tempauth"]
 
 def list_targets (metrics):
     targets = {}    
