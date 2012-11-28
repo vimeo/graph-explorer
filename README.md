@@ -17,6 +17,8 @@ This tool aims to:
 * use simple version-controllable and editable plaintext files, avoid databases
 * be simple as possible to get running from scratch.  No *just use sinatra* `sudo gem install crap loadError && wget http://make-a-mess.sh | sudo bash -c ; passenger needs gcc to recompile nginx; **loadError**`
 
+![Screenshot](https://raw.github.com/Dieterbe/graph-explorer/master/screenshot.png)
+
 # Interactive queries
 
 Given:
