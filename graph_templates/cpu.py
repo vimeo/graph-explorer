@@ -15,7 +15,7 @@ class CpuTemplate(GraphTemplate):
             'names'  : {'server': type, 'type': server},
             'default_group_by': 'server'
         }
-        return {t['target']: t}
+        return {'targets_' + t['target']: t}
 
     def generate_graphs(self, match):
         server = match.groups()[0]
@@ -26,6 +26,6 @@ class CpuTemplate(GraphTemplate):
             t['name'] = '%s %s' % (server, type)
             t['target'] = 'servers.%s.cpu.%s' % (server, type)
             targets.append(t)
-        return {name: {'targets': targets}}
+        return {'tpl_' + name: {'targets': targets}}
 
 # vim: ts=4 et sw=4:

@@ -30,6 +30,10 @@ def parse_pattern(pattern):
     if group_by_match and group_by_match.groups() > 0:
         group_by = group_by_match.groups(1)[0].replace('group by ','')
         pattern = pattern[:group_by_match.start(1)] + pattern[group_by_match.end(1):]
+    # if the pattern doesn't contain a "graph type specifier" like 'tpl' or 'targets',
+    # assume we only want tpl ones. that sounds like good default behavior..
+    if 'tpl' not in pattern and 'targets' not in pattern:
+        pattern = '^tpl_.*' + pattern
     pattern = {
         #replace ' ' with '.*' and use as regex, allows easy but powerful matching
         'pattern': pattern.replace(' ','.*'),
@@ -107,7 +111,7 @@ def build_graphs_from_targets(targets, options = {}):
     # that gathers all targets which have this tag
     for target_id in sorted(targets.iterkeys()):
         target_data = targets[target_id]
-        title = target_data['tags'][options['group_by']]
+        title = 'targets_' + target_data['tags'][options['group_by']]
         if title not in graphs:
             graphs[title] = {'title': title, 'targets': []}
         t = {
