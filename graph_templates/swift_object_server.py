@@ -1,6 +1,6 @@
 from graph_template import GraphTemplate
 
-class SwiftObjectTemplate(GraphTemplate):
+class SwiftObjectServerTemplate(GraphTemplate):
     pattern       = "^stats.timers\.([^\.]+)\.object-server\.(.*)$"
     pattern_graph = "^stats.timers\.([^\.]+)\.object-server\.GET.timing.lower$"
     http_methods = ['GET', 'HEAD', 'PUT', 'REPLICATE']

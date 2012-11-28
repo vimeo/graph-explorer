@@ -7,9 +7,9 @@ from config import *
 # we basically want to import all templates in a given directory, instantiate objects from their classes,
 # and keep a list of all of them (pref. alphabetically ordered)
 from graph_templates.cpu import CpuTemplate
-from graph_templates.swift_object import SwiftObjectTemplate
-template_objects = [CpuTemplate(), SwiftObjectTemplate()]
-templates = ["cpu", "swift_object"]
+from graph_templates.swift_object_server import SwiftObjectServerTemplate
+template_objects = [CpuTemplate(), SwiftObjectServerTemplate()]
+templates = ["cpu", "swift_object_server"]
 
 def list_targets (metrics):
     targets = {}    
