@@ -150,8 +150,8 @@ def graphs(pattern = ''):
     if len_graphs_matching_all > 0 and request.headers.get('X-Requested-With') != 'XMLHttpRequest':
         out += template('snippet.graph-deps')
     out += "Pattern: '%s'<br/>" % pattern['pattern']
-    out += "# targets matching: %i<br/>" % len_targets_matching
-    out += "# graphs matching: %i<br/>" % len_graphs_matching
+    out += "# targets matching: %i/%i<br/>" % (len_targets_matching, len(targets_all))
+    out += "# graphs matching: %i/%i<br/>" % (len_graphs_matching, len(graphs_all))
     out += "# graphs from matching targets: %i<br/>" % len_graphs_targets_matching
     out += "# total graphs: %i<br/>" % len_graphs_matching_all
     out += ''.join(template('snippet.graph', graphite_url = graphite_url, graph_name = title, graph_data = data) for (title, data) in graphs_matching.items())
