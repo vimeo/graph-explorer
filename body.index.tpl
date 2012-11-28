@@ -35,7 +35,7 @@
 
   <hr>
     <footer>
-      <p><a href="#">github.com</a></p>
+      <p><a href="https://github.com/Dieterbe/graph-explorer">github.com</a></p>
     </footer>
 
 </div><!--/.fluid-container-->
