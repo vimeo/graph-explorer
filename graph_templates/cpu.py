@@ -21,6 +21,9 @@ class CpuTemplate(GraphTemplate):
         server = match.groups()[0]
         name = 'cpu-%s' % server
         targets = []
+        targets.append({'name': '%s total.idle' % server,
+                        'target': 'servers.%s.cpu.total.idle' % server,
+                        'color': '#66FF66'})
         for type in ['total.user', 'total.system', 'total.steal', 'total.softirq']:
             t = {}
             t['name'] = '%s %s' % (server, type)
