@@ -99,7 +99,10 @@ def debug_metrics():
 
 def build_graphs_from_targets(targets, options = {}):
     graphs = {}
+    if not targets:
+        return (graphs, options)
     # no group_by specified? pick most common default:
+    # note that default_group_by is mandatory for each target
     if 'group_by' not in options or options['group_by'] is None:
         group_by_candidates = {}
         import operator
