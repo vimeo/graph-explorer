@@ -1,13 +1,15 @@
-# Graph explorer #
+# Graph explorer
 
-## Design goals ##
+## Design goals
+
 A highly interactive dashboard to satisfy ad-hoc information needs across many similar metrics and graphs
 using mainly expressive queries as input.
 
 Plenty of dashboards provide statically configured pages for realtime and/or historic dashboards,
 others provide some dynamism but are often hard to navigate and too restrictive when trying to find and correllate time-series data.
 
-This tool aims to
+This tool aims to:
+
 * show you the information you're looking for as quickly as possible, and with minimal cruft
 * let you rearrange contents of graphs and more interactive features like realtime zooming, panning, legend reordering, etc
 * diverge from the graphite API as little as possible. (no custom DSL like with gdash)
@@ -16,7 +18,9 @@ This tool aims to
 * be simple as possible to get running from scratch.  No *just use sinatra* `sudo gem install crap loadError && wget http://make-a-mess.sh | sudo bash -c ; passenger needs gcc to recompile nginx; **loadError**`
 
 # Interactive queries
+
 Given:
+
 * a list of all metrics available in your graphite system (you can just download this from graphite box)
 * a bunch of small template files which define which graphs can be generated based on the available metrics you have, as well as individual targets which may be interesting by themselves (and for each target one or more tags; which you can use to categorize by server, by service, etc)
 * an input query provided by the user
@@ -37,11 +41,11 @@ Examples:
 * `web123`: all graphs of web123
 * `server[1-5] (mem|cpu)`: memory and cpu graphs of servers 1 through 5
 
-## Dependencies ##
+## Dependencies
 
 * python2
 
-## Installation ##
+## Installation
 
 * git clone graph-explorer
 * git submodule init; git submodule update
@@ -66,6 +70,7 @@ For apache2 this works:
     Header set Access-Control-Allow-Methods "GET, OPTIONS"
     Header set Access-Control-Allow-Headers "origin, authorization, accept"
 
-## Running ##
+## Running
+
 `./app.py` and your page is available at `<ip>:8080`
 
