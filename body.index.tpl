@@ -25,8 +25,6 @@
           }
           $(document).ready(function() {
             $('#pattern').typeahead({source:{{!graphs_js}}, items:5});
-            $('#pattern').change(update_graphs);
-            $('#pattern').keypress(update_graphs);
             update_graphs();
           });
         </script>
