@@ -163,7 +163,4 @@ def graphs(pattern = ''):
     out += ''.join(template('snippet.graph', graphite_url = graphite_url, graph_name = title, graph_data = data) for (title, data) in graphs_matching.items())
     return out
 
-debug(True)
-run(reloader=True, host=listen_host)
-
 # vim: ts=4 et sw=4:
