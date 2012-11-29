@@ -1,16 +1,24 @@
 #!/usr/bin/env python2
 import os, json, sys, traceback, re
+from inspect import isclass
 from bottle import route, run, debug, template, request, validate, static_file, redirect, response
 from config import *
 
-# this bit of code should be more dynamic but that goes beyond my python-fu
-# we basically want to import all templates in a given directory, instantiate objects from their classes,
-# and keep a list of all of them (pref. alphabetically ordered)
-from graph_templates.cpu import CpuTemplate
-from graph_templates.swift_object_server import SwiftObjectServerTemplate
-from graph_templates.swift_tempauth import SwiftTempauthTemplate
-template_objects = [CpuTemplate(), SwiftObjectServerTemplate(), SwiftTempauthTemplate()]
-templates = ["cpu", "swift_object_server", "swift_tempauth"]
+# Load all the graph_templates sub-modules and create a list of
+# template_objects and templates
+# FIXME: Needs to detect sub-modules automatically (fill modlist)
+from graph_templates import GraphTemplate
+
+template_objects = []
+templates = []
+modlist = ['cpu', 'swift_object_server', 'swift_tempauth']
+for module in modlist:
+    imp = __import__('graph_templates.'+module, globals(), locals(), ['*'])
+    for itemname in dir(imp):
+        item = getattr(imp, itemname)
+        if isclass(item) and item != GraphTemplate and issubclass(item, GraphTemplate):
+            template_objects.append(item())
+            templates.append(module)
 
 def list_targets (metrics):
     targets = {}    
