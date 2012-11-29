@@ -74,5 +74,5 @@ For apache2 this works:
 
 ## Running
 
-`./app.py` and your page is available at `<ip>:8080`
+`./graph-explorer.py` and your page is available at `<ip>:8080`
 
