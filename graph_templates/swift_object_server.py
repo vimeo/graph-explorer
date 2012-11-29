@@ -42,13 +42,32 @@ class SwiftObjectServerTemplate(GraphTemplate):
             'series': {'stack': False, 'lines': { 'show': True, 'lineWidth': 0.6, 'fill': False }}
         }
 
-        name = 'swift-object-server-errors-%s' % server
+        name = 'swift-object-server-errors-count-%s' % server
         targets = []
         for method in self.http_methods:
-            t = {}
-            t['name'] = '%s %s' % (server, method)
-            t['target'] = 'stats_counts.%s.object-server.%s.errors' % (server, method)
-            targets.append(t)
+            for problem in ['errors', 'timeouts']:
+                targets.append({
+                    'name': '%s %s' % (method, problem),
+                    'target': 'stats_counts.%s.object-server.%s.%s' % (server, method, problem)
+                })
+        targets.append({
+            'name': 'async_pendings',
+            'target': 'stats_counts.%s.object-server.async_pendings' % server
+        })
+        graphs['tpl_' + name] = {'targets': targets}
+
+        name = 'swift-object-server-errors-rate-%s' % server
+        targets = []
+        for method in self.http_methods:
+            for problem in ['errors', 'timeouts']:
+                targets.append({
+                    'name': '%s %s' % (method, problem),
+                    'target': 'stats.%s.object-server.%s.%s' % (server, method, problem)
+                })
+        targets.append({
+            'name': 'async_pendings',
+            'target': 'stats.%s.object-server.async_pendings' % server
+        })
         graphs['tpl_' + name] = {'targets': targets}
 
         return graphs
