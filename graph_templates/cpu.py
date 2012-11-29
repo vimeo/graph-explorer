@@ -1,4 +1,4 @@
-from graph_template import GraphTemplate
+from . import GraphTemplate
 class CpuTemplate(GraphTemplate):
     '''
     only pass targets for total cpu metrics, not all cores individually

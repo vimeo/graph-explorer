@@ -1,4 +1,4 @@
-from graph_template import GraphTemplate
+from . import GraphTemplate
 
 class SwiftObjectServerTemplate(GraphTemplate):
     pattern       = "^stats.timers\.([^\.]+)\.object-server\.(.*)$"

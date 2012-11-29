@@ -1,4 +1,4 @@
-from graph_template import GraphTemplate
+from . import GraphTemplate
 
 class SwiftTempauthTemplate(GraphTemplate):
     pattern       = "^stats\.([^\.]+)\.tempauth\.AUTH_\.([^\.]+)$"
