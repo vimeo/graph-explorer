@@ -44,25 +44,46 @@ def parse_pattern(pattern):
     if group_by_match and group_by_match.groups() > 0:
         group_by = group_by_match.groups(1)[0].replace('group by ','')
         pattern = pattern[:group_by_match.start(1)] + pattern[group_by_match.end(1):]
+    # split pattern into multiple words which are all matched independently
+    # this allows you write words in any order, and also makes it easy to use negations
+    pattern = pattern.split()
     # if the pattern doesn't contain a "graph type specifier" like 'tpl' or 'targets',
     # assume we only want tpl ones. that sounds like good default behavior..
     if 'tpl' not in pattern and 'targets' not in pattern:
-        pattern = '^tpl_.*' + pattern
+        pattern.append('tpl')
     pattern = {
-        #replace ' ' with '.*' and use as regex, allows easy but powerful matching
-        'pattern': pattern.replace(' ','.*'),
+        'pattern': pattern,
         'group_by': group_by
     }
     return pattern
 
 # objects is expected to be a dict with elements like id: data
 # id's are matched, and the return value is a dict in the same format
+# every part of the pattern must match, use ! to negate
 def match(objects, pattern):
-    object = re.compile(pattern)
+    # prepare higher performing pattern structure
+    # note that if you have twice the exact same "word" (ignoring leading '!'), the last one wins
+    patterns = {}
+    for patt in pattern['pattern']:
+        negate = False
+        if patt.startswith('!'):
+            negate = True
+            patt = patt[1:]
+        patterns[patt] = {
+            'negate': negate,
+            'object': re.compile(patt)
+        }
+    
     objects_matching = {}
     for (id, data) in objects.items():
-        match = object.search(id)
-        if match is not None:
+        match = True
+        for patt in patterns.values():
+            match_found = (patt['object'].search(id) is not None)
+            if match_found and patt['negate']:
+                match = False
+            elif not match_found and not patt['negate']:
+                match = False
+        if match:
             objects_matching[id] = data
     return objects_matching
 
@@ -149,8 +170,8 @@ def graphs(pattern = ''):
     targets_all = list_targets(metrics)
     graphs_all = list_graphs(metrics)
     pattern = parse_pattern(pattern)
-    targets_matching = match(targets_all, pattern['pattern'])
-    graphs_matching = match(graphs_all, pattern['pattern'])
+    targets_matching = match(targets_all, pattern)
+    graphs_matching = match(graphs_all, pattern)
     graphs_targets_matching = build_graphs_from_targets(targets_matching, pattern)[0]
     len_targets_matching = len(targets_matching)
     len_graphs_matching = len(graphs_matching)

@@ -29,19 +29,24 @@ Given:
 
 Graph-explorer will filter out all graphs as well as individual targets that match the query.  the targets are then grouped by a tag (given by user or from a default config) and yield one or more additional graphs.  All graphs are given clear names that are suitable for easy filtering.
 
-Note:
-* patterns are regexes, but for convenience ' ' is interpreted as '.*'
+Pattern matching algorithm:
+
 * `group by <tag>` to group targets by a certain tag. for example, the cpu template yields targets with tags type:cpu and server:<servername>.
-  grouping by type yields a graph for each cpu metric type (sys, idle, iowait, etc) listing all servers. grouping by server shows a graph for each server listing all cpu metrics for that server.
+* Once the optional `group by <tag>` is removed, each word is treated as a separate regular expression, which must each seperately match.  so order between "match words" becomes irrelevant,
+  you can keep everything lowercase. you can also use '!' to negate.
+* if the pattern doesn't contain a "graph type specifier" like 'tpl' or 'targets',
+  we assume you only want tpl ones. so GE adds 'tpl' so you only see templated graphs by default.
 
 Examples:
 
-* `cpu`: all cpu graphs
+* `cpu`: all cpu graphs (for all machines)
 * `web cpu`: cpu graphs for all servers matching 'web'. (grouped by server by default)
 * `web cpu total.(system|idle|user|iowait)`: restrict to some common cpu metrics
 * `web cpu total.(system|idle|user|iowait) group by type`: same, but compare matching servers on a graph for each cpu metric
 * `web123`: all graphs of web123
 * `server[1-5] (mem|cpu)`: memory and cpu graphs of servers 1 through 5
+* `!server[1-5] (mem|cpu)`: memory and cpu graphs of all servers, except servers 1 through 5
+* `targets dfs1`: see all targets available for server dfs1
 
 ## Dependencies
 
