@@ -20,7 +20,7 @@ class SwiftTempauthTemplate(GraphTemplate):
         server = match.groups()[0]
         graphs = {}
 
-        name = 'swift-tempauth-rates-%s' % server
+        name = 'swift-tempauth-rate-%s' % server
         targets = []
         for type in self.types:
             t = {}
@@ -32,7 +32,7 @@ class SwiftTempauthTemplate(GraphTemplate):
             'series': {'stack': False, 'lines': { 'show': True, 'lineWidth': 0.6, 'fill': False }}
         }
 
-        name = 'swift-tempauth-counts-%s' % server
+        name = 'swift-tempauth-count-%s' % server
         targets = []
         for type in self.types:
             t = {}
