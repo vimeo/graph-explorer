@@ -1,9 +1,11 @@
 #!/usr/bin/env python2
 import re
+from abc import ABCMeta, abstractmethod
 """
 Graph template
 """
 class GraphTemplate:
+    __metaclass__ = ABCMeta
     """
     Class for graph templates
     set 2 variables:
@@ -15,6 +17,7 @@ class GraphTemplate:
         self.pattern_object = re.compile(self.pattern)
         self.pattern_object_graph = re.compile(self.pattern_graph)
 
+    @abstractmethod
     def generate_targets(self):
         """
         emit one or more targets in a dict like {'targetname': <target spec>}
@@ -23,6 +26,7 @@ class GraphTemplate:
         """
         raise NotImplementedError('cannot instantiate abstract base class')
 
+    @abstractmethod
     def generate_graphs(self):
         """
         emit one or more graphs in a dict like {'graphname': <graph dict>}
