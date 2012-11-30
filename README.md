@@ -59,7 +59,7 @@ Examples:
 * make sure you have a list of your metrics in json format, you can easily get it like so:
 
     source config.py
-    curl http://$graphite_url/metrics/index.json > metrics.json
+    curl $graphite_url/metrics/index.json > metrics.json
 
 * $EDITOR config.py
 
