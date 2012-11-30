@@ -6,19 +6,24 @@ from config import *
 
 # Load all the graph_templates sub-modules and create a list of
 # template_objects and templates
-# FIXME: Needs to detect sub-modules automatically (fill modlist)
 from graph_templates import GraphTemplate
-
+import graph_templates
 template_objects = []
 templates = []
-modlist = ['cpu', 'swift_object_server', 'swift_tempauth']
-for module in modlist:
+templates_dir = os.path.dirname(graph_templates.__file__)
+wd = os.getcwd()
+os.chdir(templates_dir)
+for f in os.listdir("."):
+    if f == '__init__.py' or not f.endswith(".py"):
+        continue
+    module = f[:-3]
     imp = __import__('graph_templates.'+module, globals(), locals(), ['*'])
     for itemname in dir(imp):
         item = getattr(imp, itemname)
         if isclass(item) and item != GraphTemplate and issubclass(item, GraphTemplate):
             template_objects.append(item())
             templates.append(module)
+os.chdir(wd)
 
 def list_targets (metrics):
     targets = {}    
