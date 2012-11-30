@@ -1,4 +1,5 @@
 %import json
+%#TODO print target_types on this page
   <div class="container">
      <a href="/debug/metrics">cached metrics</a>
      <div class="row">
@@ -45,17 +46,18 @@
         <div class="span12">
           <h2>Targets</h2>
           <table class="table table-condensed">
-		<tr><th>id</th><th>names (<i>group_by_key: name</i>)</th></tr>
+		<tr><th>id</th><th>tags</th><th>target_type</th></tr>
 %for id in sorted(targets.iterkeys()):
 	% data = targets[id]
 		<tr>
 			<td>{{id}}</td>
 			<td>
-	%for group_by_key in sorted(data['names'].iterkeys()):
-		% name = data['names'][group_by_key]
-			{{group_by_key}} : {{name}}<br/>
+	%for tag_key in sorted(data['tags'].iterkeys()):
+		% tag_val = data['tags'][tag_key]
+			{{tag_key}} : {{tag_val}}<br/>
 	%end
 			</td>
+			<td>{{data['target_type']}}</td>
 		</tr>
 %end
           </table>

@@ -3,6 +3,10 @@ from . import GraphTemplate
 class SwiftObjectServerTemplate(GraphTemplate):
     pattern       = "^stats.timers\.([^\.]+)\.object-server\.(.*)$"
     pattern_graph = "^stats.timers\.([^\.]+)\.object-server\.GET.timing.lower$"
+    # TODO: different target types for timing, counter rate, counter totals
+    target_types = {
+        'object_server_timing': {'default_group_by': 'server'}
+    }
     http_methods = ['GET', 'HEAD', 'PUT', 'REPLICATE']
 
     def generate_targets(self, match):
@@ -11,8 +15,7 @@ class SwiftObjectServerTemplate(GraphTemplate):
         t = {
             'target' : 'stats.timers.%s.object-server.%s' % (server, type),
             'tags'   : {'server': server, 'type': type},
-            'names'  : {'server': type, 'type': server},
-            'default_group_by': 'server'
+            'target_type': 'object_server_timing'
         }
         return {'targets_' + t['target']: t}
 

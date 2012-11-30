@@ -5,6 +5,9 @@ class CpuTemplate(GraphTemplate):
     '''
     pattern       = "^servers\.([^\.]+)\.cpu\.total\.(.*)$"
     pattern_graph = "^servers\.([^\.]+)\.cpu\.total\.user$"
+    target_types = {
+        'cpu_state_pct': {'default_group_by': 'server'}
+    }
 
     def generate_targets(self, match):
         server = match.groups()[0]
@@ -12,8 +15,7 @@ class CpuTemplate(GraphTemplate):
         t = {
             'target' : 'servers.%s.cpu.total.%s' % (server, type),
             'tags'   : {'server': server, 'type': type},
-            'names'  : {'server': type, 'type': server},
-            'default_group_by': 'server'
+            'target_type'  : 'cpu_state_pct'
         }
         return {'targets_' + t['target']: t}
 

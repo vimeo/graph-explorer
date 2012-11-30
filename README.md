@@ -29,9 +29,13 @@ Given:
 
 Graph-explorer will filter out all graphs as well as individual targets that match the query.  the targets are then grouped by a tag (given by user or from a default config) and yield one or more additional graphs.  All graphs are given clear names that are suitable for easy filtering.
 
+** the plan is to make the target system more clever so that it automatically knows *how* to display the graph, thereby allowing us to completely remove the graphs as defined by the templates mechanism, and only work from tags and clever tags and context-awareness **
+
 Pattern matching algorithm:
 
-* `group by <tag>` to group targets by a certain tag. for example, the cpu template yields targets with tags type:cpu and server:<servername>.
+* Graph targets are grouped by target_type, and additionally by the default_group_by of the target_type or any tag you specify with `group by <tag>`
+  For example, the cpu template yields targets with tags type something like 'iowait' and server:<servername> and all with target_type 'cpu'.  You'll always have graphs with no other target_types then cpu metrics, but additional
+  grouping by type yields a graph for each cpu metric type (sys, idle, iowait, etc) listing all servers. grouping by server shows a graph for each server listing all cpu metrics for that server.
 * Once the optional `group by <tag>` is removed, each word is treated as a separate regular expression, which must each seperately match.  so order between "match words" becomes irrelevant,
   you can keep everything lowercase. you can also use '!' to negate.
 * if the pattern doesn't contain a "graph type specifier" like 'tpl' or 'targets',

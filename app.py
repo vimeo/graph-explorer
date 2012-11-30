@@ -25,6 +25,12 @@ for f in os.listdir("."):
             templates.append(module)
 os.chdir(wd)
 
+def list_target_types ():
+    target_types = {}
+    for t_o in template_objects:
+        target_types.update(t_o.target_types)
+    return target_types
+
 def list_targets (metrics):
     targets = {}    
     for t_o in template_objects:
@@ -38,19 +44,23 @@ def list_graphs (metrics):
     return graphs
 
 def parse_pattern(pattern):
-    # if user specified "group by foobar" in the pattern, filter it out
+    # if user doesn't specify any group_by, we automatically group by target_type and
+    # by the tag specified by default_group_by in the target_type (which is a mandatory option)
+    # if the user specified "group by foobar" in the pattern, we group by target_type and whatever the user said.
     group_by_match = re.search('(group by [^ ]+)',pattern)
-    group_by = None
+    group_by = ['target_type']
     if group_by_match and group_by_match.groups() > 0:
-        group_by = group_by_match.groups(1)[0].replace('group by ','')
+        group_by.append(group_by_match.groups(1)[0].replace('group by ',''))
         pattern = pattern[:group_by_match.start(1)] + pattern[group_by_match.end(1):]
+    else:
+        group_by.append('default_group_by')
     # split pattern into multiple words which are all matched independently
     # this allows you write words in any order, and also makes it easy to use negations
     pattern = pattern.split()
     # if the pattern doesn't contain a "graph type specifier" like 'tpl' or 'targets',
-    # assume we only want tpl ones. that sounds like good default behavior..
+    # assume we only want target ones. that sounds like good default behavior..
     if 'tpl' not in pattern and 'targets' not in pattern:
-        pattern.append('tpl')
+        pattern.append('target')
     pattern = {
         'pattern': pattern,
         'group_by': group_by
@@ -112,9 +122,10 @@ def index_post():
 @route('/debug')
 def view_debug():
     metrics = load_metrics()
+    target_types = list_target_types()
     targets = list_targets(metrics)
     graphs = list_graphs(metrics)
-    graphs_targets, graphs_targets_options = build_graphs_from_targets(targets)
+    graphs_targets, graphs_targets_options = build_graphs_from_targets(target_types, targets, {'group_by': ['target_type', 'default_group_by']})
     args = {'templates': templates,
         'targets': targets,
         'graphs': graphs,
@@ -129,31 +140,48 @@ def debug_metrics():
     response.content_type = 'text/plain'
     return "\n".join(load_metrics())
 
-def build_graphs_from_targets(targets, options = {}):
+# options must be a dict which contains at least a 'group_by' setting
+def build_graphs_from_targets(target_types, targets, options):
     graphs = {}
     if not targets:
         return (graphs, options)
-    # no group_by specified? pick most common default:
-    # note that default_group_by is mandatory for each target
-    if 'group_by' not in options or options['group_by'] is None:
-        group_by_candidates = {}
-        import operator
-        for (id, data) in targets.items():
-            group_by_candidates[data['default_group_by']] = group_by_candidates.get(data['default_group_by'],0) + 1
-        sorted_candidates = sorted(group_by_candidates.iteritems(), key=operator.itemgetter(1), reverse = True)
-        options['group_by'] = sorted_candidates[0][0]
-    # for each occurence of the tag specified by group_by, make a graph (named after the value of this tag),
-    # that gathers all targets which have this tag
+    group_by = options['group_by']
+    # for each combination of elements specified by group_by, make 1 graph,
+    # containing all various targets that have the elements specified by group_by
+    # graph name: value of each name of the elements specified by group_by (the "constants" for this graph)
+    # alias names: values of each name of the elements *not* specified by group_by (the "variables" for this graph)
+    # currently we support these group_by lists:
+    # target_type <tag>
+    # target_type <default_group_by (which also resolves to a tag)>
+    # go through all targets, figure out the corresponding graph title and target title and data, and categorize them into graphs
+    constants = len(group_by)
     for target_id in sorted(targets.iterkeys()):
         target_data = targets[target_id]
-        title = 'targets_' + target_data['tags'][options['group_by']]
-        if title not in graphs:
-            graphs[title] = {'title': title, 'targets': []}
+        target_type = target_data['target_type']
+        if group_by[1] is 'default_group_by':
+            group_by_tag = target_types[target_type]['default_group_by']
+        else:
+            group_by_tag =  group_by[1]
+        # group_by_tag is now something like 'server' or 'type', convert it to the actual value:
+        group_by_tag = target_data['tags'][group_by_tag]
+        constants = ['targets', target_type, group_by_tag]
+        variables = []
+        for tag_id in sorted(target_data['tags'].iterkeys()):
+            tag_value = target_data['tags'][tag_id]
+            if tag_value not in constants:
+                variables.append(tag_value)
+        
+        graph_title = '_'.join(constants)
+        target_name = '_'.join(variables)
+        if graph_title not in graphs:
+            graphs[graph_title] = {'title': graph_title, 'targets': []}
         t = {
-            'name': target_data['names'][options['group_by']],
+            'name': target_name,
             'target': target_data['target']
         }
-        graphs[title]['targets'].append(t)
+        graphs[graph_title]['targets'].append(t)
+    # given all graphs, process them to set any further options
+    # nothing needed at this point.
     return (graphs, options)
 
 @route('/graphs/', method='POST')
@@ -167,12 +195,13 @@ def graphs(pattern = ''):
     if not pattern:
         pattern = request.forms.get('pattern')
     metrics = load_metrics()
+    target_types = list_target_types()
     targets_all = list_targets(metrics)
     graphs_all = list_graphs(metrics)
     pattern = parse_pattern(pattern)
     targets_matching = match(targets_all, pattern)
     graphs_matching = match(graphs_all, pattern)
-    graphs_targets_matching = build_graphs_from_targets(targets_matching, pattern)[0]
+    graphs_targets_matching = build_graphs_from_targets(target_types, targets_matching, pattern)[0]
     len_targets_matching = len(targets_matching)
     len_graphs_matching = len(graphs_matching)
     len_graphs_targets_matching = len(graphs_targets_matching)

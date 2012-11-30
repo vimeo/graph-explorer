@@ -4,6 +4,9 @@ class SwiftTempauthTemplate(GraphTemplate):
     pattern       = "^stats\.([^\.]+)\.tempauth\.AUTH_\.([^\.]+)$"
     pattern_graph = "^stats\.([^\.]+)\.tempauth\.AUTH_\.errors$"
     types = ['errors', 'forbidden', 'token_denied', 'unauthorized']
+    target_types = {
+        'swift_tempauth': {'default_group_by': 'server'}
+    }
 
     def generate_targets(self, match):
         server = match.groups()[0]
@@ -11,8 +14,7 @@ class SwiftTempauthTemplate(GraphTemplate):
         t = {
             'target' : 'stats.%s.tempauth.AUTH_.%s' % (server, type),
             'tags'   : {'server': server, 'type': type},
-            'names'  : {'server': type, 'type': server},
-            'default_group_by': 'server'
+            'target_type': 'swift_tempauth'
         }
         return {'targets_' + t['target']: t}
 
