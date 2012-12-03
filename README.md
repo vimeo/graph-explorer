@@ -31,7 +31,18 @@ Graph-explorer will filter out all graphs as well as individual targets that mat
 
 ** the plan is to make the target system more clever so that it automatically knows *how* to display the graph, thereby allowing us to completely remove the graphs as defined by the templates mechanism, and only work from tags and clever tags and context-awareness **
 
+
+# target_types
+
+try to use some standardized nomenclature in target types and tags (named groups in the regex)
+different target types for timing, counter rate, counter totals;
+so for each metric regex, there's a target type. this is meant to work great with statsd
+words you might use: state, type, pct, rate, count, timing, http_method.
+
+
 Pattern matching algorithm:
+type  is usually just the last thing in the metric. for example 'iowait' or 'upper_90' for statsd timers
+groupnames in regex automatically become tags in your targets.
 
 * Graph targets are grouped by target_type, and additionally by the default_group_by of the target_type or any tag you specify with `group by <tag>`
   For example, the cpu template yields targets with tags type something like 'iowait' and server:<servername> and all with target_type 'cpu'.  You'll always have graphs with no other target_types then cpu metrics, but additional

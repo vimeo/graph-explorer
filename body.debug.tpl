@@ -46,18 +46,18 @@
         <div class="span12">
           <h2>Targets</h2>
           <table class="table table-condensed">
-		<tr><th>id</th><th>tags</th><th>target_type</th></tr>
+		<tr><th>id</th><th>tags</th></tr>
 %for id in sorted(targets.iterkeys()):
 	% data = targets[id]
 		<tr>
 			<td>{{id}}</td>
 			<td>
 	%for tag_key in sorted(data['tags'].iterkeys()):
+		<!-- TODO target onder id -->
 		% tag_val = data['tags'][tag_key]
 			{{tag_key}} : {{tag_val}}<br/>
 	%end
 			</td>
-			<td>{{data['target_type']}}</td>
 		</tr>
 %end
           </table>

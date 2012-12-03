@@ -157,28 +157,32 @@ def build_graphs_from_targets(target_types, targets, options):
     constants = len(group_by)
     for target_id in sorted(targets.iterkeys()):
         target_data = targets[target_id]
-        target_type = target_data['target_type']
+        target_type = target_data['tags']['target_type']
         if group_by[1] is 'default_group_by':
             group_by_tag = target_types[target_type]['default_group_by']
         else:
-            group_by_tag =  group_by[1]
+            group_by_tag = group_by[1]
         # group_by_tag is now something like 'server' or 'type', convert it to the actual value:
         group_by_tag = target_data['tags'][group_by_tag]
         constants = ['targets', target_type, group_by_tag]
         variables = []
         for tag_id in sorted(target_data['tags'].iterkeys()):
             tag_value = target_data['tags'][tag_id]
-            if tag_value not in constants:
+            if tag_value not in constants and tag_value:
                 variables.append(tag_value)
         
         graph_title = '_'.join(constants)
         target_name = '_'.join(variables)
         if graph_title not in graphs:
-            graphs[graph_title] = {'title': graph_title, 'targets': []}
+            graph = target_types[target_type].get('default_graph_options',{}).copy()
+            graph.update({'title': graph_title, 'targets': []})
+            graphs[graph_title] = graph
+        # set all options needed for graphitejs/flot:
         t = {
             'name': target_name,
             'target': target_data['target']
         }
+        if 'color' in target_data: t['color'] = target_data['color']
         graphs[graph_title]['targets'].append(t)
     # given all graphs, process them to set any further options
     # nothing needed at this point.

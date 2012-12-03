@@ -1,79 +1,46 @@
 from . import GraphTemplate
 
 class SwiftObjectServerTemplate(GraphTemplate):
-    pattern       = "^stats.timers\.([^\.]+)\.object-server\.(.*)$"
-    pattern_graph = "^stats.timers\.([^\.]+)\.object-server\.GET.timing.lower$"
-    # TODO: different target types for timing, counter rate, counter totals
-    target_types = {
-        'object_server_timing': {'default_group_by': 'server'}
-    }
-    http_methods = ['GET', 'HEAD', 'PUT', 'REPLICATE']
 
-    def generate_targets(self, match):
-        server = match.groups()[0]
-        type = match.groups()[1]
-        t = {
-            'target' : 'stats.timers.%s.object-server.%s' % (server, type),
-            'tags'   : {'server': server, 'type': type},
-            'target_type': 'object_server_timing'
+    #class_tag = 'swift_object_server'
+    pattern_graph = "^stats.timers\.([^\.]+)\.object-server\.GET.timing.lower$"
+    target_types = {
+        'swift_object_server_timer': {
+            'match': '^stats\.timers\.(?P<server>[^\.]+)\.object-server\.(?P<http_method>[^\.]+)\.timing\.(?P<type>[^\.]+)$',
+            'default_group_by': 'server',
+            'default_graph_options': {
+                'series': {'stack': False, 'lines': { 'show': True, 'lineWidth': 0.6, 'fill': False }}
+            }
+        },
+        'swift_object_server_count': {
+            'match': '^stats_counts\.(?P<server>[^\.]+)\.object-server\.?(?P<http_method>[^\.]*)\.(?P<type>async_pendings|errors|timeouts)$',
+            'default_group_by': 'server'
+        },
+        'swift_object_server_rate': {
+            'match': '^stats\.(?P<server>[^\.]+)\.object-server\.?(?P<http_method>[^\.]*)\.(?P<type>async_pendings|errors|timeouts)$',
+            'default_group_by': 'server'
         }
-        return {'targets_' + t['target']: t}
+    }
+
+    def configure_target(self, target):
+        m = target['tags'].get('http_method','')
+        t = target['tags']['type']
+        if m == 'GET'       and t in ('lower'   , 'timeouts'): target['color'] = self.colors['blue'][0]
+        if m == 'GET'       and t in ('upper_90', 'errors')  : target['color'] = self.colors['blue'][1]
+        if m == 'HEAD'      and t in ('lower'   , 'timeouts'): target['color'] = self.colors['yellow'][0]
+        if m == 'HEAD'      and t in ('upper_90', 'errors')  : target['color'] = self.colors['yellow'][1]
+        if m == 'PUT'       and t in ('lower'   , 'timeouts'): target['color'] = self.colors['green'][0]
+        if m == 'PUT'       and t in ('upper_90', 'errors')  : target['color'] = self.colors['green'][1]
+        if m == 'REPLICATE' and t in ('lower'   , 'timeouts'): target['color'] = self.colors['brown'][0]
+        if m == 'REPLICATE' and t in ('upper_90', 'errors')  : target['color'] = self.colors['brown'][1]
+        if m == 'DELETE'    and t in ('lower'   , 'timeouts'): target['color'] = self.colors['red'][0]
+        if m == 'DELETE'    and t in ('upper_90', 'errors')  : target['color'] = self.colors['red'][1]
+        if t == 'async_pendings': target['color'] = self.colors['turq'][0]
+        # maybe better just a config function that gets called when the graph is done. that way we don't config any things that will be filteredout,
+        # and also, we can change config based on the entire graph. maybe a graph_config_fn attrib per target_type which gets called for each target_type in a graph
+        return target
 
     def generate_graphs(self, match):
-        server = match.groups()[0]
-        graphs = {}
-
-        name = 'swift-object-server-timings-%s' % server
-        targets = []
-        # tuples of a light with corresponding darker color
-        colors = {
-            'GET': ('#5C9DFF', '#375E99'), # blue
-            'HEAD': ('#FFFFB2', '#FFFF00'), # yellow
-            'PUT': ('#80CC80', '#009900'), # green 
-            'REPLICATE': ('#694C2E', '#A59482') # brown
-        }
-        for method in self.http_methods:
-            for type in ('lower', 'upper_90'):
-                t = {}
-                t['name'] = '%s %s' % (method, type)
-                t['target'] = 'sumSeries(stats.timers.%s.object-server.%s.timing.%s)' % (server, method, type)
-                color_key = 0 if type == 'lower' else 1
-                t['color'] = colors[method][color_key]
-                targets.append(t)
-        graphs['tpl_' + name] = {
-            'targets': targets,
-            'series': {'stack': False, 'lines': { 'show': True, 'lineWidth': 0.6, 'fill': False }}
-        }
-
-        name = 'swift-object-server-errors-count-%s' % server
-        targets = []
-        for method in self.http_methods:
-            for problem in ['errors', 'timeouts']:
-                targets.append({
-                    'name': '%s %s' % (method, problem),
-                    'target': 'stats_counts.%s.object-server.%s.%s' % (server, method, problem)
-                })
-        targets.append({
-            'name': 'async_pendings',
-            'target': 'stats_counts.%s.object-server.async_pendings' % server
-        })
-        graphs['tpl_' + name] = {'targets': targets}
-
-        name = 'swift-object-server-errors-rate-%s' % server
-        targets = []
-        for method in self.http_methods:
-            for problem in ['errors', 'timeouts']:
-                targets.append({
-                    'name': '%s %s' % (method, problem),
-                    'target': 'stats.%s.object-server.%s.%s' % (server, method, problem)
-                })
-        targets.append({
-            'name': 'async_pendings',
-            'target': 'stats.%s.object-server.async_pendings' % server
-        })
-        graphs['tpl_' + name] = {'targets': targets}
-
-        return graphs
-
+        return {} # no longer needed. soon i hope. see above
 
 # vim: ts=4 et sw=4:

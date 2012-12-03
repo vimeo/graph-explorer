@@ -2,54 +2,34 @@ from . import GraphTemplate
 class CpuTemplate(GraphTemplate):
     '''
     only pass targets for total cpu metrics, not all cores individually
+    http://www.linuxhowtos.org/System/procstat.htm documents all states, except guest and steal(?)
+    everything is in percent, but note that e.g. a 16 core machine goes up to 1600%
     '''
-    pattern       = "^servers\.([^\.]+)\.cpu\.total\.(.*)$"
     pattern_graph = "^servers\.([^\.]+)\.cpu\.total\.user$"
     target_types = {
-        'cpu_state_pct': {'default_group_by': 'server'}
+        'cpu_state_pct': {
+            'match': '^servers\.(?P<server>[^\.]+)\.cpu\.total\.(?P<type>.*)$',
+            'default_group_by': 'server'
+        }
     }
 
-    def generate_targets(self, match):
-        server = match.groups()[0]
-        type = match.groups()[1]
-        t = {
-            'target' : 'servers.%s.cpu.total.%s' % (server, type),
-            'tags'   : {'server': server, 'type': type},
-            'target_type'  : 'cpu_state_pct'
+    def configure_target(self, target):
+        t = target['tags']['type']
+        color_assign = {
+            'idle': self.colors['green'][0],
+            'user': self.colors['blue'][0],
+            'system': self.colors['blue'][1],
+            'nice': self.colors['purple'][0],
+            'softirq': self.colors['red'][0],
+            'irq': self.colors['red'][1],
+            'iowait': self.colors['orange'][0],
+            'guest': self.colors['white'],
+            'steal': self.colors['white'] # i make these white cause i'm not sure if they're relevant
         }
-        return {'targets_' + t['target']: t}
+        target['color'] = color_assign[t]
+        return target
 
-    def generate_graphs(self, match):
-        '''
-        http://www.linuxhowtos.org/System/procstat.htm
-        guest and steal not there -> not in our graphs
-        '''
-        server = match.groups()[0]
-        name = 'cpu-%s' % server
-        # everything is in percent, but note that e.g. a 16 core machine goes up to 1600%
-        targets = [
-            {'name': '%s total.idle' % server,
-            'target': 'servers.%s.cpu.total.idle' % server,
-            'color': '#66FF66'}, # green
-            {'name': '%s total.user' % server,
-            'target': 'servers.%s.cpu.total.user' % server,
-            'color': '#5C9DFF'}, # light blue
-            {'name': '%s total.system' % server,
-            'target': 'servers.%s.cpu.total.system' % server,
-            'color': '#375E99'}, # dark blue
-            {'name': '%s total.nice' % server,
-            'target': 'servers.%s.cpu.total.nice' % server,
-            'color': '#9966FF'}, # purple
-            {'name': '%s total.softirq' % server,
-            'target': 'servers.%s.cpu.total.softirq' % server,
-            'color': '#FF3300'}, # strong red
-            {'name': '%s total.irq' % server,
-            'target': 'servers.%s.cpu.total.irq' % server,
-            'color': '#CC2900'}, # slightly darker red (purposely very similar color)
-            {'name': '%s total.iowait' % server,
-            'target': 'servers.%s.cpu.total.iowait' % server,
-            'color': '#FF9900'}, # orange
-        ]
-        return {'tpl_' + name: {'targets': targets}}
+    def generate_graphs (self, match):
+        return {}
 
 # vim: ts=4 et sw=4:
