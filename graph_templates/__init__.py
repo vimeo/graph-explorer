@@ -55,12 +55,12 @@ class GraphTemplate:
             # such usecase could be a feature like group_by, aggregate_by ... would be weird with the current approach
         }
         target = self.configure_target(target)
-        target_key = []
+        target_key = ['targets']
         for tag_key in sorted(target['tags'].iterkeys()): # including the tag key allows to filter out all http things by just writing 'http'
             tag_val = target['tags'][tag_key]
             if tag_val:
-                target_key.append('%s_%s' % (tag_key, tag_val))
-        target_key = 'targets_' + ' '.join(target_key)
+                target_key.append('%s:%s' % (tag_key, tag_val))
+        target_key = ' '.join(target_key)
         return {target_key: target}
 
     def configure_target(self, target):
