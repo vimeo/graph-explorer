@@ -1,19 +1,14 @@
 # Graph explorer
 
+A highly interactive dashboard to satisfy varying ad-hoc information needs across a multitude of metrics by using templates which add metadata to invidual targets, allowing you to categorize, group by, filter by server, service, type, and so on using expressive queries and manipulatable (toggling, reordering, .. of targets) graph renderings (WIP).
+differs from other dashboards by focus on juggling individual targets (as opposed to predefined graphs), the query interface for that, the focus on manipulatable graphs.
+
 ## Design goals
 
-A highly interactive dashboard to satisfy ad-hoc information needs across many similar metrics and graphs
-using mainly expressive queries as input.
-
-Plenty of dashboards provide statically configured pages for realtime and/or historic dashboards,
-others provide some dynamism but are often hard to navigate and too restrictive when trying to find and correllate time-series data.
-
-This tool aims to:
-
 * show you the information you're looking for as quickly as possible, and with minimal cruft
-* let you rearrange contents of graphs and more interactive features like realtime zooming, panning, legend reordering, etc
+* let you rearrange contents of graphs and more interactive features like realtime zooming, toggling, panning, legend reordering, etc (WIP)
 * diverge from the graphite API as little as possible. (no custom DSL like with gdash)
-* use expressive queries to navigate and manipulate display of individual graphite targets as well as complete graphs generated from templates
+* use expressive queries to navigate and manipulate display of individual graphite targets as well as complete graphs generated from templates, by enriching targets with metadata which can be used to filter, categorize, etc.
 * use simple version-controllable and editable plaintext files, avoid databases
 * be simple as possible to get running from scratch.  No *just use sinatra* `sudo gem install crap loadError && wget http://make-a-mess.sh | sudo bash -c ; passenger needs gcc to recompile nginx; **loadError**`
 
@@ -38,6 +33,8 @@ try to use some standardized nomenclature in target types and tags (named groups
 different target types for timing, counter rate, counter totals;
 so for each metric regex, there's a target type. this is meant to work great with statsd
 words you might use: state, type, pct, rate, count, timing, http_method.
+note that you can create new target_types based on the same metrics in graphite, but by using
+graphite functions such as derivative and integral
 
 
 Pattern matching algorithm:
