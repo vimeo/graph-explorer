@@ -215,7 +215,7 @@ def graphs(pattern = ''):
     if len_graphs_matching_all > 0 and request.headers.get('X-Requested-With') != 'XMLHttpRequest':
         out += template('snippet.graph-deps')
     def labels(l):
-        return ''.join(['<span class="label">%s</span>' % i for i in l])
+        return ' '.join(['<span class="label">%s</span>' % i for i in l])
     out += "Pattern: %s<br/>" % labels(pattern['pattern'])
     out += "Group by: %s<br/>" % labels(pattern['group_by'])
     out += "# targets matching: %i/%i<br/>" % (len_targets_matching, len(targets_all))
