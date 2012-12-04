@@ -849,9 +849,8 @@ input[type="email"],
 input[type="url"],
 input[type="search"],
 input[type="tel"],
-input[type="color"],
-.uneditable-input {
-  background-color: #cccccc;
+input[type="color"] {
+  background-color: #111111;
   border: 1px solid #bbbbbb;
   -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
   -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
@@ -860,6 +859,9 @@ input[type="color"],
   -moz-transition: border linear .2s, box-shadow linear .2s;
   -o-transition: border linear .2s, box-shadow linear .2s;
   transition: border linear .2s, box-shadow linear .2s;
+}
+.uneditable-input {
+  background-color: #cccccc;
 }
 textarea:focus,
 input[type="text"]:focus,
