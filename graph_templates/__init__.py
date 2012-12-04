@@ -33,6 +33,14 @@ class GraphTemplate:
             self.target_types[id]['match_object'] = re.compile(config['match'])
         self.pattern_object_graph = re.compile(self.pattern_graph)
 
+    def get_target_id(self, target):
+        target_key = ['targets']
+        for tag_key in sorted(target['tags'].iterkeys()): # including the tag key allows to filter out all http things by just writing 'http'
+            tag_val = target['tags'][tag_key]
+            if tag_val:
+                target_key.append('%s:%s' % (tag_key, tag_val))
+        return ' '.join(target_key)
+
     def generate_targets(self, id, match):
         """
         emit one or more targets in a dict like {'targetname': <target spec>}
@@ -55,13 +63,7 @@ class GraphTemplate:
             # such usecase could be a feature like group_by, aggregate_by ... would be weird with the current approach
         }
         target = self.configure_target(target)
-        target_key = ['targets']
-        for tag_key in sorted(target['tags'].iterkeys()): # including the tag key allows to filter out all http things by just writing 'http'
-            tag_val = target['tags'][tag_key]
-            if tag_val:
-                target_key.append('%s:%s' % (tag_key, tag_val))
-        target_key = ' '.join(target_key)
-        return {target_key: target}
+        return {self.get_target_id(target): target}
 
     def configure_target(self, target):
         return target
