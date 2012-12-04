@@ -5,10 +5,7 @@ class SwiftTempauthTemplate(GraphTemplate):
     target_types = {
         'swift_tempauth_rate': {
             'match': '^stats\.(?P<server>[^\.]+)\.tempauth\.AUTH_\.(?P<type>[^\.]+)$',
-            'default_group_by': 'server',
-            'default_graph_options': {
-                'series': {'stack': False, 'lines': { 'show': True, 'lineWidth': 0.6, 'fill': False }}
-            }
+            'default_group_by': 'server'
         },
         'swift_tempauth_count': {
             'match': '^stats_counts\.(?P<server>[^\.]+)\.tempauth\.AUTH_\.(?P<type>[^\.]+)$',

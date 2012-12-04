@@ -7,10 +7,7 @@ class SwiftObjectServerTemplate(GraphTemplate):
     target_types = {
         'swift_object_server_timer': {
             'match': '^stats\.timers\.(?P<server>[^\.]+)\.object-server\.(?P<http_method>[^\.]+)\.timing\.(?P<type>[^\.]+)$',
-            'default_group_by': 'server',
-            'default_graph_options': {
-                'series': {'stack': False, 'lines': { 'show': True, 'lineWidth': 0.6, 'fill': False }}
-            }
+            'default_group_by': 'server'
         },
         'swift_object_server_count': {
             'match': '^stats_counts\.(?P<server>[^\.]+)\.object-server\.?(?P<http_method>[^\.]*)\.(?P<type>async_pendings|errors|timeouts)$',
