@@ -1,5 +1,5 @@
 <h2>{{graph_name}}</h2>
-%graph_id = graph_name.replace('.','').replace('-','_') # disallowed in var names
+%graph_id = graph_name.replace('.','').replace('-','_').replace(' ','_') # disallowed in var names
 %import json
         <div class="chart_container flot" id="chart_container_flot_{{graph_id}}">
             <div class="chart" id="chart_flot_{{graph_id}}" height="300px" width="700px"></div>

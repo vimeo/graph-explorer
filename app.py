@@ -171,8 +171,8 @@ def build_graphs_from_targets(target_types, targets, options):
             if tag_value not in constants and tag_value:
                 variables.append(tag_value)
         
-        graph_title = '_'.join(constants)
-        target_name = '_'.join(variables)
+        graph_title = ' '.join(constants)
+        target_name = ' '.join(variables)
         if graph_title not in graphs:
             graph = target_types[target_type].get('default_graph_options',{}).copy()
             graph.update({'title': graph_title, 'targets': []})
