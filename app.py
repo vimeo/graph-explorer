@@ -222,7 +222,11 @@ def graphs(pattern = ''):
     out += "# graphs matching: %i/%i<br/>" % (len_graphs_matching, len(graphs_all))
     out += "# graphs from matching targets: %i<br/>" % len_graphs_targets_matching
     out += "# total graphs: %i<br/>" % len_graphs_matching_all
-    out += ''.join(template('snippet.graph', graphite_url = graphite_url, graph_name = title, graph_data = data) for (title, data) in graphs_matching.items())
+    rendered_templates = []
+    for title in sorted(graphs_matching.iterkeys()):
+        data = graphs_matching[title]
+        rendered_templates.append(template('snippet.graph', graphite_url = graphite_url, graph_name = title, graph_data = data))
+    out += ''.join(rendered_templates)
     return out
 
 # vim: ts=4 et sw=4:
