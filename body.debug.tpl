@@ -6,7 +6,7 @@
         <div class="span12">
           <h2>Templates</h2>
           <table class="table table-condensed">
-%for template in templates:
+%for template in sorted(templates):
             <tr><td>{{template}}</td></tr>
 %end
           </table>
