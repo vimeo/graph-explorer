@@ -36,7 +36,7 @@ words you might use: state, type, pct, rate, count, timing, http_method.
 note that you can create new target_types based on the same metrics in graphite, but by using
 graphite functions such as derivative and integral
 
-* type is usually just the last thing in the metric. for example 'iowait' or 'upper_90' for statsd timers
+* type is usually just the last thing in the metric. for example `iowait` or `upper_90` for statsd timers
 groupnames in regex automatically become tags in your targets.
 
 ## Query parsing and execution
@@ -44,14 +44,14 @@ groupnames in regex automatically become tags in your targets.
 ## the algorithm
 
 * from the query input you provide...
-* parse out the (optional) `group by <tag>` (can occur anywhere. `<tag>` must not contain whitespace, a ':<tag>' pattern is implicitly added (see below))
+* parse out the (optional) `group by <tag>` (can occur anywhere. `<tag>` must not contain whitespace, a `:<tag>` pattern is implicitly added (see below))
 * split up result into separate patterns (whitespace as boundary), each of which must match on its own.
 * each pattern should be in lowercase
-* you can use '!' to negate
-* any 'pattern' that has ':' inside it matches on tags, like so:
-  * ':<foo>': any tag must have value '<foo>'
-  * '<foo>:' a tag with key '<foo>' must exist
-  * '<foo>:<bar>' a tag with key '<foo>' must exist and have value '<bar>'
+* you can use `!` to negate
+* any pattern that has `:` inside it matches on tags, like so:
+  * `:<foo>`      : a tag must have value `<foo>`
+  * `<foo>:`      : a tag with key `<foo>` must exist
+  * `<foo>:<bar>` : a tag with key `<foo>` must exist and have value `<bar>`
 * any other pattern is treated as a regular expression, which must each match the target name.
 * matching targets are collected and grouped into graphs based on group settings (see below), and rendered
 
@@ -62,17 +62,17 @@ note:
 
 ## special statements
 
-### group by <tag>
+### group by `<tag>`
 
 Graph targets are grouped by target_type, and additionally by the default_group_by of the target_type or any tag you specify with `group by <tag>`
 
 For example, the cpu template yields targets with tags:
 
-* target_type: 'cpu_state_pct'.
-* type : something like 'iowait'.
+* target_type: cpu_state_pct
+* type : something like iowait
 * server: hostname
 
-it has default_group_by set to 'server'
+it has default_group_by set to `server`
 
 You'll always have graphs with no other target_types than cpu metrics,
 but additional grouping by:
