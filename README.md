@@ -17,7 +17,7 @@ Furthermore, the code is simple and hackable (just a few hundred sLOC), uses sim
 
 ![Screenshot](https://raw.github.com/Dieterbe/graph-explorer/master/screenshot.png)
 
-# The mechanism explained
+## The mechanism explained
 
 * from a list of all metrics available in your graphite system (you can just download this from graphite box, see further down)
 * a bunch of small template files which are fed this list and yield
@@ -27,7 +27,7 @@ Furthermore, the code is simple and hackable (just a few hundred sLOC), uses sim
 * an input query provided by the user which filters targets and optionally defines how to group them (default grouping is always at least by target_type, and usually secondary by server)
 * the graphs are shown.  All graphs are given clear names that are suitable for easy filtering.
 
-# target_types
+## target_types
 
 try to use some standardized nomenclature in target types and tags (named groups in the regex)
 different target types for timing, counter rate, counter totals;
@@ -37,17 +37,16 @@ note that you can create new target_types based on the same metrics in graphite,
 graphite functions such as derivative and integral
 
 
-Pattern matching algorithm:
-type  is usually just the last thing in the metric. for example 'iowait' or 'upper_90' for statsd timers
+## Pattern matching algorithm
+* Once the optional `group by <tag>` is removed, each word is treated as a separate regular expression, which must each seperately match.  so order between "match words" becomes irrelevant,
+  you can keep everything lowercase. you can also use '!' to negate.
+* if the pattern doesn't contain a "graph type specifier" like 'tpl' or 'targets', GE automatically filters on only 'targets', which is the recommended behavior.
+* type is usually just the last thing in the metric. for example 'iowait' or 'upper_90' for statsd timers
 groupnames in regex automatically become tags in your targets.
 
 * Graph targets are grouped by target_type, and additionally by the default_group_by of the target_type or any tag you specify with `group by <tag>`
-  For example, the cpu template yields targets with tags type something like 'iowait' and server:<servername> and all with target_type 'cpu'.  You'll always have graphs with no other target_types then cpu metrics, but additional
-  grouping by type yields a graph for each cpu metric type (sys, idle, iowait, etc) listing all servers. grouping by server shows a graph for each server listing all cpu metrics for that server.
-* Once the optional `group by <tag>` is removed, each word is treated as a separate regular expression, which must each seperately match.  so order between "match words" becomes irrelevant,
-  you can keep everything lowercase. you can also use '!' to negate.
-* if the pattern doesn't contain a "graph type specifier" like 'tpl' or 'targets',
-  we assume you only want tpl ones. so GE adds 'tpl' so you only see templated graphs by default.
+  For example, the cpu template yields targets with tags type something like 'iowait' and server:<servername> and all with target_type 'cpu_state_pct'.  You'll always have graphs with no other target_types then cpu metrics, but additional
+  grouping by type yields a graph for each cpu state (sys, idle, iowait, etc) listing all servers. grouping by server shows a graph for each server listing all cpu states for that server.
 
 Examples:
 
