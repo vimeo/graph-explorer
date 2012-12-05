@@ -1,31 +1,31 @@
 # Graph explorer
 
-A highly interactive dashboard to satisfy varying ad-hoc information needs across a multitude of metrics by using templates which add metadata to invidual targets, allowing you to categorize, group by, filter by server, service, type, and so on using expressive queries and manipulatable (toggling, reordering, .. of targets) graph renderings (WIP).
-differs from other dashboards by focus on juggling individual targets (as opposed to predefined graphs), the query interface for that, the focus on manipulatable graphs.
+A highly interactive dashboard to satisfy varying ad-hoc information needs across a multitude of metrics by using templates which
 
-## Design goals
+* add metadata to invidual graphite metrics, (tags such as as server, service, type, ...)
+* let you optionally define rules how to render any metric in multiple ways (as a count, a rate, etc)
 
-* show you the information you're looking for as quickly as possible, and with minimal cruft
-* let you rearrange contents of graphs and more interactive features like realtime zooming, toggling, panning, legend reordering, etc (WIP)
-* diverge from the graphite API as little as possible. (no custom DSL like with gdash)
-* use expressive queries to navigate and manipulate display of individual graphite targets as well as complete graphs generated from templates, by enriching targets with metadata which can be used to filter, categorize, etc.
-* use simple version-controllable and editable plaintext files, avoid databases
-* be simple as possible to get running from scratch.  No *just use sinatra* `sudo gem install crap loadError && wget http://make-a-mess.sh | sudo bash -c ; passenger needs gcc to recompile nginx; **loadError**`
+you can then use expressive queries which leverage this metadata to filter targets and group them into graphs in arbitrary ways.
+The graphs themselves are also interactive and can be toggled between stacked/lines mode, more features (like toggling and reordering of targets, realtime zooming/panning) are on the way.
+
+Quick example videos which give you an idea:
+
+* [diskspace example (1:20)](https://vimeo.com/54906914)
+* [openstack swift example (1:57)[(https://vimeo.com/54912886)
+
+Furthermore, the code is simple and hackable (just a few hundred sLOC), uses simple python files as templates, and is a breeze to get running (only external dep. is python)
 
 ![Screenshot](https://raw.github.com/Dieterbe/graph-explorer/master/screenshot.png)
 
-# Interactive queries
+# The mechanism explained
 
-Given:
-
-* a list of all metrics available in your graphite system (you can just download this from graphite box)
-* a bunch of small template files which define which graphs can be generated based on the available metrics you have, as well as individual targets which may be interesting by themselves (and for each target one or more tags; which you can use to categorize by server, by service, etc)
-* an input query provided by the user
-
-Graph-explorer will filter out all graphs as well as individual targets that match the query.  the targets are then grouped by a tag (given by user or from a default config) and yield one or more additional graphs.  All graphs are given clear names that are suitable for easy filtering.
-
-** the plan is to make the target system more clever so that it automatically knows *how* to display the graph, thereby allowing us to completely remove the graphs as defined by the templates mechanism, and only work from tags and clever tags and context-awareness **
-
+* from a list of all metrics available in your graphite system (you can just download this from graphite box, see further down)
+* a bunch of small template files which are fed this list and yield
+  * enriched targets (by matching graphite metrics, assigning tags, and defining how to render them, each of these configs is a 'target_type'). target_types can also specify default graph options for entire graphs.
+    targets are given an extensive name which includes all metadata.
+  * graphs (this will be revised later. i think i'll want to yield graphs from the enriched targets instead of fram graphite metrics themselves)
+* an input query provided by the user which filters targets and optionally defines how to group them (default grouping is always at least by target_type, and usually secondary by server)
+* the graphs are shown.  All graphs are given clear names that are suitable for easy filtering.
 
 # target_types
 
