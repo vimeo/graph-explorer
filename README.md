@@ -11,7 +11,7 @@ The graphs themselves are also interactive and can be toggled between stacked/li
 Quick example videos which give you an idea:
 
 * [diskspace example (1:20)](https://vimeo.com/54906914)
-* [openstack swift example (1:57)[(https://vimeo.com/54912886)
+* [openstack swift example (1:57)](https://vimeo.com/54912886)
 
 Furthermore, the code is simple and hackable (just a few hundred sLOC), uses simple python files as templates, and is a breeze to get running (only external dep. is python)
 
