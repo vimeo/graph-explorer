@@ -43,57 +43,83 @@ def list_graphs (metrics):
         graphs.update(t_o.list_graphs(metrics))
     return graphs
 
-def parse_pattern(pattern):
+def parse_query(query):
     # if user doesn't specify any group_by, we automatically group by target_type and
     # by the tag specified by default_group_by in the target_type (which is a mandatory option)
-    # if the user specified "group by foobar" in the pattern, we group by target_type and whatever the user said.
-    group_by_match = re.search('(group by [^ ]+)',pattern)
+    # if the user specified "group by foobar" in the query, we group by target_type and whatever the user said.
+    group_by_match = re.search('(group by [^ ]+)',query)
     group_by = ['target_type']
+    patterns = []
     if group_by_match and group_by_match.groups() > 0:
-        group_by.append(group_by_match.groups(1)[0].replace('group by ',''))
-        pattern = pattern[:group_by_match.start(1)] + pattern[group_by_match.end(1):]
+        group_by_custom = group_by_match.groups(1)[0].replace('group by ','')
+        group_by.append(group_by_custom)
+        patterns.append(':%s' % group_by_custom)
+        query = query[:group_by_match.start(1)] + query[group_by_match.end(1):]
     else:
         group_by.append('default_group_by')
-    # split pattern into multiple words which are all matched independently
-    # this allows you write words in any order, and also makes it easy to use negations
-    pattern = pattern.split()
-    # if the pattern doesn't contain a "graph type specifier" like 'tpl' or 'targets',
+    # split query into multiple patterns which are all matched independently
+    # this allows you write patterns in any order, and also makes it easy to use negations
+    patterns += query.split()
+    # if the query doesn't contain a "graph type specifier" like 'tpl' or 'targets',
     # assume we only want target ones. that sounds like good default behavior..
-    if 'tpl' not in pattern and 'targets' not in pattern:
-        pattern.append('target')
-    pattern = {
-        'pattern': pattern,
+    if 'tpl' not in query and 'targets' not in query:
+        patterns.append('target')
+    query = {
+        'patterns': patterns,
         'group_by': group_by
     }
-    return pattern
+    return query
+
+# id, data -> an key:object from the dict of objects
+# pattern: a pattern structure from match()
+def match_pattern(id, data, pattern):
+    if 'match_tag' in pattern:
+        t_key = pattern['match_tag'][0]
+        t_val = pattern['match_tag'][1]
+        if len(t_key) is 0 and len(t_val) is 0:
+            # this pattern is pointless. but whatever.
+            match_pattern = True
+        if len(t_key) > 0 and len(t_val) is 0:
+            match_pattern = (t_key in data['tags'])
+        if len(t_key) is 0 and len(t_val) > 0:
+            match_pattern = False
+            for (k,v) in data['tags']:
+                if t_val is v:
+                    match_pattern = True
+        if len(t_key) > 0 and len(t_val) > 0:
+            match_pattern = (t_key in data['tags'] and data['tags'][t_key] == t_val)
+    else:
+        match_pattern = (pattern['match_id'].search(id) is not None)
+    return match_pattern
 
 # objects is expected to be a dict with elements like id: data
 # id's are matched, and the return value is a dict in the same format
-# every part of the pattern must match, use ! to negate
-def match(objects, pattern):
-    # prepare higher performing pattern structure
+# if you use tags, make sure data['tags'] is a dict of tags or this'll blow up
+def match(objects, query):
+    # prepare higher performing query structure
     # note that if you have twice the exact same "word" (ignoring leading '!'), the last one wins
     patterns = {}
-    for patt in pattern['pattern']:
+    for pattern in query['patterns']:
         negate = False
-        if patt.startswith('!'):
+        if pattern.startswith('!'):
             negate = True
-            patt = patt[1:]
-        patterns[patt] = {
-            'negate': negate,
-            'object': re.compile(patt)
-        }
+            pattern = pattern[1:]
+        patterns[pattern] = {'negate': negate}
+        if ':' in pattern:
+            patterns[pattern]['match_tag'] = pattern.split(':')
+        else:
+            patterns[pattern]['match_id'] = re.compile(pattern)
     
     objects_matching = {}
     for (id, data) in objects.items():
-        match = True
-        for patt in patterns.values():
-            match_found = (patt['object'].search(id) is not None)
-            if match_found and patt['negate']:
-                match = False
-            elif not match_found and not patt['negate']:
-                match = False
-        if match:
+        match_o = True
+        for pattern in patterns.values():
+            match_p = match_pattern(id, data, pattern)
+            if match_p and pattern['negate']:
+                match_o = False
+            elif not match_p and not pattern['negate']:
+                match_o = False
+        if match_o:
             objects_matching[id] = data
     return objects_matching
 
@@ -110,14 +136,14 @@ def static(path):
 @route('/', method='GET')
 @route('/index', method='GET')
 @route('/index/', method='GET')
-@route('/index/<pattern>', method='GET')
-def index(pattern = ''):
-    output = template('page', body = template('body.index', pattern = pattern))
+@route('/index/<query>', method='GET')
+def index(query = ''):
+    output = template('page', body = template('body.index', query = query))
     return str(output)
 
 @route('/index', method='POST')
 def index_post():
-    redirect('/index/%s' % request.forms.pattern)
+    redirect('/index/%s' % request.forms.query)
 
 @route('/debug')
 def view_debug():
@@ -140,12 +166,12 @@ def debug_metrics():
     response.content_type = 'text/plain'
     return "\n".join(load_metrics())
 
-# options must be a dict which contains at least a 'group_by' setting
-def build_graphs_from_targets(target_types, targets, options):
+# query must be a dict which contains at least a 'group_by' setting
+def build_graphs_from_targets(target_types, targets, query):
     graphs = {}
     if not targets:
-        return (graphs, options)
-    group_by = options['group_by']
+        return (graphs, query)
+    group_by = query['group_by']
     # for each combination of elements specified by group_by, make 1 graph,
     # containing all various targets that have the elements specified by group_by
     # graph name: value of each name of the elements specified by group_by (the "constants" for this graph)
@@ -186,26 +212,26 @@ def build_graphs_from_targets(target_types, targets, options):
         graphs[graph_title]['targets'].append(t)
     # given all graphs, process them to set any further options
     # nothing needed at this point.
-    return (graphs, options)
+    return (graphs, query)
 
 @route('/graphs/', method='POST')
-@route('/graphs/<pattern>', method='GET') # used for manually testing
-def graphs(pattern = ''):
+@route('/graphs/<query>', method='GET') # used for manually testing
+def graphs(query = ''):
     '''
-    get all relevant graphs matching pattern,
+    get all relevant graphs matching query,
     graphs yielded by templates directly,
     enriched by combining the yielded targets
     '''
-    if not pattern:
-        pattern = request.forms.get('pattern')
+    if not query:
+        query = request.forms.get('query')
     metrics = load_metrics()
     target_types = list_target_types()
     targets_all = list_targets(metrics)
     graphs_all = list_graphs(metrics)
-    pattern = parse_pattern(pattern)
-    targets_matching = match(targets_all, pattern)
-    graphs_matching = match(graphs_all, pattern)
-    graphs_targets_matching = build_graphs_from_targets(target_types, targets_matching, pattern)[0]
+    query = parse_query(query)
+    targets_matching = match(targets_all, query)
+    graphs_matching = match(graphs_all, query)
+    graphs_targets_matching = build_graphs_from_targets(target_types, targets_matching, query)[0]
     len_targets_matching = len(targets_matching)
     len_graphs_matching = len(graphs_matching)
     len_graphs_targets_matching = len(graphs_targets_matching)
@@ -216,8 +242,8 @@ def graphs(pattern = ''):
         out += template('snippet.graph-deps')
     def labels(l):
         return ' '.join(['<span class="label">%s</span>' % i for i in l])
-    out += "Pattern: %s<br/>" % labels(pattern['pattern'])
-    out += "Group by: %s<br/>" % labels(pattern['group_by'])
+    out += "Patterns: %s<br/>" % labels(query['patterns'])
+    out += "Group by: %s<br/>" % labels(query['group_by'])
     out += "# targets matching: %i/%i<br/>" % (len_targets_matching, len(targets_all))
     out += "# graphs matching: %i/%i<br/>" % (len_graphs_matching, len(graphs_all))
     out += "# graphs from matching targets: %i<br/>" % len_graphs_targets_matching
