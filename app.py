@@ -53,7 +53,7 @@ def parse_query(query):
     if group_by_match and group_by_match.groups() > 0:
         group_by_custom = group_by_match.groups(1)[0].replace('group by ','')
         group_by.append(group_by_custom)
-        patterns.append(':%s' % group_by_custom)
+        patterns.append('%s:' % group_by_custom)
         query = query[:group_by_match.start(1)] + query[group_by_match.end(1):]
     else:
         group_by.append('default_group_by')
@@ -83,7 +83,7 @@ def match_pattern(id, data, pattern):
             match_pattern = (t_key in data['tags'])
         if len(t_key) is 0 and len(t_val) > 0:
             match_pattern = False
-            for (k,v) in data['tags']:
+            for (k,v) in data['tags'].items():
                 if t_val is v:
                     match_pattern = True
         if len(t_key) > 0 and len(t_val) > 0:
