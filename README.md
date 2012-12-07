@@ -52,7 +52,7 @@ groupnames in regex automatically become tags in your targets.
   * `:<foo>`      : a tag must have value `<foo>`
   * `<foo>:`      : a tag with key `<foo>` must exist
   * `<foo>:<bar>` : a tag with key `<foo>` must exist and have value `<bar>`
-* any other pattern is treated as a regular expression, which must each match the target name.
+* any other pattern is treated as a regular expression, which must match the target name.
 * matching targets are collected and grouped into graphs based on group settings (see below), and rendered
 
 note:
