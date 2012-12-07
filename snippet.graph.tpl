@@ -3,7 +3,7 @@
 %import json
         <div class="chart_container flot" id="chart_container_flot_{{graph_id}}">
             <div class="chart" id="chart_flot_{{graph_id}}" height="300px" width="700px"></div>
-            <div class="legend" id="legend_flot_{{graph_id}}" height="300px" width="50px" style="height:300px; width: 50px"></div>
+            <div class="legend" id="legend_flot_{{graph_id}}"></div>
             <form class="toggler" id="line_stack_form_flot_{{graph_id}}"></form>
         </div>
         <script language="javascript">
