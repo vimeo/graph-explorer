@@ -6,15 +6,18 @@ class SwiftProxyServerTemplate(GraphTemplate):
     target_types = {
         'swift_proxy_server_timer': {
             'match': '^stats.timers\.(?P<server>[^\.]+)\.proxy-server\.(?P<swift_type>account|container|object)\.(?P<http_method>[^\.]+)\.(?P<http_code>[^\.]+)\.timing\.(?P<type>[^\.]+)$',
-            'default_group_by': 'server'
+            'default_group_by': 'server',
+            'default_graph_options': {'vtitle': 'duration in ms'}
         },
         'swift_proxy_server_count': {
             'match': '^stats_counts\.(?P<server>[^\.]+)\.proxy-server\.?(?P<swift_type>account|container|object)?\.?(?P<http_method>[^\.]*)\.?(?P<http_code>[^\.]*)\.(?P<type>[^\.]+)$',
-            'default_group_by': 'server'
+            'default_group_by': 'server',
+            'default_graph_options': {'vtitle': 'events seen in flushInterval'}
         },
         'swift_proxy_server_rate': {
             'match': '^stats\.(?P<server>[^\.]+)\.proxy-server\.?(?P<swift_type>account|container|object)?\.?(?P<http_method>[^\.]*)\.?(?P<http_code>[^\.]*)\.(?P<type>[^\.]+)$',
-            'default_group_by': 'server'
+            'default_group_by': 'server',
+            'default_graph_options': {'vtitle': 'events/s'}
         },
     }
 

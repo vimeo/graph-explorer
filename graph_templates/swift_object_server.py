@@ -7,15 +7,18 @@ class SwiftObjectServerTemplate(GraphTemplate):
     target_types = {
         'swift_object_server_timer': {
             'match': '^stats\.timers\.(?P<server>[^\.]+)\.object-server\.(?P<http_method>[^\.]+)\.timing\.(?P<type>[^\.]+)$',
-            'default_group_by': 'server'
+            'default_group_by': 'server',
+            'default_graph_options': {'vtitle': 'duration in ms'}
         },
         'swift_object_server_count': {
             'match': '^stats_counts\.(?P<server>[^\.]+)\.object-server\.?(?P<http_method>[^\.]*)\.(?P<type>async_pendings|errors|timeouts)$',
-            'default_group_by': 'server'
+            'default_group_by': 'server',
+            'default_graph_options': {'vtitle': 'events seen in flushInterval'}
         },
         'swift_object_server_rate': {
             'match': '^stats\.(?P<server>[^\.]+)\.object-server\.?(?P<http_method>[^\.]*)\.(?P<type>async_pendings|errors|timeouts)$',
-            'default_group_by': 'server'
+            'default_group_by': 'server',
+            'default_graph_options': {'vtitle': 'events/s'}
         }
     }
 
