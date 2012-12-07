@@ -99,9 +99,13 @@ This of course extends to >2 tags.
 
 ## Installation
 
-* git clone graph-explorer
-* git submodule init; git submodule update
-* cd graphitejs; git submodule init; git submodule update
+```
+git clone https://github.com/Dieterbe/graph-explorer.git
+cd graph-explorer
+git submodule update --init
+cd graphitejs
+git submodule update --init
+```
 
 ## Configuration of graph-explorer
 
