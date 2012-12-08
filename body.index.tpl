@@ -15,13 +15,9 @@
         <script type="text/javascript">
           function update_graphs() {
             var query = $('#query')[0].value;
-            if(query) {
-              $.post('/graphs/', {query:query}, function(data) {
-                $('#graphs').html(data);
-              });
-            } else {
-              $('#graphs').html("Empty query.  Nothing to display.");
-            }
+            $.post('/graphs/', {query:query}, function(data) {
+              $('#graphs').html(data);
+            });
           }
           $(document).ready(function() {
             update_graphs();

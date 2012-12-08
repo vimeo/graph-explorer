@@ -147,7 +147,13 @@ def index_post():
 
 @route('/debug')
 def view_debug():
-    metrics = load_metrics()
+    try:
+        metrics = load_metrics()
+    except IOError, e:
+        return str(template('page', page = 'debug', body = template('snippet.error-no-metrics', error = e)))
+    except ValueError, e:
+        return str(template('page', page = 'debug', body = template('snippet.error-bad-metrics', error = e)))
+
     target_types = list_target_types()
     targets = list_targets(metrics)
     graphs = list_graphs(metrics)
@@ -164,7 +170,14 @@ def view_debug():
 @route('/debug/metrics')
 def debug_metrics():
     response.content_type = 'text/plain'
-    return "\n".join(load_metrics())
+    try:
+        return "\n".join(load_metrics())
+    except IOError, e:
+        response.status = 500
+        return "Can't load metrics file: %s" % e
+    except ValueError, e:
+        response.status = 500
+        return "Can't parse metrics file: %s" % e
 
 # query must be a dict which contains at least a 'group_by' setting
 def build_graphs_from_targets(target_types, targets, query):
@@ -222,9 +235,16 @@ def graphs(query = ''):
     graphs yielded by templates directly,
     enriched by combining the yielded targets
     '''
+    try:
+        metrics = load_metrics()
+    except IOError, e:
+        return str(template('snippet.error-no-metrics', error = e))
+    except ValueError, e:
+        return str(template('snippet.error-bad-metrics', error = e))
     if not query:
         query = request.forms.get('query')
-    metrics = load_metrics()
+    if not query:
+        return str(template('snippet.info-empty-query'))
     target_types = list_target_types()
     targets_all = list_targets(metrics)
     graphs_all = list_graphs(metrics)
