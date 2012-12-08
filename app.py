@@ -32,13 +32,13 @@ def list_target_types ():
     return target_types
 
 def list_targets (metrics):
-    targets = {}    
+    targets = {}
     for t_o in template_objects:
         targets.update(t_o.list_targets(metrics))
     return targets
 
 def list_graphs (metrics):
-    graphs = {}    
+    graphs = {}
     for t_o in template_objects:
         graphs.update(t_o.list_graphs(metrics))
     return graphs
@@ -109,7 +109,7 @@ def match(objects, query):
             patterns[pattern]['match_tag'] = pattern.split(':')
         else:
             patterns[pattern]['match_id'] = re.compile(pattern)
-    
+
     objects_matching = {}
     for (id, data) in objects.items():
         match_o = True
@@ -196,7 +196,7 @@ def build_graphs_from_targets(target_types, targets, query):
             tag_value = target_data['tags'][tag_id]
             if tag_value not in constants and tag_value:
                 variables.append(tag_value)
-        
+
         graph_title = ' '.join(constants)
         target_name = ' '.join(variables)
         if graph_title not in graphs:
