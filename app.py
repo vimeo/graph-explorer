@@ -1,8 +1,10 @@
 #!/usr/bin/env python2
-import os, json, sys, traceback, re
+import os
+import json
+import re
 from inspect import isclass
-from bottle import route, run, debug, template, request, validate, static_file, redirect, response
-from config import *
+from bottle import route, template, request, static_file, redirect, response
+import config
 
 # Load all the graph_templates sub-modules and create a list of
 # template_objects and templates
@@ -17,7 +19,7 @@ for f in os.listdir("."):
     if f == '__init__.py' or not f.endswith(".py"):
         continue
     module = f[:-3]
-    imp = __import__('graph_templates.'+module, globals(), locals(), ['*'])
+    imp = __import__('graph_templates.' + module, globals(), locals(), ['*'])
     for itemname in dir(imp):
         item = getattr(imp, itemname)
         if isclass(item) and item != GraphTemplate and issubclass(item, GraphTemplate):
@@ -25,33 +27,37 @@ for f in os.listdir("."):
             templates.append(module)
 os.chdir(wd)
 
-def list_target_types ():
+
+def list_target_types():
     target_types = {}
     for t_o in template_objects:
         target_types.update(t_o.target_types)
     return target_types
 
-def list_targets (metrics):
+
+def list_targets(metrics):
     targets = {}
     for t_o in template_objects:
         targets.update(t_o.list_targets(metrics))
     return targets
 
-def list_graphs (metrics):
+
+def list_graphs(metrics):
     graphs = {}
     for t_o in template_objects:
         graphs.update(t_o.list_graphs(metrics))
     return graphs
 
+
 def parse_query(query):
     # if user doesn't specify any group_by, we automatically group by target_type and
     # by the tag specified by default_group_by in the target_type (which is a mandatory option)
     # if the user specified "group by foobar" in the query, we group by target_type and whatever the user said.
-    group_by_match = re.search('(group by [^ ]+)',query)
+    group_by_match = re.search('(group by [^ ]+)', query)
     group_by = ['target_type']
     patterns = []
     if group_by_match and group_by_match.groups() > 0:
-        group_by_custom = group_by_match.groups(1)[0].replace('group by ','')
+        group_by_custom = group_by_match.groups(1)[0].replace('group by ', '')
         group_by.append(group_by_custom)
         patterns.append('%s:' % group_by_custom)
         query = query[:group_by_match.start(1)] + query[group_by_match.end(1):]
@@ -70,6 +76,7 @@ def parse_query(query):
     }
     return query
 
+
 # id, data -> an key:object from the dict of objects
 # pattern: a pattern structure from match()
 def match_pattern(id, data, pattern):
@@ -83,7 +90,7 @@ def match_pattern(id, data, pattern):
             match_pattern = (t_key in data['tags'])
         if len(t_key) is 0 and len(t_val) > 0:
             match_pattern = False
-            for (k,v) in data['tags'].items():
+            for (k, v) in data['tags'].items():
                 if t_val is v:
                     match_pattern = True
         if len(t_key) > 0 and len(t_val) > 0:
@@ -91,6 +98,7 @@ def match_pattern(id, data, pattern):
     else:
         match_pattern = (pattern['match_id'].search(id) is not None)
     return match_pattern
+
 
 # objects is expected to be a dict with elements like id: data
 # id's are matched, and the return value is a dict in the same format
@@ -123,9 +131,11 @@ def match(objects, query):
             objects_matching[id] = data
     return objects_matching
 
+
 def load_metrics():
     f = open('metrics.json', 'r')
     return json.load(f)
+
 
 @route('<path:re:/assets/.*>')
 @route('<path:re:/graphitejs/.*js>')
@@ -133,39 +143,43 @@ def load_metrics():
 def static(path):
     return static_file(path, root='.')
 
+
 @route('/', method='GET')
 @route('/index', method='GET')
 @route('/index/', method='GET')
 @route('/index/<query>', method='GET')
-def index(query = ''):
-    output = template('page', body = template('body.index', query = query))
+def index(query=''):
+    output = template('page', body=template('body.index', query=query))
     return str(output)
+
 
 @route('/index', method='POST')
 def index_post():
     redirect('/index/%s' % request.forms.query)
+
 
 @route('/debug')
 def view_debug():
     try:
         metrics = load_metrics()
     except IOError, e:
-        return str(template('page', page = 'debug', body = template('snippet.error-no-metrics', error = e)))
+        return str(template('page', page='debug', body=template('snippet.error-no-metrics', error=e)))
     except ValueError, e:
-        return str(template('page', page = 'debug', body = template('snippet.error-bad-metrics', error = e)))
+        return str(template('page', page='debug', body=template('snippet.error-bad-metrics', error=e)))
 
     target_types = list_target_types()
     targets = list_targets(metrics)
     graphs = list_graphs(metrics)
     graphs_targets, graphs_targets_options = build_graphs_from_targets(target_types, targets, {'group_by': ['target_type', 'default_group_by']})
     args = {'templates': templates,
-        'targets': targets,
-        'graphs': graphs,
-        'graphs_targets': graphs_targets,
-        'graphs_targets_options': graphs_targets_options
-    }
-    output = template('page', page = 'debug', body = template('body.debug', args))
+            'targets': targets,
+            'graphs': graphs,
+            'graphs_targets': graphs_targets,
+            'graphs_targets_options': graphs_targets_options
+            }
+    output = template('page', page='debug', body=template('body.debug', args))
     return str(output)
+
 
 @route('/debug/metrics')
 def debug_metrics():
@@ -178,6 +192,7 @@ def debug_metrics():
     except ValueError, e:
         response.status = 500
         return "Can't parse metrics file: %s" % e
+
 
 # query must be a dict which contains at least a 'group_by' setting
 def build_graphs_from_targets(target_types, targets, query):
@@ -213,7 +228,7 @@ def build_graphs_from_targets(target_types, targets, query):
         graph_title = ' '.join(constants)
         target_name = ' '.join(variables)
         if graph_title not in graphs:
-            graph = target_types[target_type].get('default_graph_options',{}).copy()
+            graph = target_types[target_type].get('default_graph_options', {}).copy()
             graph.update({'title': graph_title, 'targets': []})
             graphs[graph_title] = graph
         # set all options needed for graphitejs/flot:
@@ -221,15 +236,17 @@ def build_graphs_from_targets(target_types, targets, query):
             'name': target_name,
             'target': target_data['target']
         }
-        if 'color' in target_data: t['color'] = target_data['color']
+        if 'color' in target_data:
+            t['color'] = target_data['color']
         graphs[graph_title]['targets'].append(t)
     # given all graphs, process them to set any further options
     # nothing needed at this point.
     return (graphs, query)
 
+
 @route('/graphs/', method='POST')
-@route('/graphs/<query>', method='GET') # used for manually testing
-def graphs(query = ''):
+@route('/graphs/<query>', method='GET')  # used for manually testing
+def graphs(query=''):
     '''
     get all relevant graphs matching query,
     graphs yielded by templates directly,
@@ -238,9 +255,9 @@ def graphs(query = ''):
     try:
         metrics = load_metrics()
     except IOError, e:
-        return str(template('snippet.error-no-metrics', error = e))
+        return str(template('snippet.error-no-metrics', error=e))
     except ValueError, e:
-        return str(template('snippet.error-bad-metrics', error = e))
+        return str(template('snippet.error-bad-metrics', error=e))
     if not query:
         query = request.forms.get('query')
     if not query:
@@ -260,6 +277,7 @@ def graphs(query = ''):
     out = ''
     if len_graphs_matching_all > 0 and request.headers.get('X-Requested-With') != 'XMLHttpRequest':
         out += template('snippet.graph-deps')
+
     def labels(l):
         return ' '.join(['<span class="label">%s</span>' % i for i in l])
     out += "Patterns: %s<br/>" % labels(query['patterns'])
@@ -271,7 +289,7 @@ def graphs(query = ''):
     rendered_templates = []
     for title in sorted(graphs_matching.iterkeys()):
         data = graphs_matching[title]
-        rendered_templates.append(template('snippet.graph', graphite_url = graphite_url, graph_name = title, graph_data = data))
+        rendered_templates.append(template('snippet.graph', config=config, graph_name=title, graph_data=data))
     out += ''.join(rendered_templates)
     return out
 

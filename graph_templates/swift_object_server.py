@@ -1,5 +1,6 @@
 from . import GraphTemplate
 
+
 class SwiftObjectServerTemplate(GraphTemplate):
 
     #class_tag = 'swift_object_server'
@@ -23,7 +24,7 @@ class SwiftObjectServerTemplate(GraphTemplate):
     }
 
     def configure_target(self, target):
-        m = target['tags'].get('http_method','')
+        m = target['tags'].get('http_method', '')
         t = target['tags']['type']
         if m == 'GET'       and t in ('lower'   , 'timeouts'): target['color'] = self.colors['blue'][0]
         if m == 'GET'       and t in ('upper_90', 'errors')  : target['color'] = self.colors['blue'][1]

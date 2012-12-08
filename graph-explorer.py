@@ -1,8 +1,7 @@
 #!/usr/bin/env python2
 
 from bottle import run, debug
-from config import *
+import config
 
 debug(True)
-run('app', reloader=True, host=listen_host, port=listen_port)
-
+run('app', reloader=True, host=config.listen_host, port=config.listen_port)

@@ -1,5 +1,6 @@
 from . import GraphTemplate
 
+
 class SwiftProxyServerTemplate(GraphTemplate):
     pattern_graph = "^stats.timers\.([^\.]+)\.proxy-server\.account.GET.timing.lower$"
     http_methods = ['GET', 'HEAD', 'PUT', 'REPLICATE']
@@ -22,7 +23,7 @@ class SwiftProxyServerTemplate(GraphTemplate):
     }
 
     def configure_target(self, target):
-        m = target['tags'].get('http_method','')
+        m = target['tags'].get('http_method', '')
         t = target['tags']['type']
         if m == 'GET'       and t in ('lower', 'timeouts', 'xfer'): target['color'] = self.colors['blue'][0]
         if m == 'GET'       and t in ('upper_90', 'errors')       : target['color'] = self.colors['blue'][1]

@@ -10,7 +10,7 @@
 	    $(document).ready(function () {
 		var graph_data = {{!json.dumps(graph_data)}};
 		var defaults = {
-		    url: "{{graphite_url}}/render/",
+		    url: "{{config.graphite_url}}/render/",
 		    from: "-24hours",
 		    until: "now",
 		    height: "300",

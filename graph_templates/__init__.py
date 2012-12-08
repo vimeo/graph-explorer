@@ -4,6 +4,8 @@ from abc import ABCMeta, abstractmethod
 """
 Graph template
 """
+
+
 class GraphTemplate:
     __metaclass__ = ABCMeta
     # color in light resp. dark version
@@ -35,7 +37,7 @@ class GraphTemplate:
 
     def get_target_id(self, target):
         target_key = ['targets']
-        for tag_key in sorted(target['tags'].iterkeys()): # including the tag key allows to filter out all http things by just writing 'http'
+        for tag_key in sorted(target['tags'].iterkeys()):  # including the tag key allows to filter out all http things by just writing 'http'
             tag_val = target['tags'][tag_key]
             if tag_val:
                 target_key.append('%s:%s' % (tag_key, tag_val))
@@ -55,7 +57,7 @@ class GraphTemplate:
         tags.update({'target_type': id})
         target = {
             'target': match.string,
-            'tags'  : tags #.update({'class': self.class_tag})
+            'tags': tags  #.update({'class': self.class_tag})
             # disable this. now part of target_type id to 1)avoid clashes in global list. maybe we should keep this approach and make the global list namespaced, but we'll see
             # when this approach fails.
             # global tags seems useful because templates can invent their own namespaces and potentially override each other (useful?)
@@ -75,7 +77,7 @@ class GraphTemplate:
         """
         raise NotImplementedError('cannot instantiate abstract base class')
 
-    def list_targets (self, metrics):
+    def list_targets(self, metrics):
         """
         For given list of metrics, list all possible targets according to our pattern
         The return value is as follows: {
@@ -95,7 +97,7 @@ class GraphTemplate:
                     continue
         return targets
 
-    def list_graphs (self, metrics):
+    def list_graphs(self, metrics):
         """
         For given list of metrics, list all possible graphs according to our pattern
         The return value is as follows: {

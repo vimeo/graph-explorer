@@ -1,15 +1,17 @@
 from . import GraphTemplate
+
+
 class DiskspaceTemplate(GraphTemplate):
     pattern_graph = "^servers\.([^\.]+)\.diskspace\.root\.gigabyte_avail$"
     target_types = {
-        'diskspace_count': { 
+        'diskspace_count': {
             'match': '^servers\.(?P<server>[^\.]+)\.diskspace\.(?P<mountpoint>[^\.]+)\.(?P<type>.*)$',
             'default_group_by': 'server',
             'default_graph_options': {'state': 'stacked', 'vtitle': 'space'}
         }
     }
 
-    def configure_target (self, target):
+    def configure_target(self, target):
         mount = target['tags']['mountpoint']
         color_assign = {
             '_var': self.colors['red'][0],
