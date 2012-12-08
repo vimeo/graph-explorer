@@ -49,11 +49,5 @@
     <div class="span9" id="graphs"></div>
     </div><!--/span-->
   </div><!--/row-->
-
-  <hr>
-    <footer>
-      <p><a href="https://github.com/Dieterbe/graph-explorer">github.com</a></p>
-    </footer>
-
 </div><!--/.fluid-container-->
 %# vim: ts=2 et sw=2:

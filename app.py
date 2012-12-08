@@ -158,6 +158,11 @@ def index_post():
     redirect('/index/%s' % request.forms.query)
 
 
+@route('/meta')
+def meta():
+    return str(template('page', page='meta', body=template('body.meta', todo=template('todo'.upper()))))
+
+
 @route('/debug')
 def view_debug():
     try:
