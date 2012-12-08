@@ -109,13 +109,12 @@ git submodule update --init
 
 ## Configuration of graph-explorer
 
-* cd graph-explorer
-* make sure you have a list of your metrics in json format, you can easily get it like so:
-
-    source config.py
-    curl $graphite_url/metrics/index.json > metrics.json
-
-* $EDITOR config.py
+```
+# inside the graph-explorer directory
+$EDITOR config.py
+# get metrics.json from your graphite server (protip: you can put this in cron)
+source config.py && curl $graphite_url/metrics/index.json > metrics.json
+```
 
 ## Configuration of graphite server
 
