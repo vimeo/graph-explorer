@@ -112,8 +112,10 @@ git submodule update --init
 ```
 # inside the graph-explorer directory
 $EDITOR config.py
-# get metrics.json from your graphite server (protip: you can put this in cron)
+# get metrics.json from your graphite server
 source config.py && curl $graphite_url/metrics/index.json > metrics.json
+# or better, put the included script in cron:
+*/20 * * * * /path/to/graph-explorer/update_metrics.sh >/dev/null
 ```
 
 ## Configuration of graphite server
