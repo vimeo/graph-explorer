@@ -33,10 +33,11 @@
 		<tr><td><pre>{{graphs_targets_options}}</pre></td></tr>
 		<tr><th>name</th></tr>
 %for name in sorted(graphs_targets.iterkeys()):
+       %id = name.replace(' ','') # disallowed in var names
        %data = json.dumps(graphs_targets[name],indent=1)
                <tr><td>
-                       <a href="#" data-toggle="collapse" data-target="#graph-{{name}}">{{name}}</a>
-                       <div id="graph-{{name}}" class="collapse"><pre>{{data}}</pre></div>
+                       <a href="#" data-toggle="collapse" data-target="#graph-{{id}}">{{name}}</a>
+                       <div id="graph-{{id}}" class="collapse"><pre>{{data}}</pre></div>
                </td></tr>
 %end
 	</table>
