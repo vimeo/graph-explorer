@@ -1,5 +1,4 @@
 <ul>
-    <li>fix date/time picker (plenty of plugins out there.. but I couldn't get it to work)</li>
     <li><a href="https://github.com/graphite-project/graphite-web/issues/103">graphite bug</a>
         breaking our graphs when using scale(), movingAverage() and maybe more, and when using function aliases like sum()</li>
     <li>a way to plot sums of matching targets. for example: disk sum(_srv) sum (!_srv) to show 2 plots</li>
