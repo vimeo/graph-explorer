@@ -8,7 +8,7 @@ A highly interactive dashboard to satisfy varying ad-hoc information needs acros
 you can then use expressive queries which leverage this metadata to filter targets and group them into graphs in arbitrary ways.
 The graphs themselves are also interactive and can be toggled between stacked/lines mode, more features (like toggling and reordering of targets, realtime zooming/panning) are on the way.
 
-Quick example videos which give you an idea:
+Quick example videos which are dated but give you an idea:
 
 * [diskspace example (1:20)](https://vimeo.com/54906914)
 * [openstack swift example (1:57)](https://vimeo.com/54912886)
@@ -17,54 +17,72 @@ Furthermore, the code is simple and hackable (just a few hundred sLOC), uses sim
 
 ![Screenshot](https://raw.github.com/Dieterbe/graph-explorer/master/screenshot.png)
 
-## The mechanism explained
+## Enhanced Metrics
 
-* from a list of all metrics available in your graphite system (you can just download this from graphite box, see further down)
-* a bunch of small template files which are fed this list and yield
-  * enriched targets (by matching graphite metrics, assigning tags, and defining how to render them, each of these configs is a 'target_type'). target_types can also specify default graph options for entire graphs.
-    targets are given an extensive name which includes all metadata.
-  * graphs (this will be revised later. i think i'll want to yield graphs from the enriched targets instead of fram graphite metrics themselves)
-* an input query provided by the user which filters targets and optionally defines how to group them (default grouping is always at least by target_type, and usually secondary by server)
-* the graphs are shown.  All graphs are given clear names that are suitable for easy filtering.
+In graphite, a metric has a name and a corresponding time series of values
+Graph-explorer's templates have `target_type` settings which parse the metric names on which they apply and add metadata to them:
 
-## target_types
+* tags from fields in the metric name (server, service, interface_name, etc) by using named groups in a regex.  
+  usually the last field of a metric is called `type`.  (for example `iowait` or `upper_90` for statsd timers)
+* target_type (count, rate, gauge, ...)
+* class_name (cpu_state_percent etc)
+* the graphite target (often just the metric name, but you can use the [graphite functions](http://graphite.readthedocs.org/en/1.0/functions.html) like `derivative`, `scale()` etc.
 
-try to use some standardized nomenclature in target types and tags (named groups in the regex)
-different target types for timing, counter rate, counter totals;
-so for each metric regex, there's a target type. this is meant to work great with statsd
-words you might use: state, type, pct, rate, count, timing, http_method.
-note that you can create new target_types based on the same metrics in graphite, but by using
-graphite functions such as derivative and integral
+all metadata is made available as a tag, and an id is generated from all tag keys and values, to provide easy matching.
 
-* type is usually just the last thing in the metric. for example `iowait` or `upper_90` for statsd timers
-groupnames in regex automatically become tags in your targets.
+target_types also provide settings:
+
+* `default_group_by` (usually `server`)
+* `default_graph_options` which specify how to render these types by default
+
+Note that it is trivial to yield multiple targets from the same metric.  I.e. you can have a metric available as rate, counter, average, etc by applying different functions.
+
+Try to use standardized nomenclature in target types and tags.  Do pretty much what statsd does:
+
+* rate: a number per second
+* count: a number per a given interval (such as a statsd flushInterval)
+* gauge: values at each point in time
+* timing: TBD
+
+other words you might use are `pct` (percent), `http_method`, `network_interface`, etc.  Also, keep everything in lowercase, that just keeps things easy.
+
+## Graphs
+
+* Are built as requested by your query.
+* Templates can yield graphs directly (to be revised.  I want to yield graphs from the enriched targets instead of fram graphite metrics themselves)
+
 
 ## Query parsing and execution
+
+the Graphite Query Language is a langage designed to let you compose graphs from metrics in a very flexible way
 
 ## the algorithm
 
 * from the query input you provide...
-* parse out the (optional) `group by <tag>` (can occur anywhere. `<tag>` must not contain whitespace, a `:<tag>` pattern is implicitly added (see below))
+* parse out any special statements (see below)
 * split up result into separate patterns (whitespace as boundary), each of which must match on its own.
-* each pattern should be in lowercase
 * you can use `!` to negate
 * any pattern that has `:` inside it matches on tags, like so:
   * `:<foo>`      : a tag must have value `<foo>`
   * `<foo>:`      : a tag with key `<foo>` must exist
   * `<foo>:<bar>` : a tag with key `<foo>` must exist and have value `<bar>`
 * any other pattern is treated as a regular expression, which must match the target name.
-* matching targets are collected and grouped into graphs based on group settings (see below), and rendered
+* matching targets are collected, grouped into graphs and rendered
 
 note:
 
 * order between patterns is irrelevant
 * if the pattern doesn't contain a "graph type specifier" like 'tpl' or 'targets', GE automatically filters on only 'targets', which is the recommended behavior.
 
-## special statements
+## special predicates
+
+These statements are all optional (i.e. have default values) and can occur anywhere within the query.
+Unless mentioned otherwise, the values must not contain whitespace.
 
 ### group by `<tag>`
 
-Graph targets are grouped by target_type, and additionally by the default_group_by of the target_type or any tag you specify with `group by <tag>`
+default grouping is always at least by target_type, and secondary by what the `target_type`'s `default_group_by` (usually server), or by the tag you specified with this predicate.
+a `:<tag>` pattern is implicitly added.
 
 For example, the cpu template yields targets with tags:
 
@@ -72,15 +90,24 @@ For example, the cpu template yields targets with tags:
 * type : something like iowait
 * server: hostname
 
-it has default_group_by set to `server`
-
+it has default_group_by set to `server`  
 You'll always have graphs with no other target_types than cpu metrics,
 but additional grouping by:
 
-* type yields a graph for each cpu state (sys, idle, iowait, etc) listing all servers.
 * server shows a graph for each server listing all cpu states for that server.
+* type yields a graph for each cpu state (sys, idle, iowait, etc) listing all servers.
 
 This of course extends to >2 tags.
+
+### from <word>
+
+default: '-24hours'.  
+accepts anything [graphite accepts](http://graphite.readthedocs.org/en/1.0/url-api.html#from-until) which is a whole lot
+
+### from <word>
+
+default: 'now'.  
+accepts anything graphite accepts (see above)
 
 ## Examples
 
@@ -90,8 +117,8 @@ This of course extends to >2 tags.
 * `web cpu total.(system|idle|user|iowait) group by type`: same, but compare matching servers on a graph for each cpu metric
 * `web123`: all graphs of web123
 * `server[1-5] (mem|cpu)`: memory and cpu graphs of servers 1 through 5
-* `!server[1-5] (mem|cpu)`: memory and cpu graphs of all servers, except servers 1 through 5
-* `targets dfs1`: see all targets available for server dfs1
+* `!server[1-5] (mem|cpu) from 20091201 to 20091231`: memory and cpu graphs of all servers, except servers 1 through 5. the entire month december
+* `targets dfs1 from noon+yesterday`: see all targets available for server dfs1
 
 ## Dependencies
 
