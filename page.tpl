@@ -55,6 +55,15 @@
 	% end
             </ul>
           </div><!--/.nav-collapse -->
+            <ul class="nav pull-right">
+            % if stat_metrics_error is not None:
+            <li><a>metrics info: <span class="label label-important">{{stat_metrics_error}}</a></a> </li>
+            % else:
+            % import time
+            % mtime = time.ctime(int(stat_metrics.st_mtime))
+            <li><a>last metrics update: {{mtime}}</a> </li>
+            % end
+            </ul>
         </div>
       </div>
     </div>

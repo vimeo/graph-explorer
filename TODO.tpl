@@ -12,5 +12,7 @@
     <li>disk io rates</li>
     <li>auto adjust height of graphs based on #targets. with many targets, the legends start to overlap</li>
     <li>a way to distribute this including deps directly for easy and reliable install</li>
+    <li>allow updating metrics.json file from a dropdown menu when you hoover over 'last metrucs update'</li>
+    <li>ajax refresh for 'last metrics update'</li>
     <li>maybe... under query, suggest tags, and even patterns (by going over metrics, stripping out all tags and listing what remains, uniqued)</li>
 </ul>

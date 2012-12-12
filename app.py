@@ -145,6 +145,10 @@ def load_metrics():
     return json.load(f)
 
 
+def stat_metrics():
+    return os.stat('metrics.json')
+
+
 @route('<path:re:/assets/.*>')
 @route('<path:re:/graphitejs/.*js>')
 @route('<path:re:/graphitejs/.*css>')
@@ -157,8 +161,17 @@ def static(path):
 @route('/index/', method='GET')
 @route('/index/<query>', method='GET')
 def index(query=''):
-    output = template('page', body=template('body.index', query=query))
-    return str(output)
+    body = template('body.index', query=query)
+    return render_page(body)
+
+
+def render_page(body, page = 'index'):
+    try:
+        stat = stat_metrics()
+        e = None
+    except OSError, e:
+        stat = None
+    return str(template('page', body=body, page=page, stat_metrics=stat, stat_metrics_error=e))
 
 
 @route('/index', method='POST')
@@ -168,7 +181,8 @@ def index_post():
 
 @route('/meta')
 def meta():
-    return str(template('page', page='meta', body=template('body.meta', todo=template('todo'.upper()))))
+    body = template('body.meta', todo=template('todo'.upper()))
+    return render_page(body, 'meta')
 
 
 @route('/debug')
@@ -176,10 +190,11 @@ def view_debug():
     try:
         metrics = load_metrics()
     except IOError, e:
-        return str(template('page', page='debug', body=template('snippet.error-no-metrics', error=e)))
+        body = template('snippet.error-no-metrics', error=e)
+        return render_page(body, 'debug')
     except ValueError, e:
-        return str(template('page', page='debug', body=template('snippet.error-bad-metrics', error=e)))
-
+        body = template('snippet.error-bad-metrics', error=e)
+        return render_page(body, 'debug')
     target_types = list_target_types()
     targets = list_targets(metrics)
     graphs = list_graphs(metrics)
@@ -190,8 +205,8 @@ def view_debug():
             'graphs_targets': graphs_targets,
             'graphs_targets_options': graphs_targets_options
             }
-    output = template('page', page='debug', body=template('body.debug', args))
-    return str(output)
+    body = template('body.debug', args)
+    return render_page(body, 'debug')
 
 
 @route('/debug/metrics')
