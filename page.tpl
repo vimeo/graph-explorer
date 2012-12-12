@@ -10,7 +10,6 @@
 
     <!-- Le styles -->
     <link href="../assets/css/bootstrap.css" rel="stylesheet">
-    <link href="../assets/datepicker/css/datepicker.css" rel="stylesheet">
     <style type="text/css">
       body {
         padding-top: 60px;
@@ -62,7 +61,6 @@
 
     <script src="../assets/js/jquery-1.7.2.min.js"></script>
     <script src="../assets/js/bootstrap.js"></script>
-    <script src="../assets/datepicker/js/bootstrap-datepicker.js"></script>
     %include snippet.graph-deps
 
 {{!body}}

@@ -49,31 +49,39 @@ def list_graphs(metrics):
     return graphs
 
 
-def parse_query(query):
+def parse_query(query_str):
+    query = {
+        'patterns': [],
+        'group_by': ['target_type']
+    }
+
+    # for a call like ('foo bar baz quux', 'bar ', 'baz', 'def')
+    # returns ('foo quux', 'baz') or the original query and the default val if no match
+    def parse_out_value(query_str, predicate_match, value_match, value_default):
+        match = re.search('(%s%s)' % (predicate_match, value_match), query_str)
+        value = value_default
+        if match and match.groups() > 0:
+            value = match.groups(1)[0].replace(predicate_match, '')
+            query_str = query_str[:match.start(1)] + query_str[match.end(1):]
+        return (query_str, value)
+
+    (query_str, query['to']) = parse_out_value(query_str, 'to ', '[^ ]+', 'now')
+    (query_str, query['from']) = parse_out_value(query_str, 'from ', '[^ ]+', '-24hours')
+
     # if user doesn't specify any group_by, we automatically group by target_type and
     # by the tag specified by default_group_by in the target_type (which is a mandatory option)
-    # if the user specified "group by foobar" in the query, we group by target_type and whatever the user said.
-    group_by_match = re.search('(group by [^ ]+)', query)
-    group_by = ['target_type']
-    patterns = []
-    if group_by_match and group_by_match.groups() > 0:
-        group_by_custom = group_by_match.groups(1)[0].replace('group by ', '')
-        group_by.append(group_by_custom)
-        patterns.append('%s:' % group_by_custom)
-        query = query[:group_by_match.start(1)] + query[group_by_match.end(1):]
-    else:
-        group_by.append('default_group_by')
-    # split query into multiple patterns which are all matched independently
+    # if the user specified "group by foobar" in the query_str, we group by target_type and whatever the user said.
+    (query_str, group_by) = parse_out_value(query_str, 'group by ', '[^ ]+', 'default_group_by')
+    if group_by != 'default_group_by':
+        query['patterns'].append('%s:' % group_by)
+    query['group_by'].append(group_by)
+    # split query_str into multiple patterns which are all matched independently
     # this allows you write patterns in any order, and also makes it easy to use negations
-    patterns += query.split()
-    # if the query doesn't contain a "graph type specifier" like 'tpl' or 'targets',
+    query['patterns'] += query_str.split()
+    # if the query_str doesn't contain a "graph type specifier" like 'tpl' or 'targets',
     # assume we only want target ones. that sounds like good default behavior..
-    if 'tpl' not in query and 'targets' not in query:
-        patterns.append('target')
-    query = {
-        'patterns': patterns,
-        'group_by': group_by
-    }
+    if 'tpl' not in query_str and 'targets' not in query_str:
+        query['patterns'].append('target')
     return query
 
 
@@ -175,7 +183,7 @@ def view_debug():
     target_types = list_target_types()
     targets = list_targets(metrics)
     graphs = list_graphs(metrics)
-    graphs_targets, graphs_targets_options = build_graphs_from_targets(target_types, targets, {'group_by': ['target_type', 'default_group_by']})
+    graphs_targets, graphs_targets_options = build_graphs_from_targets(target_types, targets)
     args = {'templates': templates,
             'targets': targets,
             'graphs': graphs,
@@ -199,8 +207,14 @@ def debug_metrics():
         return "Can't parse metrics file: %s" % e
 
 
-# query must be a dict which contains at least a 'group_by' setting
-def build_graphs_from_targets(target_types, targets, query):
+def build_graphs_from_targets(target_types, targets, query={}):
+    # merge default options..
+    defaults = {
+        'group_by': ['target_type', 'default_group_by'],
+        'from': '-24hours',
+        'to': 'now'
+    }
+    query = dict(defaults.items() + query.items())
     graphs = {}
     if not targets:
         return (graphs, query)
@@ -233,7 +247,8 @@ def build_graphs_from_targets(target_types, targets, query):
         graph_title = ' '.join(constants)
         target_name = ' '.join(variables)
         if graph_title not in graphs:
-            graph = target_types[target_type].get('default_graph_options', {}).copy()
+            graph = {'from': query['from'], 'until': query['to']}
+            graph.update(target_types[target_type].get('default_graph_options', {}))
             graph.update({'title': graph_title, 'targets': []})
             graphs[graph_title] = graph
         # set all options needed for graphitejs/flot:
@@ -287,6 +302,8 @@ def graphs(query=''):
         return ' '.join(['<span class="label">%s</span>' % i for i in l])
     out += "Patterns: %s<br/>" % labels(query['patterns'])
     out += "Group by: %s<br/>" % labels(query['group_by'])
+    out += "From: %s<br/>" % query['from']
+    out += "To: %s<br/>" % query['to']
     out += "# targets matching: %i/%i<br/>" % (len_targets_matching, len(targets_all))
     out += "# graphs matching: %i/%i<br/>" % (len_graphs_matching, len(graphs_all))
     out += "# graphs from matching targets: %i<br/>" % len_graphs_targets_matching

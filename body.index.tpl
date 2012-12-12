@@ -10,26 +10,6 @@
           <input type="submit" style="display:none;"/>
           <input type="text" class="span11" data-provide="typeahead" id="query" name="query" value="{{query}}"/>
           </form></li>
-          <li class="nav-header">From</li>
-          <li>
-            <div class="input-append date datepicker" id="dp3" data-date="12-02-2012" data-date-format="dd-mm-yyyy">
-              <input class="span2" size="16" type="text" value="12-02-2012">
-              <span class="add-on"><i class="icon-th"></i></span>
-            </div>
-            <script type="text/javascript">
-              $('.datepicker').datepicker();
-            </script>
-          </li>
-          <li class="nav-header">Until</li>
-          <li>
-            <div class="input-append date datepicker" id="dp3" data-date="12-02-2012" data-date-format="dd-mm-yyyy">
-              <input class="span2" size="16" type="text" value="12-02-2012">
-              <span class="add-on"><i class="icon-th"></i></span>
-            </div>
-            <script type="text/javascript">
-              $('.datepicker').datepicker().show();
-            </script>
-            </li>
           <li class="nav-header">Options</li>
           <li><a href="#" id="clearzoom">clear zoom</a></li>
         </ul>
