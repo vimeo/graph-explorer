@@ -104,7 +104,7 @@ This of course extends to >2 tags.
 default: '-24hours'.  
 accepts anything [graphite accepts](http://graphite.readthedocs.org/en/1.0/url-api.html#from-until) which is a whole lot
 
-### from `<word>`
+### to `<word>`
 
 default: 'now'.  
 accepts anything graphite accepts (see above)
