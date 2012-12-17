@@ -2,7 +2,7 @@
 
 A highly interactive dashboard to satisfy varying ad-hoc information needs across a multitude of metrics by using templates which
 
-* add metadata to invidual graphite metrics, (tags such as as server, service, type, ...)
+* add metadata to individual graphite metrics, (tags such as as server, service, type, ...)
 * define how to generate (multiple) targets for any metric (to render as a count, a rate, etc)
 
 you can then use expressive queries which leverage this metadata to filter targets and group them into graphs in arbitrary ways.
@@ -20,7 +20,7 @@ Furthermore, the code is simple and hackable (just a few hundred sLOC), uses sim
 
 ## Enhanced Metrics
 
-In graphite, a metric has a name and a corresponding time series of values
+In graphite, a metric has a name and a corresponding time series of values.
 Graph-explorer's templates have `target_type` settings which parse the metric names on which they apply and add metadata to them:
 
 * tags from fields in the metric name (server, service, interface_name, etc) by using named groups in a regex.  
@@ -50,18 +50,18 @@ other words you might use are `pct` (percent), `http_method`, `network_interface
 ## Graphs
 
 * Are built as requested by your query.
-* Templates can yield graphs directly (to be revised.  I want to yield graphs from the enriched targets instead of fram graphite metrics themselves)
+* Templates can yield graphs directly (to be revised.  I want to yield graphs from the enriched targets instead of from graphite metrics themselves)
 
 
 ## Query parsing and execution
 
-the Graphite Query Language is a langage designed to let you compose graphs from metrics in a very flexible way
+the Graphite Query Language is a language designed to let you compose graphs from metrics in a very flexible way
 
 ## the algorithm
 
 * from the query input you provide...
 * parse out any special statements (see below)
-* split up result into separate patterns (whitespace as boundary), each of which must match on its own.
+* split up result into separate patterns (white space as boundary), each of which must match on its own.
 * you can use `!` to negate
 * any pattern that has `:` inside it matches on tags, like so:
   * `:<foo>`      : a tag must have value `<foo>`
@@ -78,7 +78,7 @@ note:
 ## special predicates
 
 These statements are all optional (i.e. have default values) and can occur anywhere within the query.
-Unless mentioned otherwise, the values must not contain whitespace.
+Unless mentioned otherwise, the values must not contain white space.
 
 ### group by `<tag>`
 
@@ -118,7 +118,7 @@ accepts anything graphite accepts (see above)
 * `web cpu total.(system|idle|user|iowait) group by type`: same, but compare matching servers on a graph for each cpu metric
 * `web123`: all graphs of web123
 * `server[1-5] (mem|cpu)`: memory and cpu graphs of servers 1 through 5
-* `!server[1-5] (mem|cpu) from 20091201 to 20091231`: memory and cpu graphs of all servers, except servers 1 through 5. the entire month december
+* `!server[1-5] (mem|cpu) from 20091201 to 20091231`: memory and cpu graphs of all servers, except servers 1 through 5. the entire month December
 * `targets dfs1 from noon+yesterday`: see all targets available for server dfs1
 
 ## Dependencies
