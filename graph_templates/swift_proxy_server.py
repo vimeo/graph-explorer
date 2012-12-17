@@ -37,7 +37,4 @@ class SwiftProxyServerTemplate(GraphTemplate):
         if m == 'DELETE'    and t in ('upper_90', 'errors')       : target['color'] = self.colors['red'][1]
         return target
 
-    def generate_graphs(self):
-        return {}
-
 # vim: ts=4 et sw=4:

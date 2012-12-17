@@ -16,7 +16,4 @@ class SwiftTempauthTemplate(GraphTemplate):
         }
     }
 
-    def generate_graphs(self, match):
-        return {}
-
 # vim: ts=4 et sw=4:

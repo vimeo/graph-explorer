@@ -1,13 +1,11 @@
 #!/usr/bin/env python2
 import re
-from abc import ABCMeta, abstractmethod
 """
 Graph template
 """
 
 
 class GraphTemplate:
-    __metaclass__ = ABCMeta
     # color in light resp. dark version
     # better would be just a "base" and programatically compute lighter/darker versions as needed
     colors = {
@@ -70,12 +68,11 @@ class GraphTemplate:
     def configure_target(self, target):
         return target
 
-    @abstractmethod
     def generate_graphs(self):
         """
         emit one or more graphs in a dict like {'graphname': <graph dict>}
         """
-        raise NotImplementedError('cannot instantiate abstract base class')
+        return {}
 
     def list_targets(self, metrics):
         """

@@ -41,7 +41,4 @@ class SwiftObjectServerTemplate(GraphTemplate):
         # and also, we can change config based on the entire graph. maybe a graph_config_fn attrib per target_type which gets called for each target_type in a graph
         return target
 
-    def generate_graphs(self, match):
-        return {} # no longer needed. soon i hope. see above
-
 # vim: ts=4 et sw=4:

@@ -30,7 +30,4 @@ class CpuTemplate(GraphTemplate):
         target['color'] = color_assign[t]
         return target
 
-    def generate_graphs (self, match):
-        return {}
-
 # vim: ts=4 et sw=4:
