@@ -30,8 +30,13 @@ os.chdir(wd)
 
 def list_target_types():
     target_types = {}
+    default = {
+        'default_group_by': None
+    }
     for t_o in template_objects:
-        target_types.update(t_o.target_types)
+        for k, v in t_o.target_types.items():
+            target_types[k] = default.copy()
+            target_types[k].update(v)
     return target_types
 
 
@@ -69,7 +74,7 @@ def parse_query(query_str):
     (query_str, query['from']) = parse_out_value(query_str, 'from ', '[^ ]+', '-24hours')
 
     # if user doesn't specify any group_by, we automatically group by target_type and
-    # by the tag specified by default_group_by in the target_type (which is a mandatory option)
+    # by the tag specified by default_group_by in the target_type, if any.
     # if the user specified "group by foobar" in the query_str, we group by target_type and whatever the user said.
     (query_str, group_by) = parse_out_value(query_str, 'group by ', '[^ ]+', 'default_group_by')
     if group_by != 'default_group_by':
@@ -270,13 +275,15 @@ def build_graphs_from_targets(target_types, targets, query={}):
     for target_id in sorted(targets.iterkeys()):
         target_data = targets[target_id]
         target_type = target_data['tags']['target_type']
+        constants = ['targets', target_type]
         if group_by[1] is 'default_group_by':
             group_by_tag = target_types[target_type]['default_group_by']
         else:
             group_by_tag = group_by[1]
-        # group_by_tag is now something like 'server' or 'type', convert it to the actual value:
-        group_by_tag = target_data['tags'][group_by_tag]
-        constants = ['targets', target_type, group_by_tag]
+        # group_by_tag is now something like 'server' or 'type' or None, convert it to the actual value:
+        if group_by_tag is not None:
+            group_by_tag = target_data['tags'][group_by_tag]
+            constants.append(group_by_tag)
         variables = []
         for tag_id in sorted(target_data['tags'].iterkeys()):
             tag_value = target_data['tags'][tag_id]
