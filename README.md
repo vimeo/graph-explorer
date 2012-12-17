@@ -63,10 +63,13 @@ the Graphite Query Language is a language designed to let you compose graphs fro
 * parse out any special statements (see below)
 * split up result into separate patterns (white space as boundary), each of which must match on its own.
 * you can use `!` to negate
-* any pattern that has `:` inside it matches on tags, like so:
-  * `:<foo>`      : a tag must have value `<foo>`
-  * `<foo>:`      : a tag with key `<foo>` must exist
-  * `<foo>:<bar>` : a tag with key `<foo>` must exist and have value `<bar>`
+* any pattern that has `:` or `=` inside it matches on tags, like so:
+  * `=<val>`      : a tag must have value `<val>`
+  * `<key>=`      : a tag with key `<key>` must exist
+  * `<key>=<val>` : a tag with key `<key>` must exist and have value `<val>`
+  * `:<val>`      : a tag with value matching regex `<val>` must exist
+  * `<key>:`      : a tag with key matching regex `<key>` must exist
+  * `<key>:<val>` : a tag with key `<key>` must exist and its value must match the regex `<val>`
 * any other pattern is treated as a regular expression, which must match the target name.
 * matching targets are collected, grouped into graphs and rendered
 
