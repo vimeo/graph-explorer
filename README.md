@@ -56,7 +56,13 @@ other words you might use are `pct` (percent), `http_method`, `network_interface
 
 ## Query parsing and execution
 
-the Graphite Query Language is a language designed to let you compose graphs from metrics in a very flexible way
+the Graphite Query Language is a language designed to:
+
+* let you compose graphs from metrics in a flexible way.
+  you can use tags and pattern matching to filter and group targets (from different plugins) into the same or nearby graphs for easy comparison and correlation across seamingly different aspects.
+  you can compare metrics, the rate at which the metrics change, etc.
+* get in your way as little as possible (loose syntax that's easy to start with but provides powerfull features)
+
 
 ## the algorithm
 
@@ -124,6 +130,9 @@ accepts anything graphite accepts (see above)
 * `server[1-5] (mem|cpu)`: memory and cpu graphs of servers 1 through 5
 * `!server[1-5] (mem|cpu) from 20091201 to 20091231`: memory and cpu graphs of all servers, except servers 1 through 5. the entire month December
 * `targets dfs1 from noon+yesterday`: see all targets available for server dfs1
+* `diskspace_count type=byte_used mountpoint:_srv server:foo`: compare bytes used across all mountpoints matching '/srv' on all servers matching 'foo'.
+* `diskspace_rate type=byte_used mountpoint:_srv server:foo group by type`: similar, but compare the rate of change, and show graphs for each type (`bytes_free`, `inodes_used`, etc) so you can compare each server and/mountpoint.
+
 
 ## Dependencies
 
