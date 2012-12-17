@@ -12,6 +12,17 @@
           </form></li>
           <li class="nav-header">Options</li>
           <li><a href="#" id="clearzoom">clear zoom</a></li>
+          <li class="nav-header">Suggested queries</li>
+            {{!suggested_queries['notes']}}
+            % for query in suggested_queries['queries']:
+            <li>
+               <a href="/index/{{query['query']}}">{{query['desc']}}
+               % for tag in query['tags']:
+                <span class="label">{{tag}}</span>
+               % end
+            </a>
+            </li>
+            % end
         </ul>
         <script type="text/javascript">
           function update_graphs() {
