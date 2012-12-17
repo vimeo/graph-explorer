@@ -189,7 +189,7 @@ def index(query=''):
     return render_page(body)
 
 
-def render_page(body, page = 'index'):
+def render_page(body, page='index'):
     try:
         stat = stat_metrics()
         e = None
