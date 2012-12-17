@@ -43,6 +43,7 @@ Try to use standardized nomenclature in target types and tags.  Do pretty much w
 * rate: a number per second
 * count: a number per a given interval (such as a statsd flushInterval)
 * gauge: values at each point in time
+* counter: a number that keeps increasing over time (but might wrap/reset at some points) (no statsd counterpart) (you'll probably also want to yield this as a rate with `derivative()`)
 * timing: TBD
 
 other words you might use are `pct` (percent), `http_method`, `network_interface`, etc.  Also, keep everything in lowercase, that just keeps things easy.
