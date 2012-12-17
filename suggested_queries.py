@@ -57,12 +57,17 @@ queries = [
     {
         'query': 'iostat rate (read|write)_byte dfvimeodfs',
         'desc': 'read/write B/s',  # TODO: a better way to paraphrase these. some kind of aggregation?
-        'tags': ['disk', 'dfs[proxy]']
+        'tags': ['disk', 'dfs', 'dfsproxy']
     },
     {
         'query': 'load_count group by type !05 !15',
         'desc': 'compare load across machines',  # no 5,15 minutely avg, we already have 1 minutely
         'tags': ['load', '*']
+    },
+    {
+        'query': 'bond1 (rx|tx)_bit group by type server:dfs',
+        'desc': 'storage network traffic',
+        'tags': ['swift', 'dfs', 'dfsproxy']
     },
     {
         'query': 'network _bit',
