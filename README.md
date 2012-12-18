@@ -83,7 +83,6 @@ the Graphite Query Language is a language designed to:
 note:
 
 * order between patterns is irrelevant
-* if the pattern doesn't contain a "graph type specifier" like 'tpl' or 'targets', GE automatically filters on only 'targets', which is the recommended behavior.
 
 ## special predicates
 

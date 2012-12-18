@@ -108,10 +108,6 @@ def parse_query(query_str):
     # split query_str into multiple patterns which are all matched independently
     # this allows you write patterns in any order, and also makes it easy to use negations
     query['patterns'] += query_str.split()
-    # if the query_str doesn't contain a "graph type specifier" like 'tpl' or 'targets',
-    # assume we only want target ones. that sounds like good default behavior..
-    if 'tpl' not in query_str and 'targets' not in query_str:
-        query['patterns'].append('target')
     return query
 
 
