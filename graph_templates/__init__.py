@@ -49,7 +49,6 @@ class GraphTemplate:
         the default implementation is super simple and might actually be enough:
         match.string is just the metric, of course you can go crazy and add graphite functions here.
         you can also do different things depending on the target_type id
-        the 'targets_' part should get removed once templates don't yield graphs, and merely targets
         """
         tags = match.groupdict()
         tags.update({'target_type': id})
