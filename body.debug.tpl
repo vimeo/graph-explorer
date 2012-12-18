@@ -1,6 +1,8 @@
 %import json
 %#TODO print target_types on this page
+
   <div class="container">
+%include snippet.errors errors=errors
      <a href="/debug/metrics">cached metrics</a>
      <div class="row">
         <div class="span12">

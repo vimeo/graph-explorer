@@ -5,6 +5,11 @@ import re
 from inspect import isclass
 from bottle import route, template, request, static_file, redirect, response
 import config
+import sre_constants
+
+# contains all errors as key:(title,msg) items.
+# will be used throughout the runtime to track all encountered errors
+errors = {}
 
 # Load all the graph_templates sub-modules and create a list of
 # template_objects and templates
@@ -19,12 +24,32 @@ for f in os.listdir("."):
     if f == '__init__.py' or not f.endswith(".py"):
         continue
     module = f[:-3]
-    imp = __import__('graph_templates.' + module, globals(), locals(), ['*'])
+    try:
+        imp = __import__('graph_templates.' + module, globals(), locals(), ['*'])
+    except Exception, e:
+        errors['template_%s' % module] = (
+                "Failed to add template '%s'" % module,
+                e
+        )
+        continue
+
     for itemname in dir(imp):
         item = getattr(imp, itemname)
         if isclass(item) and item != GraphTemplate and issubclass(item, GraphTemplate):
-            template_objects.append(item())
-            templates.append(module)
+            try:
+                template_objects.append(item())
+                templates.append(module)
+            # regex error is too vague to stand on its own
+            except sre_constants.error, e:
+                errors['template_%s' % module] = (
+                        "Failed to add template '%s'" % module,
+                        "error problem parsing matching regex: %s" % e
+                )
+            except Exception, e:
+                errors['template_%s' % module] = (
+                        "Failed to add template '%s'" % module,
+                        e
+                )
 os.chdir(wd)
 
 
@@ -190,7 +215,7 @@ def static(path):
 @route('/index/<query>', method='GET')
 def index(query=''):
     from suggested_queries import suggested_queries
-    body = template('body.index', query=query, suggested_queries=suggested_queries)
+    body = template('body.index', errors=errors, query=query, suggested_queries=suggested_queries)
     return render_page(body)
 
 
@@ -219,16 +244,19 @@ def view_debug():
     try:
         metrics = load_metrics()
     except IOError, e:
-        body = template('snippet.error-no-metrics', error=e)
+        errors['metrics_file'] = ("Can't load metrics file", e)
+        body = template('snippet.errors', errors=errors)
         return render_page(body, 'debug')
     except ValueError, e:
-        body = template('snippet.error-bad-metrics', error=e)
+        errors['metrics_file'] = ("Can't parse metrics file", e)
+        body = template('snippet.errors', errors=errors)
         return render_page(body, 'debug')
     target_types = list_target_types()
     targets = list_targets(metrics)
     graphs = list_graphs(metrics)
     graphs_targets, graphs_targets_options = build_graphs_from_targets(target_types, targets)
-    args = {'templates': templates,
+    args = {'errors': errors,
+            'templates': templates,
             'targets': targets,
             'graphs': graphs,
             'graphs_targets': graphs_targets,
@@ -321,13 +349,15 @@ def graphs(query=''):
     try:
         metrics = load_metrics()
     except IOError, e:
-        return str(template('snippet.error-no-metrics', error=e))
+        errors['metrics_file'] = ("Can't load metrics file", e)
+        return template('graphs', errors=errors)
     except ValueError, e:
-        return str(template('snippet.error-bad-metrics', error=e))
+        errors['metrics_file'] = ("Can't parse metrics file", e)
+        return template('graphs', errors=errors)
     if not query:
         query = request.forms.get('query')
     if not query:
-        return str(template('snippet.info-empty-query'))
+        return template('graphs', query=query, errors=errors)
     target_types = list_target_types()
     targets_all = list_targets(metrics)
     graphs_all = list_graphs(metrics)
@@ -335,30 +365,26 @@ def graphs(query=''):
     targets_matching = match(targets_all, query)
     graphs_matching = match(graphs_all, query)
     graphs_targets_matching = build_graphs_from_targets(target_types, targets_matching, query)[0]
-    len_targets_matching = len(targets_matching)
-    len_graphs_matching = len(graphs_matching)
-    len_graphs_targets_matching = len(graphs_targets_matching)
+    stats = {'len_targets_all': len(targets_all),
+             'len_graphs_all': len(graphs_all),
+             'len_targets_matching': len(targets_matching),
+             'len_graphs_matching': len(graphs_matching),
+             'len_graphs_targets_matching': len(graphs_targets_matching),
+    }
     graphs_matching.update(graphs_targets_matching)
-    len_graphs_matching_all = len(graphs_matching)
+    stats['len_graphs_matching_all'] = len(graphs_matching)
     out = ''
-    if len_graphs_matching_all > 0 and request.headers.get('X-Requested-With') != 'XMLHttpRequest':
+    if len(graphs_matching) > 0 and request.headers.get('X-Requested-With') != 'XMLHttpRequest':
         out += template('snippet.graph-deps')
 
-    def labels(l):
-        return ' '.join(['<span class="label">%s</span>' % i for i in l])
-    out += "Patterns: %s<br/>" % labels(query['patterns'])
-    out += "Group by: %s<br/>" % labels(query['group_by'])
-    out += "From: %s<br/>" % query['from']
-    out += "To: %s<br/>" % query['to']
-    out += "# targets matching: %i/%i<br/>" % (len_targets_matching, len(targets_all))
-    out += "# graphs matching: %i/%i<br/>" % (len_graphs_matching, len(graphs_all))
-    out += "# graphs from matching targets: %i<br/>" % len_graphs_targets_matching
-    out += "# total graphs: %i<br/>" % len_graphs_matching_all
     rendered_templates = []
     for title in sorted(graphs_matching.iterkeys()):
         data = graphs_matching[title]
         rendered_templates.append(template('snippet.graph', config=config, graph_name=title, graph_data=data))
-    out += ''.join(rendered_templates)
-    return out
+    args = {'errors': errors,
+            'query': query,
+    }
+    args.update(stats)
+    return template('graphs', args) + ''.join(rendered_templates)
 
 # vim: ts=4 et sw=4:
