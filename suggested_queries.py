@@ -73,6 +73,11 @@ queries = [
         'query': 'network _bit',
         'desc': 'traffic in bit on all interfaces',
         'tags': ['network', '*']
+    },
+    {
+        'query': 'template=statsd',
+        'desc': 'statsd health',
+        'tags': ['statsd']
     }
 
 ]
