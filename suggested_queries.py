@@ -45,8 +45,8 @@ queries = [
         'tags': ['swift', 'dfs']
     },
     {
-        'query': 'swift_counts',
-        'desc': 'object counts',
+        'query': 'container_metrics',
+        'desc': 'container metrics',
         'tags': ['swift']
     },
     {
