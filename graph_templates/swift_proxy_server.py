@@ -21,6 +21,20 @@ class SwiftProxyServerTemplate(GraphTemplate):
         },
     }
 
+    def generate_targets(self, target_type, match):
+        tags = match.groupdict()
+        tags.update({'target_type': target_type, 'template': self.classname_to_tag()})
+        t = match.string
+        # 'xfer' is transferred bytes..
+        if tags['type'] == 'xfer':
+            tags['type'] = 'xfer_bytes'
+        target = {
+            'target': t,
+            'tags': tags
+        }
+        target = self.configure_target(target)
+        return {self.get_target_id(target): target}
+
     def configure_target(self, target):
         m = target['tags'].get('http_method', '')
         t = target['tags']['type']
