@@ -4,7 +4,6 @@ from . import GraphTemplate
 class SwiftObjectServerTemplate(GraphTemplate):
 
     #class_tag = 'swift_object_server'
-    pattern_graph = "^stats.timers\.([^\.]+)\.object-server\.GET.timing.lower$"
     target_types = {
         'timer': {
             'match': '^stats\.timers\.(?P<server>[^\.]+)\.object-server\.(?P<http_method>[^\.]+)\.timing\.(?P<type>[^\.]+)$',

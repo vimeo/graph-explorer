@@ -23,13 +23,6 @@ class GraphTemplate:
     target_types = {}
     graphs = {}
 
-    """
-    Class for graph templates
-    set 2 variables:
-    * targets. first match wins
-    * pattern_graph: similar, but usually more specific to make sure you only yield 1 graph per "thing that you're graphing"
-    """
-
     def __init__(self):
         for (id, config) in self.target_types.items():
             # because sometimes a target_type covers multiple metric naming

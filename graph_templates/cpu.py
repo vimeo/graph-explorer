@@ -5,7 +5,6 @@ class CpuTemplate(GraphTemplate):
     http://www.linuxhowtos.org/System/procstat.htm documents all states, except guest and steal(?)
     everything is in percent, but note that e.g. a 16 core machine goes up to 1600%
     '''
-    pattern_graph = "^servers\.([^\.]+)\.cpu\.total\.user$"
     target_types = {
         'state_pct': {
             'match': '^servers\.(?P<server>[^\.]+)\.cpu\.total\.(?P<type>.*)$',

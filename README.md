@@ -54,6 +54,7 @@ other words you might use are `pct` (percent), `http_method`, `network_interface
 * Templates can yield graphs directly, they specify targets either as graphite strings or as config dict.  To be revised.  leverage enhanced targets?  Not sure how this will fit in
   as I'm aiming to make it possible to match metrics in a lightweight way and compose graphs ad-hoc with minimal fuss.  
   Note that graphs are matched in the same way targets are (based on their id, tags, etc)
+  At this time only one example: in the statsd plugin
 
 
 ## Query parsing and execution

@@ -2,7 +2,6 @@ from . import GraphTemplate
 
 
 class DiskspaceTemplate(GraphTemplate):
-    pattern_graph = "^servers\.([^\.]+)\.diskspace\.root\.gigabyte_avail$"
     target_types = {
         'count': {
             'match': '^servers\.(?P<server>[^\.]+)\.diskspace\.(?P<mountpoint>[^\.]+)\.(?P<type>.*)$',

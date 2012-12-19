@@ -2,7 +2,6 @@ from . import GraphTemplate
 
 
 class SwiftTempauthTemplate(GraphTemplate):
-    pattern_graph = "^stats\.([^\.]+)\.tempauth\.AUTH_\.errors$"
     target_types = {
         'rate': {
             'match': '^stats\.(?P<server>[^\.]+)\.tempauth\.AUTH_\.(?P<type>[^\.]+)$',

@@ -2,7 +2,6 @@ from . import GraphTemplate
 
 
 class SwiftProxyServerTemplate(GraphTemplate):
-    pattern_graph = "^stats.timers\.([^\.]+)\.proxy-server\.account.GET.timing.lower$"
     http_methods = ['GET', 'HEAD', 'PUT', 'REPLICATE']
     target_types = {
         'timer': {

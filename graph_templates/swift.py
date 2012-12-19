@@ -3,7 +3,6 @@ from . import GraphTemplate
 
 class SwiftTemplate(GraphTemplate):
 
-    pattern_graph = "^stats.timers\.([^\.]+)\.object-server\.GET.timing.lower$"
     target_types = {
         'count': {
             'match': '^servers\.(?P<server>[^\.]+)\.openstackswift\.(?P<category>container_metrics)\.(?P<account>[^\.]+)\.(?P<container>[^\.]+)\.(?P<type>[^\.]+)$',
