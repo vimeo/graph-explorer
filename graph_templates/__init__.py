@@ -41,6 +41,8 @@ class GraphTemplate:
             for regex in config['match']:
                 # can raise sre_constants.error ! and maybe other regex errors.
                 self.target_types[id]['match_object'].append(re.compile(regex))
+        for (id, config) in self.graphs.items():
+            self.graphs[id]['match_object'] = re.compile(config['match'])
 
     def get_target_id(self, target):
         target_key = ['targets']
@@ -106,10 +108,20 @@ class GraphTemplate:
         }
         """
         graphs = {}
+        default_graph = {'tags': {'template': self.classname_to_tag()}}
         for metric in metrics:
-            match = self.pattern_object_graph.search(metric)
-            if match is not None:
-                graphs.update(self.generate_graphs(match))
+            for (id, config) in self.graphs.items():
+                match = config['match_object'].search(metric)
+                if match is not None:
+                    graph = default_graph.copy()
+                    graph.update(config['graph'])
+                    for i, target in enumerate(graph['targets']):
+                        # target is either a string (graphite target),
+                        # or a dict (target config). convert former to the
+                        # latter if needed.
+                        if isinstance(target, basestring):
+                            graph['targets'][i] = {'target': target, 'name': target}
+                    graphs[id] = graph
         return graphs
 
     def classname_to_tag(self):
