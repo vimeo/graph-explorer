@@ -1,4 +1,6 @@
 from . import GraphTemplate
+
+
 class CpuTemplate(GraphTemplate):
     '''
     core can be individual cores as well as total.
@@ -24,7 +26,7 @@ class CpuTemplate(GraphTemplate):
             'irq': self.colors['red'][1],
             'iowait': self.colors['orange'][0],
             'guest': self.colors['white'],
-            'steal': self.colors['white'] # i make these white cause i'm not sure if they're relevant
+            'steal': self.colors['white']  # i make these white cause i'm not sure if they're relevant
         }
         target['color'] = color_assign[t]
         return target
