@@ -15,22 +15,22 @@
 #   hostnames)
 queries = [
     {
-        'query': 'swift_object_server_rate',
+        'query': 'swift_object_server rate',
         'desc': 'events rates',
         'tags': ['swift', 'dfs']
     },
     {
-        'query': 'diskspace_count type=byte_used mountpoint:_srv server:dfvimeodfs',
+        'query': 'diskspace count type=byte_used mountpoint:_srv server:dfvimeodfs',
         'desc': '/srv/* usage',
         'tags': ['disk', 'dfs']
     },
     {
-        'query': 'diskspace_count type=byte_used _var dfvimeodfs',
+        'query': 'diskspace count type=byte_used _var dfvimeodfs',
         'desc': '/var usage',
         'tags': ['disk', 'dfs']
     },
     {
-        'query': 'diskspace_rate !giga byte_used _var dfvimeodfs',
+        'query': 'diskspace rate !giga byte_used _var dfvimeodfs',
         'desc': 'change in /var usage',
         'tags': ['disk', 'dfs']
     },
@@ -60,7 +60,7 @@ queries = [
         'tags': ['disk', 'dfs', 'dfsproxy']
     },
     {
-        'query': 'load_count group by type !05 !15',
+        'query': 'load count group by type !05 !15',
         'desc': 'compare load across machines',  # no 5,15 minutely avg, we already have 1 minutely
         'tags': ['load', '*']
     },

@@ -60,8 +60,9 @@ def list_target_types():
     }
     for t_o in template_objects:
         for k, v in t_o.target_types.items():
-            target_types[k] = default.copy()
-            target_types[k].update(v)
+            id = '%s_%s' % (t_o.classname_to_tag(), k)
+            target_types[id] = default.copy()
+            target_types[id].update(v)
     return target_types
 
 
@@ -298,7 +299,7 @@ def build_graphs_from_targets(target_types, targets, query={}):
     constants = len(group_by)
     for target_id in sorted(targets.iterkeys()):
         target_data = targets[target_id]
-        target_type = target_data['tags']['target_type']
+        target_type = '%s_%s' % (target_data['tags']['template'], target_data['tags']['target_type'])
         constants = ['targets', target_type]
         if group_by[1] is 'default_group_by':
             group_by_tag = target_types[target_type]['default_group_by']

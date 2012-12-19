@@ -7,7 +7,7 @@ class CpuTemplate(GraphTemplate):
     '''
     pattern_graph = "^servers\.([^\.]+)\.cpu\.total\.user$"
     target_types = {
-        'cpu_state_pct': {
+        'state_pct': {
             'match': '^servers\.(?P<server>[^\.]+)\.cpu\.total\.(?P<type>.*)$',
             'default_group_by': 'server',
             'default_graph_options': {'state': 'stacked', 'vtitle': 'cpu state in % across all cores'}

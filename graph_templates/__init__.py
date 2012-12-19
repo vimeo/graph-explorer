@@ -41,23 +41,20 @@ class GraphTemplate:
                 target_key.append('%s:%s' % (tag_key, tag_val))
         return ' '.join(target_key)
 
-    def generate_targets(self, id, match):
+    def generate_targets(self, target_type, match):
         """
         emit one or more targets in a dict like {'targetname': <target spec>}
-        the default implementation is super simple and might actually be enough:
-        match.string is just the metric, of course you can go crazy and add graphite functions here.
-        you can also do different things depending on the target_type id
+        this implementation just sets target to the metric (match.string),
+        and sets all appropriate tags.  if you override this function,
+        you should probably still set these tags cause they are relied on.
+        depending on target_type you can use different graphite functions
+        in your target.
         """
         tags = match.groupdict()
-        tags.update({'target_type': id})
+        tags.update({'target_type': target_type, 'template': self.classname_to_tag()})
         target = {
             'target': match.string,
-            'tags': tags  #.update({'class': self.class_tag})
-            # disable this. now part of target_type id to 1)avoid clashes in global list. maybe we should keep this approach and make the global list namespaced, but we'll see
-            # when this approach fails.
-            # global tags seems useful because templates can invent their own namespaces and potentially override each other (useful?)
-            # let's try to find a use case where we don't want 'swift_object_server_count' but want sep class_tag and target_type like 'count', then we can do the namespace thing
-            # such usecase could be a feature like group_by, aggregate_by ... would be weird with the current approach
+            'tags': tags
         }
         target = self.configure_target(target)
         return {self.get_target_id(target): target}
@@ -104,5 +101,14 @@ class GraphTemplate:
             if match is not None:
                 graphs.update(self.generate_graphs(match))
         return graphs
+
+    def classname_to_tag(self):
+        '''
+        FooBarHTTPTemplate -> foo_bar_http
+        from http://stackoverflow.com/questions/1175208/elegant-python-function-to-convert-camelcase-to-camel-case/1176023#1176023
+        '''
+        name = self.__class__.__name__.replace('Template', '')
+        s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+        return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
 # vim: ts=4 et sw=4:
