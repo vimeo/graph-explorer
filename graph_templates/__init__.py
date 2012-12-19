@@ -30,8 +30,17 @@ class GraphTemplate:
 
     def __init__(self):
         for (id, config) in self.target_types.items():
-            self.target_types[id]['match_object'] = re.compile(config['match'])
-        self.pattern_object_graph = re.compile(self.pattern_graph)
+            # because sometimes a target_type covers multiple metric naming
+            # patterns, we must support a list of possible matching regexes.
+            # we can't just do '|'.join(list of regexes)
+            # because then we can't repeat group names.
+            # first match wins
+            if isinstance(config['match'], basestring):
+                config['match'] = [config['match']]
+            self.target_types[id]['match_object'] = []
+            for regex in config['match']:
+                # can raise sre_constants.error ! and maybe other regex errors.
+                self.target_types[id]['match_object'].append(re.compile(regex))
 
     def get_target_id(self, target):
         target_key = ['targets']
@@ -82,10 +91,11 @@ class GraphTemplate:
         targets = {}
         for metric in metrics:
             for (id, config) in self.target_types.items():
-                match = config['match_object'].search(metric)
-                if match is not None:
-                    targets.update(self.generate_targets(id, match))
-                    continue
+                for match_object in config['match_object']:
+                    match = match_object.search(metric)
+                    if match is not None:
+                        targets.update(self.generate_targets(id, match))
+                        continue
         return targets
 
     def list_graphs(self, metrics):
