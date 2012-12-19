@@ -1,13 +1,13 @@
 from . import GraphTemplate
 class CpuTemplate(GraphTemplate):
     '''
-    only pass targets for total cpu metrics, not all cores individually
+    core can be individual cores as well as total.
     http://www.linuxhowtos.org/System/procstat.htm documents all states, except guest and steal(?)
-    everything is in percent, but note that e.g. a 16 core machine goes up to 1600%
+    everything is in percent, but note that e.g. a 16 core machine goes up to 1600% for total.
     '''
     target_types = {
         'state_pct': {
-            'match': '^servers\.(?P<server>[^\.]+)\.cpu\.total\.(?P<type>.*)$',
+            'match': '^servers\.(?P<server>[^\.]+)\.cpu\.(?P<core>[^\.]+)\.(?P<type>.*)$',
             'default_group_by': 'server',
             'default_graph_options': {'state': 'stacked', 'vtitle': 'cpu state in % across all cores'}
         }
