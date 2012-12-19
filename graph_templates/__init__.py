@@ -44,8 +44,6 @@ class GraphTemplate:
     def generate_targets(self, id, match):
         """
         emit one or more targets in a dict like {'targetname': <target spec>}
-        note: this function allows to emit multiple targets, but i doubt that will ever be needed
-        (only if you need to maintain state across different metric paths)
         the default implementation is super simple and might actually be enough:
         match.string is just the metric, of course you can go crazy and add graphite functions here.
         you can also do different things depending on the target_type id
