@@ -20,6 +20,8 @@ class GraphTemplate:
         'white': '#FFFFFF',
         'black': '#000000'
     }
+    target_types = {}
+    graphs = {}
 
     """
     Class for graph templates
