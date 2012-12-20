@@ -9,7 +9,7 @@
           <h2>Templates</h2>
           <table class="table table-condensed">
 %for template in sorted(templates):
-            <tr><td>{{template}}</td></tr>
+            <tr><td>{{template}}<a href="index/template={{template}}"> <i class="icon-zoom-in icon-white"></i></a></td></tr>
 %end
           </table>
        </div>
