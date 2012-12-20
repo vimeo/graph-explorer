@@ -46,7 +46,8 @@ Try to use standardized nomenclature in target types and tags.  Do pretty much w
 * counter: a number that keeps increasing over time (but might wrap/reset at some points) (no statsd counterpart) (you'll probably also want to yield this as a rate with `derivative()`)
 * timing: TBD
 
-other words you might use are `pct` (percent), `http_method`, `network_interface`, etc.  Also, keep everything in lowercase, that just keeps things easy.
+other words you might use are `pct` (percent), `http_method`, `device`, etc.  Also, keep everything in lowercase, that just keeps things easy when matching.
+Some exceptions for things that are accepted to be upper case are http methods (GET, PUT,etc)
 
 ## Graphs
 
