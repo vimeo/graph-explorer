@@ -1,11 +1,11 @@
 #!/usr/bin/env python2
 import re
 """
-Graph template
+Base Plugin class
 """
 
 
-class GraphTemplate:
+class Plugin:
     # color in light resp. dark version
     # better would be just a "base" and programatically compute lighter/darker versions as needed
     colors = {
@@ -57,7 +57,7 @@ class GraphTemplate:
         in your target.
         """
         tags = match.groupdict()
-        tags.update({'target_type': target_type, 'template': self.classname_to_tag()})
+        tags.update({'target_type': target_type, 'plugin': self.classname_to_tag()})
         target = {
             'target': match.string,
             'tags': tags
@@ -103,7 +103,7 @@ class GraphTemplate:
         }
         """
         graphs = {}
-        default_graph = {'tags': {'template': self.classname_to_tag()}}
+        default_graph = {'tags': {'plugin': self.classname_to_tag()}}
         for metric in metrics:
             for (id, config) in self.graphs.items():
                 match = config['match_object'].search(metric)
@@ -121,9 +121,9 @@ class GraphTemplate:
 
     def classname_to_tag(self):
         '''
-        FooBarHTTPTemplate -> foo_bar_http
+        FooBarHTTPPlugin -> foo_bar_http
         '''
-        name = self.__class__.__name__.replace('Template', '')
+        name = self.__class__.__name__.replace('Plugin', '')
         return self.camel_to_underscore(name)
 
     def camel_to_underscore(self, name):

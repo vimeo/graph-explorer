@@ -75,12 +75,12 @@ queries = [
         'tags': ['network', '*']
     },
     {
-        'query': 'template=statsd',
+        'query': 'plugin=statsd',
         'desc': 'statsd health part 1: statsd.js',
         'tags': ['statsd']
     },
     {
-        'query': 'template=udp server:statsd group by type',
+        'query': 'plugin=udp server:statsd group by type',
         'desc': 'statsd health part 2: udp',
         'tags': ['statsd', 'udp']
     }

@@ -1,7 +1,7 @@
-from . import GraphTemplate
+from . import Plugin
 
 
-class IostatTemplate(GraphTemplate):
+class IostatPlugin(Plugin):
     '''
     corresponds to diamond diskusage plugin
     '''

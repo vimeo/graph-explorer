@@ -1,7 +1,7 @@
-from . import GraphTemplate
+from . import Plugin
 
 
-class MemoryTemplate(GraphTemplate):
+class MemoryPlugin(Plugin):
     target_types = {
         'gauge': {
             'match': '^servers\.(?P<server>[^\.]+)\.memory\.(?P<type>.*)$',
@@ -12,7 +12,7 @@ class MemoryTemplate(GraphTemplate):
 
     def generate_targets(self, target_type, match):
         tags = match.groupdict()
-        tags.update({'target_type': target_type, 'template': self.classname_to_tag()})
+        tags.update({'target_type': target_type, 'plugin': self.classname_to_tag()})
         tags['type'] = self.camel_to_underscore(tags['type'])  # SwapCached -> swap_cached
         target = {
             'target': match.string,

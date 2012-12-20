@@ -11,43 +11,43 @@ import sre_constants
 # will be used throughout the runtime to track all encountered errors
 errors = {}
 
-# Load all the graph_templates sub-modules and create a list of
-# template_objects and templates
-from graph_templates import GraphTemplate
-import graph_templates
-template_objects = []
-templates = []
-templates_dir = os.path.dirname(graph_templates.__file__)
+# Load all the plugins sub-modules and create a list of
+# plugin_objects and plugin_names
+from plugins import Plugin
+import plugins
+plugin_objects = []
+plugin_names = []
+plugins_dir = os.path.dirname(plugins.__file__)
 wd = os.getcwd()
-os.chdir(templates_dir)
+os.chdir(plugins_dir)
 for f in os.listdir("."):
     if f == '__init__.py' or not f.endswith(".py"):
         continue
     module = f[:-3]
     try:
-        imp = __import__('graph_templates.' + module, globals(), locals(), ['*'])
+        imp = __import__('plugins.' + module, globals(), locals(), ['*'])
     except Exception, e:
-        errors['template_%s' % module] = (
-                "Failed to add template '%s'" % module,
+        errors['plugin_%s' % module] = (
+                "Failed to add plugin '%s'" % module,
                 e
         )
         continue
 
     for itemname in dir(imp):
         item = getattr(imp, itemname)
-        if isclass(item) and item != GraphTemplate and issubclass(item, GraphTemplate):
+        if isclass(item) and item != Plugin and issubclass(item, Plugin):
             try:
-                template_objects.append(item())
-                templates.append(module)
+                plugin_objects.append(item())
+                plugin_names.append(module)
             # regex error is too vague to stand on its own
             except sre_constants.error, e:
-                errors['template_%s' % module] = (
-                        "Failed to add template '%s'" % module,
+                errors['plugin_%s' % module] = (
+                        "Failed to add plugin '%s'" % module,
                         "error problem parsing matching regex: %s" % e
                 )
             except Exception, e:
-                errors['template_%s' % module] = (
-                        "Failed to add template '%s'" % module,
+                errors['plugin_%s' % module] = (
+                        "Failed to add plugin '%s'" % module,
                         e
                 )
 os.chdir(wd)
@@ -58,7 +58,7 @@ def list_target_types():
     default = {
         'default_group_by': None
     }
-    for t_o in template_objects:
+    for t_o in plugin_objects:
         for k, v in t_o.target_types.items():
             id = '%s_%s' % (t_o.classname_to_tag(), k)
             target_types[id] = default.copy()
@@ -68,14 +68,14 @@ def list_target_types():
 
 def list_targets(metrics):
     targets = {}
-    for t_o in template_objects:
+    for t_o in plugin_objects:
         targets.update(t_o.list_targets(metrics))
     return targets
 
 
 def list_graphs(metrics):
     graphs = {}
-    for t_o in template_objects:
+    for t_o in plugin_objects:
         graphs.update(t_o.list_graphs(metrics))
     return graphs
 
@@ -253,7 +253,7 @@ def view_debug():
     graphs = list_graphs(metrics)
     graphs_targets, graphs_targets_options = build_graphs_from_targets(target_types, targets)
     args = {'errors': errors,
-            'templates': templates,
+            'plugin_names': plugin_names,
             'targets': targets,
             'graphs': graphs,
             'graphs_targets': graphs_targets,
@@ -299,7 +299,7 @@ def build_graphs_from_targets(target_types, targets, query={}):
     constants = len(group_by)
     for target_id in sorted(targets.iterkeys()):
         target_data = targets[target_id]
-        target_type = '%s_%s' % (target_data['tags']['template'], target_data['tags']['target_type'])
+        target_type = '%s_%s' % (target_data['tags']['plugin'], target_data['tags']['target_type'])
         constants = ['targets', target_type]
         if group_by[1] is 'default_group_by':
             group_by_tag = target_types[target_type]['default_group_by']
@@ -340,7 +340,7 @@ def build_graphs_from_targets(target_types, targets, query={}):
 def graphs(query=''):
     '''
     get all relevant graphs matching query,
-    graphs yielded by templates directly,
+    graphs yielded by plugins directly,
     enriched by combining the yielded targets
     '''
     try:

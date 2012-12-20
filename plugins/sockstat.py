@@ -1,7 +1,7 @@
-from . import GraphTemplate
+from . import Plugin
 
 
-class SockstatTemplate(GraphTemplate):
+class SockstatPlugin(Plugin):
     target_types = {
         'gauge': {
             'match': '^servers\.(?P<server>[^\.]+)\.sockets\.(?P<protocol>tcp|udp)?_?(?P<type>[^\.]+)$',

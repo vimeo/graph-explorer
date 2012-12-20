@@ -1,7 +1,7 @@
-from . import GraphTemplate
+from . import Plugin
 
 
-class SwiftProxyServerTemplate(GraphTemplate):
+class SwiftProxyServerPlugin(Plugin):
     http_methods = ['GET', 'HEAD', 'PUT', 'REPLICATE']
     target_types = {
         'timer': {
@@ -23,7 +23,7 @@ class SwiftProxyServerTemplate(GraphTemplate):
 
     def generate_targets(self, target_type, match):
         tags = match.groupdict()
-        tags.update({'target_type': target_type, 'template': self.classname_to_tag()})
+        tags.update({'target_type': target_type, 'plugin': self.classname_to_tag()})
         t = match.string
         # 'xfer' is transferred bytes..
         if tags['type'] == 'xfer':

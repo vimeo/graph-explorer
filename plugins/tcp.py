@@ -1,10 +1,10 @@
-from . import GraphTemplate
+from . import Plugin
 
 
-class VmstatTemplate(GraphTemplate):
+class TcpPlugin(Plugin):
     target_types = {
         'rate': {
-            'match': '^servers\.(?P<server>[^\.]+)\.vmstat\.(?P<type>.*)$',
+            'match': '^servers\.(?P<server>[^\.]+)\.(?P<protocol>tcp)\.(?P<type>.*)$',
             'default_group_by': 'server',
             'default_graph_options': {'vtitle': 'per second'}
         }

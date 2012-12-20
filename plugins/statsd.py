@@ -1,7 +1,7 @@
-from . import GraphTemplate
+from . import Plugin
 
 
-class StatsdTemplate(GraphTemplate):
+class StatsdPlugin(Plugin):
     '''
     'use this in combination with: derivative(statsd.*.udp_packet_receive_errors)',
     '''
@@ -47,7 +47,7 @@ class StatsdTemplate(GraphTemplate):
 
     def generate_targets(self, target_type, match):
         tags = match.groupdict()
-        tags.update({'target_type': target_type, 'template': self.classname_to_tag()})
+        tags.update({'target_type': target_type, 'plugin': self.classname_to_tag()})
         t = match.string
         if target_type is 'rate':
             t = 'derivative(%s)' % t

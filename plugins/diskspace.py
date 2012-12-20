@@ -1,7 +1,7 @@
-from . import GraphTemplate
+from . import Plugin
 
 
-class DiskspaceTemplate(GraphTemplate):
+class DiskspacePlugin(Plugin):
     target_types = {
         'count': {
             'match': '^servers\.(?P<server>[^\.]+)\.diskspace\.(?P<mountpoint>[^\.]+)\.(?P<type>.*)$',
@@ -31,7 +31,7 @@ class DiskspaceTemplate(GraphTemplate):
 
     def generate_targets(self, target_type, match):
         tags = match.groupdict()
-        tags.update({'target_type': target_type, 'template': self.classname_to_tag()})
+        tags.update({'target_type': target_type, 'plugin': self.classname_to_tag()})
         if target_type is 'count':
             t = match.string
         else:

@@ -6,10 +6,10 @@
      <a href="/debug/metrics">cached metrics</a>
      <div class="row">
         <div class="span12">
-          <h2>Templates</h2>
+          <h2>Plugins</h2>
           <table class="table table-condensed">
-%for template in sorted(templates):
-            <tr><td>{{template}}<a href="index/template={{template}}"> <i class="icon-zoom-in icon-white"></i></a></td></tr>
+%for plugin in sorted(plugin_names):
+            <tr><td>{{plugin}}<a href="index/plugin={{plugin}}"> <i class="icon-zoom-in icon-white"></i></a></td></tr>
 %end
           </table>
        </div>

@@ -1,6 +1,6 @@
 # Graph explorer
 
-A highly interactive dashboard to satisfy varying ad-hoc information needs across a multitude of metrics by using templates which
+A highly interactive dashboard to satisfy varying ad-hoc information needs across a multitude of metrics by using plugins which
 
 * add metadata to individual graphite metrics, (tags such as as server, service, type, ...)
 * define how to generate (multiple) targets for any metric (to render as a count, a rate, etc)
@@ -14,14 +14,14 @@ Quick example videos which are dated but give you an idea:
 * [diskspace example (1:20)](https://vimeo.com/54906914)
 * [openstack swift example (1:57)](https://vimeo.com/54912886)
 
-Furthermore, the code is simple and hackable (just a few hundred sLOC), uses simple python files as templates, and is a breeze to get running (only external dep. is python)
+Furthermore, the code is simple and hackable (just a few hundred sLOC), uses simple python files as plugins, and is a breeze to get running (only external dep. is python)
 
 ![Screenshot](https://raw.github.com/Dieterbe/graph-explorer/master/screenshot.png)
 
 ## Enhanced Metrics
 
 In graphite, a metric has a name and a corresponding time series of values.
-Graph-explorer's templates have `target_type` settings which parse the metric names on which they apply and add metadata to them:
+Graph-explorer's plugins have `target_type` settings which parse the metric names on which they apply and add metadata to them:
 
 * tags from fields in the metric name (server, service, interface_name, etc) by using named groups in a regex.  
   usually the last field of a metric is called `type`.  (for example `iowait` or `upper_90` for statsd timers)
@@ -52,7 +52,7 @@ Some exceptions for things that are accepted to be upper case are http methods (
 ## Graphs
 
 * Are built as requested by your query.
-* Templates can yield graphs directly, they specify targets either as graphite strings or as config dict.  To be revised.  leverage enhanced targets?  Not sure how this will fit in
+* Plugins can yield graphs directly, they specify targets either as graphite strings or as config dict.  To be revised.  leverage enhanced targets?  Not sure how this will fit in
   as I'm aiming to make it possible to match metrics in a lightweight way and compose graphs ad-hoc with minimal fuss.  
   Note that graphs are matched in the same way targets are (based on their id, tags, etc)
   At this time only one example: in the statsd plugin
@@ -98,7 +98,7 @@ Unless mentioned otherwise, the values must not contain white space.
 default grouping is always at least by target_type, and secondary by what the `target_type`'s `default_group_by` (usually server), or by the tag you specified with this predicate.
 a `:<tag>` pattern is implicitly added.
 
-For example, the cpu template yields targets with tags:
+For example, the cpu plugin yields targets with tags:
 
 * target_type: cpu_state_pct
 * type : something like iowait

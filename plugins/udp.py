@@ -1,7 +1,7 @@
-from . import GraphTemplate
+from . import Plugin
 
 
-class UdpTemplate(GraphTemplate):
+class UdpPlugin(Plugin):
     target_types = {
         'rate': {
             'match': '^servers\.(?P<server>[^\.]+)\.(?P<protocol>udp)\.(?P<type>.*)$',

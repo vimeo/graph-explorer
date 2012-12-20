@@ -1,7 +1,7 @@
-from . import GraphTemplate
+from . import Plugin
 
 
-class SwiftTemplate(GraphTemplate):
+class SwiftPlugin(Plugin):
 
     target_types = {
         'count': {

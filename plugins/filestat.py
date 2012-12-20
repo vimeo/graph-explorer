@@ -1,7 +1,7 @@
-from . import GraphTemplate
+from . import Plugin
 
 
-class FilestatTemplate(GraphTemplate):
+class FilestatPlugin(Plugin):
 
     target_types = {
         'gauge': {

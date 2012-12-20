@@ -1,7 +1,7 @@
-from . import GraphTemplate
+from . import Plugin
 
 
-class SwiftObjectServerTemplate(GraphTemplate):
+class SwiftObjectServerPlugin(Plugin):
 
     #class_tag = 'swift_object_server'
     target_types = {

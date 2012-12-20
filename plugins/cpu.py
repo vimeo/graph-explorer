@@ -1,7 +1,7 @@
-from . import GraphTemplate
+from . import Plugin
 
 
-class CpuTemplate(GraphTemplate):
+class CpuPlugin(Plugin):
     '''
     core can be individual cores as well as total.
     http://www.linuxhowtos.org/System/procstat.htm documents all states, except guest and steal(?)

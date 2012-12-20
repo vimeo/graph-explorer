@@ -1,7 +1,7 @@
-from . import GraphTemplate
+from . import Plugin
 
 
-class SwiftTempauthTemplate(GraphTemplate):
+class SwiftTempauthPlugin(Plugin):
     target_types = {
         'rate': {
             'match': '^stats\.(?P<server>[^\.]+)\.tempauth\.AUTH_\.(?P<type>[^\.]+)$',

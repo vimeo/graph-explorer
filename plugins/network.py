@@ -1,7 +1,7 @@
-from . import GraphTemplate
+from . import Plugin
 
 
-class NetworkTemplate(GraphTemplate):
+class NetworkPlugin(Plugin):
     target_types = {
         'gauge': {
             'match': '^servers\.(?P<server>[^\.]+)\.network\.(?P<device>[^\.]+)\.(?P<type>.*)$',

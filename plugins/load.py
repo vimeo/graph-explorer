@@ -1,7 +1,7 @@
-from . import GraphTemplate
+from . import Plugin
 
 
-class LoadTemplate(GraphTemplate):
+class LoadPlugin(Plugin):
     target_types = {
         'count': {
             'match': '^servers\.(?P<server>[^\.]+)\.loadavg\.(?P<type>.*)$',
