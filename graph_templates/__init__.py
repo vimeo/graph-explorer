@@ -122,9 +122,14 @@ class GraphTemplate:
     def classname_to_tag(self):
         '''
         FooBarHTTPTemplate -> foo_bar_http
-        from http://stackoverflow.com/questions/1175208/elegant-python-function-to-convert-camelcase-to-camel-case/1176023#1176023
         '''
         name = self.__class__.__name__.replace('Template', '')
+        return self.camel_to_underscore(name)
+
+    def camel_to_underscore(self, name):
+        '''
+        from http://stackoverflow.com/questions/1175208/elegant-python-function-to-convert-camelcase-to-camel-case/1176023#1176023
+        '''
         s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
         return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
