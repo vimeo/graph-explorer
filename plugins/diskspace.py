@@ -6,12 +6,12 @@ class DiskspacePlugin(Plugin):
         'count': {
             'match': '^servers\.(?P<server>[^\.]+)\.diskspace\.(?P<mountpoint>[^\.]+)\.(?P<type>.*)$',
             'default_group_by': 'server',
-            'default_graph_options': {'state': 'stacked', 'vtitle': 'space'}
+            'default_graph_options': {'state': 'stacked', 'vtitle': 'space', 'suffixes': 'binary'}
         },
         'rate': {
             'match': '^servers\.(?P<server>[^\.]+)\.diskspace\.(?P<mountpoint>[^\.]+)\.(?P<type>.*)$',
             'default_group_by': 'server',
-            'default_graph_options': {'state': 'stacked', 'vtitle': 'space change per minute'}
+            'default_graph_options': {'state': 'stacked', 'vtitle': 'space change per minute', 'suffixes': 'binary'}
         }
     }
 
