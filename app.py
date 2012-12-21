@@ -382,6 +382,7 @@ def graphs(query=''):
             'query': query,
     }
     args.update(stats)
-    return template('graphs', args) + ''.join(rendered_templates)
+    out += template('graphs', args) + ''.join(rendered_templates)
+    return out
 
 # vim: ts=4 et sw=4:
