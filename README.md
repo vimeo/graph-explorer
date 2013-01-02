@@ -21,7 +21,7 @@ Furthermore, the code is simple and hackable (just a few hundred sLOC), uses sim
 ## Enhanced Metrics
 
 In graphite, a metric has a name and a corresponding time series of values.
-Graph-explorer's plugins have `target_type` settings which parse the metric names on which they apply and add metadata to them:
+Graph-explorer's plugins define rules which match metric names, parse them and yield a target with associated metadata:
 
 * tags from fields in the metric name (server, service, interface_name, etc) by using named groups in a regex.  
   usually the last field of a metric is called `type`.  (for example `iowait` or `upper_90` for statsd timers)
@@ -31,10 +31,12 @@ Graph-explorer's plugins have `target_type` settings which parse the metric name
 
 all metadata is made available as a tag, and an id is generated from all tag keys and values, to provide easy matching.
 
-target_types also provide settings:
+the configuration also provide settings:
 
 * `default_group_by` (usually `server`)
 * `default_graph_options` which specify how to render these types by default
+* `configure` function or list of functions to further enhance the target dynamically (given the match object and the target along with its config), in addition to the default
+  defined function which can also be overridden.
 
 Note that it is trivial to yield multiple targets from the same metric.  I.e. you can have a metric available as rate, counter, average, etc by applying different functions.
 
@@ -95,7 +97,7 @@ Unless mentioned otherwise, the values must not contain white space.
 
 ### group by `<tag>`
 
-default grouping is always at least by target_type, and secondary by what the `target_type`'s `default_group_by` (usually server), or by the tag you specified with this predicate.
+default grouping is always at least by target_type, and secondary by `default_group_by` (usually server), or by the tag you specified with this predicate.
 a `:<tag>` pattern is implicitly added.
 
 For example, the cpu plugin yields targets with tags:

@@ -20,22 +20,60 @@ class Plugin:
         'white': '#FFFFFF',
         'black': '#000000'
     }
-    target_types = {}
     graphs = {}
+    target_default = {
+        # one or more functions allow you to dynamically configure target properties based on
+        # the match object. the target will receive updated fields from the returned dict
+        'configure': [lambda self, match, target: self.default_configure_target(match, target)],
+        'default_graph_options': {},
+        'default_group_by': None
+    }
 
-    def __init__(self):
-        for (id, config) in self.target_types.items():
-            # because sometimes a target_type covers multiple metric naming
+    def default_configure_target(self, match, target):
+        return {}
+
+    def get_targets(self):
+        # "denormalize" dense configuration list into a new list of full-blown configs
+        targets = []
+        for target in self.targets:
+            if 'targets' in target:
+                for sub_target in target['targets']:
+                    t = target.copy()
+                    del t['targets']
+                    t.update(sub_target)
+                    targets.append(t)
+            else:
+                targets.append(target)
+
+        for (id, target) in enumerate(targets):
+            # merge options into defaults
+            # 'configure' is a special case.. we append new entries to the
+            # original list.  this allows you to add extra functions, while
+            # maintaining the original (which can be overridden).
+            # or don't bother with specifying any configure options, and just
+            # override the function.
+            targets[id] = self.target_default.copy()
+            targets[id].update(target)
+            targets[id]['configure'] = list(self.target_default['configure'])
+            if 'configure' in target:
+                if not isinstance(target['configure'], list):
+                    target['configure'] = [target['configure']]
+                targets[id]['configure'].extend(target['configure'])
+            # compile fast match objects
+            # because sometimes a target covers multiple metric naming
             # patterns, we must support a list of possible matching regexes.
             # we can't just do '|'.join(list of regexes)
             # because then we can't repeat group names.
-            # first match wins
-            if isinstance(config['match'], basestring):
-                config['match'] = [config['match']]
-            self.target_types[id]['match_object'] = []
-            for regex in config['match']:
+            if isinstance(target['match'], basestring):
+                target['match'] = [target['match']]
+            targets[id]['match_object'] = []
+            for regex in target['match']:
                 # can raise sre_constants.error ! and maybe other regex errors.
-                self.target_types[id]['match_object'].append(re.compile(regex))
+                targets[id]['match_object'].append(re.compile(regex))
+        return targets
+
+    def __init__(self):
+        self.targets = self.get_targets()
         for (id, config) in self.graphs.items():
             self.graphs[id]['match_object'] = re.compile(config['match'])
 
@@ -47,25 +85,24 @@ class Plugin:
                 target_key.append('%s:%s' % (tag_key, tag_val))
         return ' '.join(target_key)
 
-    def generate_targets(self, target_type, match):
+    def configure_target(self, match, target_config):
         """
-        emit one or more targets in a dict like {'targetname': <target spec>}
-        this implementation just sets target to the metric (match.string),
-        and sets all appropriate tags.  if you override this function,
-        you should probably still set these tags cause they are relied on.
-        depending on target_type you can use different graphite functions
-        in your target.
+        you probably should never override this function because:
+        * the behavior here should always be performed and untouched
+        * the configuration is usually dependent on the specific target at hand,
+          this function is applied on all targets
+        so rather use the target_config['config']['configure'] function
         """
         tags = match.groupdict()
-        tags.update({'target_type': target_type, 'plugin': self.classname_to_tag()})
+        tags.update({'target_type': target_config['target_type'], 'plugin': self.classname_to_tag()})
         target = {
-            'target': match.string,
-            'tags': tags
+            'config': target_config,
+            'tags': tags,
+            # default target is the match string == the metric in graphite
+            'target': match.string
         }
-        target = self.configure_target(target)
-        return {self.get_target_id(target): target}
-
-    def configure_target(self, target):
+        for configure_fn in target_config['configure']:
+            target.update(configure_fn(self, match, target))
         return target
 
     def generate_graphs(self):
@@ -87,11 +124,12 @@ class Plugin:
         """
         targets = {}
         for metric in metrics:
-            for (id, config) in self.target_types.items():
-                for match_object in config['match_object']:
+            for target in self.targets:
+                for match_object in target['match_object']:
                     match = match_object.search(metric)
                     if match is not None:
-                        targets.update(self.generate_targets(id, match))
+                        target = self.configure_target(match, target)
+                        targets[self.get_target_id(target)] = target
                         continue
         return targets
 

@@ -7,15 +7,16 @@ class CpuPlugin(Plugin):
     http://www.linuxhowtos.org/System/procstat.htm documents all states, except guest and steal(?)
     everything is in percent, but note that e.g. a 16 core machine goes up to 1600% for total.
     '''
-    target_types = {
-        'state_pct': {
+    targets = [
+        {
             'match': '^servers\.(?P<server>[^\.]+)\.cpu\.(?P<core>[^\.]+)\.(?P<type>.*)$',
             'default_group_by': 'server',
-            'default_graph_options': {'state': 'stacked', 'vtitle': 'cpu state in % across all cores'}
+            'default_graph_options': {'state': 'stacked', 'vtitle': 'cpu state in % across all cores'},
+            'target_type': 'state_pct'
         }
-    }
+    ]
 
-    def configure_target(self, target):
+    def default_configure_target(self, match, target):
         t = target['tags']['type']
         color_assign = {
             'idle': self.colors['green'][0],

@@ -3,39 +3,28 @@ from . import Plugin
 
 class SwiftProxyServerPlugin(Plugin):
     http_methods = ['GET', 'HEAD', 'PUT', 'REPLICATE']
-    target_types = {
-        'timer': {
+    targets = [
+        {
             'match': '^stats.timers\.(?P<server>[^\.]+)\.proxy-server\.(?P<swift_type>account|container|object)\.(?P<http_method>[^\.]+)\.(?P<http_code>[^\.]+)\.timing\.(?P<type>[^\.]+)$',
             'default_group_by': 'server',
-            'default_graph_options': {'vtitle': 'duration in ms'}
+            'default_graph_options': {'vtitle': 'duration in ms'},
+            'target_type': 'timer'
         },
-        'count': {
+        {
             'match': '^stats_counts\.(?P<server>[^\.]+)\.proxy-server\.?(?P<swift_type>account|container|object)?\.?(?P<http_method>[^\.]*)\.?(?P<http_code>[^\.]*)\.(?P<type>[^\.]+)$',
             'default_group_by': 'server',
-            'default_graph_options': {'vtitle': 'events seen in flushInterval'}
+            'default_graph_options': {'vtitle': 'events seen in flushInterval'},
+            'target_type': 'count'
         },
-        'rate': {
+        {
             'match': '^stats\.(?P<server>[^\.]+)\.proxy-server\.?(?P<swift_type>account|container|object)?\.?(?P<http_method>[^\.]*)\.?(?P<http_code>[^\.]*)\.(?P<type>[^\.]+)$',
             'default_group_by': 'server',
-            'default_graph_options': {'vtitle': 'events/s'}
+            'default_graph_options': {'vtitle': 'events/s'},
+            'target_type': 'rate'
         },
-    }
+    ]
 
-    def generate_targets(self, target_type, match):
-        tags = match.groupdict()
-        tags.update({'target_type': target_type, 'plugin': self.classname_to_tag()})
-        t = match.string
-        # 'xfer' is transferred bytes..
-        if tags['type'] == 'xfer':
-            tags['type'] = 'xfer_bytes'
-        target = {
-            'target': t,
-            'tags': tags
-        }
-        target = self.configure_target(target)
-        return {self.get_target_id(target): target}
-
-    def configure_target(self, target):
+    def default_configure_target(self, match, target):
         m = target['tags'].get('http_method', '')
         t = target['tags']['type']
         if m == 'GET'       and t in ('lower', 'timeouts', 'xfer'): target['color'] = self.colors['blue'][0]
@@ -48,6 +37,9 @@ class SwiftProxyServerPlugin(Plugin):
         if m == 'REPLICATE' and t in ('upper_90', 'errors')       : target['color'] = self.colors['brown'][1]
         if m == 'DELETE'    and t in ('lower', 'timeouts', 'xfer'): target['color'] = self.colors['red'][0]
         if m == 'DELETE'    and t in ('upper_90', 'errors')       : target['color'] = self.colors['red'][1]
+        # 'xfer' is transferred bytes..
+        if target['tags']['type'] == 'xfer':
+            target['tags']['type'] = 'xfer_bytes'
         return target
 
 # vim: ts=4 et sw=4:

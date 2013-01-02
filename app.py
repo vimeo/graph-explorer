@@ -53,19 +53,6 @@ for f in os.listdir("."):
 os.chdir(wd)
 
 
-def list_target_types():
-    target_types = {}
-    default = {
-        'default_group_by': None
-    }
-    for t_o in plugin_objects:
-        for k, v in t_o.target_types.items():
-            id = '%s_%s' % (t_o.classname_to_tag(), k)
-            target_types[id] = default.copy()
-            target_types[id].update(v)
-    return target_types
-
-
 def list_targets(metrics):
     targets = {}
     for t_o in plugin_objects:
@@ -100,7 +87,7 @@ def parse_query(query_str):
     (query_str, query['from']) = parse_out_value(query_str, 'from ', '[^ ]+', '-24hours')
 
     # if user doesn't specify any group_by, we automatically group by target_type and
-    # by the tag specified by default_group_by in the target_type, if any.
+    # by the tag specified by default_group_by.
     # if the user specified "group by foobar" in the query_str, we group by target_type and whatever the user said.
     (query_str, group_by) = parse_out_value(query_str, 'group by ', '[^ ]+', 'default_group_by')
     if group_by != 'default_group_by':
@@ -248,10 +235,9 @@ def view_debug():
         errors['metrics_file'] = ("Can't parse metrics file", e)
         body = template('snippet.errors', errors=errors)
         return render_page(body, 'debug')
-    target_types = list_target_types()
     targets = list_targets(metrics)
     graphs = list_graphs(metrics)
-    graphs_targets, graphs_targets_options = build_graphs_from_targets(target_types, targets)
+    graphs_targets, graphs_targets_options = build_graphs_from_targets(targets)
     args = {'errors': errors,
             'plugin_names': plugin_names,
             'targets': targets,
@@ -276,7 +262,7 @@ def debug_metrics():
         return "Can't parse metrics file: %s" % e
 
 
-def build_graphs_from_targets(target_types, targets, query={}):
+def build_graphs_from_targets(targets, query={}):
     # merge default options..
     defaults = {
         'group_by': ['target_type', 'default_group_by'],
@@ -302,7 +288,7 @@ def build_graphs_from_targets(target_types, targets, query={}):
         target_type = '%s_%s' % (target_data['tags']['plugin'], target_data['tags']['target_type'])
         constants = ['targets', target_type]
         if group_by[1] is 'default_group_by':
-            group_by_tag = target_types[target_type]['default_group_by']
+            group_by_tag = target_data['config']['default_group_by']
         else:
             group_by_tag = group_by[1]
         # group_by_tag is now something like 'server' or 'type' or None, convert it to the actual value:
@@ -319,7 +305,7 @@ def build_graphs_from_targets(target_types, targets, query={}):
         target_name = ' '.join(variables)
         if graph_title not in graphs:
             graph = {'from': query['from'], 'until': query['to']}
-            graph.update(target_types[target_type].get('default_graph_options', {}))
+            graph.update(target_data['config']['default_graph_options'])
             graph.update({'title': graph_title, 'targets': []})
             graphs[graph_title] = graph
         # set all options needed for graphitejs/flot:
@@ -355,13 +341,12 @@ def graphs(query=''):
         query = request.forms.get('query')
     if not query:
         return template('graphs', query=query, errors=errors)
-    target_types = list_target_types()
     targets_all = list_targets(metrics)
     graphs_all = list_graphs(metrics)
     query = parse_query(query)
     targets_matching = match(targets_all, query)
     graphs_matching = match(graphs_all, query)
-    graphs_targets_matching = build_graphs_from_targets(target_types, targets_matching, query)[0]
+    graphs_targets_matching = build_graphs_from_targets(targets_matching, query)[0]
     stats = {'len_targets_all': len(targets_all),
              'len_graphs_all': len(graphs_all),
              'len_targets_matching': len(targets_matching),

@@ -2,15 +2,16 @@ from . import Plugin
 
 
 class LoadPlugin(Plugin):
-    target_types = {
-        'count': {
+    targets = [
+        {
             'match': '^servers\.(?P<server>[^\.]+)\.loadavg\.(?P<type>.*)$',
             'default_group_by': 'server',
-            'default_graph_options': {'state': 'stacked'}
+            'default_graph_options': {'state': 'stacked'},
+            'target_type': 'count'
         }
-    }
+    ]
 
-    def configure_target(self, target):
+    def default_configure_target(self, match, target):
         # add extra light version..
         red = ('#FFA791', self.colors['red'][0], self.colors['red'][1])
         t = target['tags']['type']

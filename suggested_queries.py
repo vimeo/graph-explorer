@@ -50,7 +50,7 @@ queries = [
         'tags': ['swift']
     },
     {
-        'query': 'target_type:dispersion group by type !copies_(found|expected)',
+        'query': 'category:dispersion group by type !copies_(found|expected)',
         'desc': 'dispersion (highlevel health)',  # copies_(found|expected) filtered out because that info is included in the percentage
         'tags': ['swift']
     },
