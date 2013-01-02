@@ -60,7 +60,7 @@ queries = [
         'tags': ['disk', 'dfs', 'dfsproxy']
     },
     {
-        'query': 'load count group by type !05 !15',
+        'query': 'plugin=load count group by type !05 !15',
         'desc': 'compare load across machines',  # no 5,15 minutely avg, we already have 1 minutely
         'tags': ['load', '*']
     },
