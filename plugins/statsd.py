@@ -15,10 +15,14 @@ class StatsdPlugin(Plugin):
             'match': [
                 #'^stats\.(?P<server>timers)\.(?P<timer>.*)\.count$',
                 '^stats\.(?P<server>statsd)\.(?P<type>[^\.]+)$',  # packets_received, bad_lines_seen
-                '^stats\.(?P<server>statsd)\.(?P<type>graphiteStats\.calculationtime)$',
             ],
             'default_graph_options': {'vtitle': 'packets received per timer metric in interval'},
             'target_type': 'count'
+        },
+        {
+            'match': '^stats\.(?P<server>statsd)\.(?P<type>graphiteStats\.calculationtime)$',
+            'target_type': 'gauge',
+            'default_graph_options': {'vtitle': 'seconds'}
         },
         {
             'match': 'stats\.statsd\.(?P<type>graphiteStats\.last_[^\.]+)$',  # last_flush, last_exception. number of seconds since.
