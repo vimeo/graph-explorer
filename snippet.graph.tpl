@@ -10,7 +10,10 @@
 	    $(document).ready(function () {
 		var graph_data = {{!json.dumps(graph_data)}};
 		var defaults = {
-		    url: "{{config.graphite_url}}/render/",
+		    graphite_url: "{{config.graphite_url}}/render/",
+            % if config.anthracite_url is not None:
+		    anthracite_url: "{{config.anthracite_url}}",
+            % end
 		    from: "-24hours",
 		    until: "now",
 		    height: "300",
