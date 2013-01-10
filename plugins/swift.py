@@ -7,7 +7,6 @@ class SwiftPlugin(Plugin):
         {
             'match': '^servers\.(?P<server>[^\.]+)\.openstackswift\.(?P<category>container_metrics)\.(?P<account>[^\.]+)\.(?P<container>[^\.]+)\.(?P<type>[^\.]+)$',
             'default_group_by': 'type',
-            'default_graph_options': {'vtitle': 'foo'},
             'target_type': 'count'
         },
         {
