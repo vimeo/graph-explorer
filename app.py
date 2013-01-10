@@ -1,6 +1,12 @@
 #!/usr/bin/env python2
+try:
+    import json
+except ImportError:
+    try:
+       import simplejson as json
+    except ImportError:
+       raise ImportError("GE requires python2, 2.6 or higher, or 2.5 with simplejson.")
 import os
-import json
 import re
 from inspect import isclass
 from bottle import route, template, request, static_file, redirect, response
