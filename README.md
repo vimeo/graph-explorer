@@ -141,7 +141,7 @@ accepts anything graphite accepts (see above)
 
 ## Dependencies
 
-* python2
+* python2: either 2.6 or higher, or 2.5 and the additional simplejson module
 
 ## Installation
 
