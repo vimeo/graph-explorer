@@ -33,6 +33,15 @@ class StatsdPlugin(Plugin):
                 {
                     'target_type': 'rate',
                     'configure': lambda self, match, target: {'target': 'derivative(%s)' % match.string}
+                },
+                # this requires:
+                # https://github.com/graphite-project/graphite-web/pull/133
+                # https://github.com/graphite-project/graphite-web/pull/135/
+                # the keepLastValue is a workaround for https://github.com/graphite-project/graphite-web/pull/91
+                {
+                    'target_type': 'gauge',
+                    'default_graph_options': {'vtitle': 'age (sec)'},
+                    'configure': lambda self, match, target: {'target': 'diffSeries(identity("a"),keepLastValue(%s))' % match.string}
                 }
             ]
         }
