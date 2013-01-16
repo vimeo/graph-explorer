@@ -32,6 +32,13 @@ class Plugin:
     def default_configure_target(self, match, target):
         return {}
 
+    def add_tag(self, target, key, val):
+        '''
+        add tag to existing set of tags
+        overiddes any tag with the same name
+        '''
+        target['tags'][key] = val
+
     def get_targets(self):
         # "denormalize" dense configuration list into a new list of full-blown configs
         targets = []
