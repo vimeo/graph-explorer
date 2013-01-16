@@ -233,7 +233,8 @@ def meta():
 
 
 @route('/debug')
-def view_debug():
+@route('/debug/<query>')
+def view_debug(query=''):
     try:
         metrics = load_metrics()
     except IOError, e:
@@ -244,9 +245,20 @@ def view_debug():
         errors['metrics_file'] = ("Can't parse metrics file", e)
         body = template('snippet.errors', errors=errors)
         return render_page(body, 'debug')
-    targets = list_targets(metrics)
-    graphs = list_graphs(metrics)
-    graphs_targets, graphs_targets_options = build_graphs_from_targets(targets)
+    targets_all = list_targets(metrics)
+    graphs_all = list_graphs(metrics)
+    if query:
+        query = parse_query(query)
+        targets_matching = match(targets_all, query)
+        graphs_matching = match(graphs_all, query)
+        graphs_targets, graphs_targets_options = build_graphs_from_targets(targets_matching, query)
+        targets = targets_matching
+        graphs = graphs_matching
+    else:
+        graphs_targets, graphs_targets_options = build_graphs_from_targets(targets_all)
+        targets = targets_all
+        graphs = graphs_all
+
     args = {'errors': errors,
             'plugin_names': plugin_names,
             'targets': targets,

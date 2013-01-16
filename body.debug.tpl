@@ -29,11 +29,13 @@
 %include snippet.errors errors=errors
      <a href="/debug/metrics">cached metrics</a>
      <div class="row">
-        <div class="span2">
+        <div class="span3">
           <h2>Plugins</h2>
           <table class="table table-condensed">
 %for plugin in sorted(plugin_names):
-            <tr><td>{{plugin}}<a href="index/plugin={{plugin}}"> <i class="icon-zoom-in icon-white"></i></a></td></tr>
+            <tr><td>{{plugin}}<a href="/index/plugin={{plugin}}"> <i class="icon-zoom-in icon-white"></i></a>
+                              <a href="/debug/plugin={{plugin}}"> <i class="icon-filter icon-white"></i></a>
+</td></tr>
 %end
           </table>
        </div>
