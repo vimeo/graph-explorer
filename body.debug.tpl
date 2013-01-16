@@ -4,17 +4,60 @@
 <script src="../DataTables/media/js/jquery.dataTables.js"></script>
 <script src="../DataTablesPlugins/integration/bootstrap/dataTables.bootstrap.js"></script>
 
+% tags = set()
+%for data in targets.itervalues():
+% tags.update(data['tags'].keys())
+%end
+% tags = sorted(tags)
+% tag_values = {}
+% for tag in tags:
+% tag_values[tag] = set()
+% end
+%for data in targets.itervalues():
+% for (k,v) in data['tags'].items():
+%  tag_values[k].add(v)
+% end
+%end
+% tag_values_sorted = {}
+% max_values = 0
+% for tag in tags:
+%   tag_values_sorted[tag] = sorted(tag_values[tag])
+%   max_values = max(max_values, len(tag_values[tag]))
+% end
+
   <div class="container-fluid">
 %include snippet.errors errors=errors
      <a href="/debug/metrics">cached metrics</a>
      <div class="row">
-        <div>
+        <div class="span2">
           <h2>Plugins</h2>
           <table class="table table-condensed">
 %for plugin in sorted(plugin_names):
             <tr><td>{{plugin}}<a href="index/plugin={{plugin}}"> <i class="icon-zoom-in icon-white"></i></a></td></tr>
 %end
           </table>
+       </div>
+        <div class="span10">
+          <h2>Tags seen</h2>
+           <table>
+                <tr>
+                    %for tag in tags:
+                       <th>{{tag}}</th>
+                    %end
+                </tr>
+                %for i in range(0, max_values):
+                    <tr>
+                        % for tag in tags:
+                            % try:
+                                % v = tag_values_sorted[tag][i]
+                            % except:
+                                % v = ''
+                            % end
+                            <td>{{v}}</td>
+                        % end
+                    </tr>
+                %end
+            </table>
        </div>
      </div>
      <div class="row">
@@ -51,10 +94,6 @@
    <div class="row">
         <div class="span12">
           <h2>Targets</h2>
-% tags = set()
-%for data in targets.itervalues():
-% tags.update(data['tags'].keys())
-%end
 <table cellpadding="0" cellspacing="0" border="0" class="table table-striped table-bordered" id="example">
     <thead>
         <tr>
