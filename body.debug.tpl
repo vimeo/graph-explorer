@@ -1,6 +1,8 @@
 %try: import json
 %except ImportError: import simplejson as json
 %#TODO print target_types on this page
+<script src="../DataTables/media/js/jquery.dataTables.js"></script>
+<script src="../DataTablesPlugins/integration/bootstrap/dataTables.bootstrap.js"></script>
 
   <div class="container">
 %include snippet.errors errors=errors
@@ -49,21 +51,49 @@
    <div class="row">
         <div class="span12">
           <h2>Targets</h2>
-          <table class="table table-condensed">
-		<tr><th><b>id</b><br/>&gt; <i>target</i></th><th>tags</th></tr>
-%for id in sorted(targets.iterkeys()):
-	% data = targets[id]
-		<tr>
-			<td><b>{{id}}</b><br/><br/>&gt; <i>{{data['target']}}</i></td>
-			<td>
-	%for tag_key in sorted(data['tags'].iterkeys()):
-		% tag_val = data['tags'][tag_key]
-			{{tag_key}} : {{tag_val}}<br/>
-	%end
-			</td>
-		</tr>
+% tags = set()
+%for data in targets.itervalues():
+% tags.update(data['tags'].keys())
 %end
-          </table>
+<table cellpadding="0" cellspacing="0" border="0" class="table table-striped table-bordered" id="example">
+    <thead>
+        <tr>
+            %for tag in tags:
+                <th>{{tag}}</th>
+            %end
+            <th>Target</th>
+        </tr>
+    </thead>
+    <tbody>
+        % counter = 0
+        %for data in targets.itervalues():
+            %c = ['even','odd'][counter % 2]
+            <tr class="{{c}}">
+                %for tag in tags:
+                    %if tag in data['tags']:
+                        <td>{{data['tags'][tag]}}</td>
+                    %else:
+                        <td></td>
+                    %end
+                %end
+                <td>{{data['target']}}</td>
+            </tr>
+            % counter += 1
+        %end
+    </tbody>
+</table>
+<script>
+/* Table initialisation */
+$(document).ready(function() {
+    $('#example').dataTable( {
+        "sDom": "<'row'<'span6'l><'span6'f>r>t<'row'<'span6'i><'span6'p>>",
+        "sPaginationType": "bootstrap",
+        "oLanguage": {
+            "sLengthMenu": "_MENU_ records per page"
+        }
+    } );
+} );
+</script>
        </div>
       </div>
     </div> <!-- /container -->
