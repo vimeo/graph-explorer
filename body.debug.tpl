@@ -4,11 +4,11 @@
 <script src="../DataTables/media/js/jquery.dataTables.js"></script>
 <script src="../DataTablesPlugins/integration/bootstrap/dataTables.bootstrap.js"></script>
 
-  <div class="container">
+  <div class="container-fluid">
 %include snippet.errors errors=errors
      <a href="/debug/metrics">cached metrics</a>
      <div class="row">
-        <div class="span12">
+        <div>
           <h2>Plugins</h2>
           <table class="table table-condensed">
 %for plugin in sorted(plugin_names):
