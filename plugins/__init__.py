@@ -101,8 +101,14 @@ class Plugin:
             # default target is the match string == the metric in graphite
             'target': match.string
         }
+        # from dict returned, merge in all keys (not deep. overrides existing
+        # keys). you can easily mimic deep merge by just taking original value,
+        # merging your stuff in, and returning that, or since modifying the
+        # original value directly suffices, just return nothing
         for configure_fn in target_config['configure']:
-            target.update(configure_fn(self, match, target))
+            out = configure_fn(self, match, target)
+            if out is not None:
+                target.update(out)
         return target
 
     def generate_graphs(self):
