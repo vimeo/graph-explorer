@@ -195,6 +195,9 @@ def stat_metrics():
 @route('<path:re:/assets/.*>')
 @route('<path:re:/graphitejs/.*js>')
 @route('<path:re:/graphitejs/.*css>')
+@route('<path:re:/DataTables/media/js/.*js>')
+@route('<path:re:/DataTablesPlugins/integration/bootstrap/.*js>')
+@route('<path:re:/DataTablesPlugins/integration/bootstrap/.*css>')
 def static(path):
     return static_file(path, root='.')
 

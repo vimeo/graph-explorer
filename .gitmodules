@@ -1,3 +1,9 @@
 [submodule "graphitejs"]
 	path = graphitejs
 	url = https://github.com/Dieterbe/graphitejs.git
+[submodule "DataTables"]
+	path = DataTables
+	url = https://github.com/DataTables/DataTables.git
+[submodule "DataTablesPlugins"]
+	path = DataTablesPlugins
+	url = https://github.com/DataTables/Plugins.git
