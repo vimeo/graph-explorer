@@ -32,6 +32,15 @@ class Plugin:
     def default_configure_target(self, match, target):
         return {}
 
+    def fix_underscores(self, match, target, keys):
+        # SwapCached -> swap_cached
+        # keys can be a list of keys or just one key
+        try:
+            for key in keys:
+                target['tags'][key] = self.camel_to_underscore(target['tags'][key])
+        except:
+            target['tags'][keys] = self.camel_to_underscore(target['tags'][keys])
+
     def add_tag(self, target, key, val):
         '''
         add tag to existing set of tags
