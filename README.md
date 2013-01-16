@@ -178,3 +178,8 @@ For apache2 this works:
 
 `./graph-explorer.py` and your page is available at `<ip>:8080`
 
+
+## Getting in touch
+
+* irc: #monitoringlove on freenode (I'm there, Dieterbe)
+* or use github issues for bugs, feature requests, questions, feedback
