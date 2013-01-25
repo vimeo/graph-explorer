@@ -24,7 +24,7 @@ class SwiftProxyServerPlugin(Plugin):
         },
     ]
 
-    def default_configure_target(self, match, target):
+    def default_configure_target(self, target):
         m = target['tags'].get('http_method', '')
         t = target['tags']['type']
         if m == 'GET'       and t in ('lower', 'timeouts', 'xfer'): target['color'] = self.colors['blue'][0]

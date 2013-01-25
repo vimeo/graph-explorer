@@ -11,12 +11,13 @@ class CpuPlugin(Plugin):
         {
             'match': '^servers\.(?P<server>[^\.]+)\.cpu\.(?P<core>[^\.]+)\.(?P<type>.*)$',
             'default_group_by': 'server',
-            'default_graph_options': {'state': 'stacked', 'vtitle': 'cpu state in % across all cores'},
-            'target_type': 'state_pct'
+            'default_graph_options': {'state': 'stacked'},
+            'target_type': 'gauge_pct',
+            'configure': lambda self, target: self.add_tag(target, 'what', 'cpu_state')
         }
     ]
 
-    def default_configure_target(self, match, target):
+    def default_configure_target(self, target):
         t = target['tags']['type']
         color_assign = {
             'idle': self.colors['green'][0],

@@ -7,7 +7,8 @@ class FilestatPlugin(Plugin):
         {
             'match': '^servers\.(?P<server>[^\.]+)\.files\.(?P<type>.*)$',
             'default_group_by': 'server',
-            'target_type': 'gauge'
+            'target_type': 'gauge',
+            'configure': lambda self, target: self.add_tag(target, 'what', 'files')
         },
     ]
 

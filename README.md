@@ -51,6 +51,14 @@ Try to use standardized nomenclature in target types and tags.  Do pretty much w
 other words you might use are `pct` (percent), `http_method`, `device`, etc.  Also, keep everything in lowercase, that just keeps things easy when matching.
 Some exceptions for things that are accepted to be upper case are http methods (GET, PUT,etc)
 
+tag definitions:
+"what": the intrinsic thing that we're graphing (not *how* we graph it). i.e. errors, requests, cpu_state (used in vtitle, grouping into graphs)
+"type": extra info. i.e. if what is errors, this can be 'in'. if what is requests, this can be '404'
+"wt": often a metric path will contain one key that has info on both the "what" and "type", "wt" is commonly used to catch it, so you can sanitize it (see below)
+
+sanitization
+the process of properly setting "what" and "type" tags from a "wt" tag and deleting the "wt" tag again.
+
 ## Graphs
 
 * Are built as requested by your query.

@@ -24,15 +24,16 @@ class Plugin:
     target_default = {
         # one or more functions allow you to dynamically configure target properties based on
         # the match object. the target will receive updated fields from the returned dict
-        'configure': [lambda self, match, target: self.default_configure_target(match, target)],
+        'configure': [lambda self, target: self.default_configure_target(target)],
         'default_graph_options': {},
         'default_group_by': None
     }
 
-    def default_configure_target(self, match, target):
+    # useful configure functions:
+    def default_configure_target(self, target):
         return {}
 
-    def fix_underscores(self, match, target, keys):
+    def fix_underscores(self, target, keys):
         # SwapCached -> swap_cached
         # keys can be a list of keys or just one key
         try:
@@ -101,14 +102,7 @@ class Plugin:
                 target_key.append('%s:%s' % (tag_key, tag_val))
         return ' '.join(target_key)
 
-    def configure_target(self, match, target_config):
-        """
-        you probably should never override this function because:
-        * the behavior here should always be performed and untouched
-        * the configuration is usually dependent on the specific target at hand,
-          this function is applied on all targets
-        so rather use the target_config['config']['configure'] function
-        """
+    def __create_target(self, match, target_config):
         tags = match.groupdict()
         tags.update({'target_type': target_config['target_type'], 'plugin': self.classname_to_tag()})
         target = {
@@ -117,15 +111,27 @@ class Plugin:
             # default target is the match string == the metric in graphite
             'target': match.string
         }
+        return target
+
+    def __sanitize_target(self, target):
+        ret = self.sanitize(target)
+        if ret is None:
+            return target
+        return ret
+
+    def __configure_target(self, target):
         # from dict returned, merge in all keys (not deep. overrides existing
         # keys). you can easily mimic deep merge by just taking original value,
         # merging your stuff in, and returning that, or since modifying the
         # original value directly suffices, just return nothing
-        for configure_fn in target_config['configure']:
-            out = configure_fn(self, match, target)
+        for configure_fn in target['config']['configure']:
+            out = configure_fn(self, target)
             if out is not None:
                 target.update(out)
         return target
+
+    def sanitize(self, target):
+        return None
 
     def generate_graphs(self):
         """
@@ -150,7 +156,9 @@ class Plugin:
                 for match_object in target['match_object']:
                     match = match_object.search(metric)
                     if match is not None:
-                        target = self.configure_target(match, target)
+                        target = self.__create_target(match, target)
+                        target = self.__sanitize_target(target)
+                        target = self.__configure_target(target)
                         targets[self.get_target_id(target)] = target
                         continue
         return targets

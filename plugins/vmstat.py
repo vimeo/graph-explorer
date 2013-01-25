@@ -6,9 +6,12 @@ class VmstatPlugin(Plugin):
         {
             'match': '^servers\.(?P<server>[^\.]+)\.vmstat\.(?P<type>.*)$',
             'default_group_by': 'server',
-            'default_graph_options': {'vtitle': 'per second'},
-            'target_type': 'rate'
+            'target_type': 'rate',
+            'configure': lambda self, target: self.add_tag(target, 'what', 'pages')
         }
     ]
 
+    def sanitize(self, target):
+        target['tags']['type'] = target['tags']['type'].replace('pgpg', 'paging_')
+        target['tags']['type'] = target['tags']['type'].replace('pswp', 'swap_')
 # vim: ts=4 et sw=4:

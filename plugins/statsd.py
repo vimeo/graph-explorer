@@ -7,32 +7,32 @@ class StatsdPlugin(Plugin):
     '''
     targets = [
         {
-            'match': 'statsd\.(?P<type>numStats)',
+            'match': 'statsd\.(?P<wtt>numStats)',
             'default_graph_options': {'vtitle': 'stats (metrics) seen in interval'},
             'target_type': 'count'
         },
         {
             'match': [
                 #'^stats\.(?P<server>timers)\.(?P<timer>.*)\.count$',
-                '^stats\.(?P<server>statsd)\.(?P<type>[^\.]+)$',  # packets_received, bad_lines_seen
+                '^stats\.(?P<server>statsd)\.(?P<wtt>[^\.]+)$',  # packets_received, bad_lines_seen
             ],
             'default_graph_options': {'vtitle': 'packets received per timer metric in interval'},
             'target_type': 'count'
         },
         {
-            'match': '^stats\.(?P<server>statsd)\.(?P<type>graphiteStats\.calculationtime)$',
+            'match': '^stats\.(?P<server>statsd)\.(?P<wtt>graphiteStats\.calculationtime)$',
             'target_type': 'gauge',
             'default_graph_options': {'vtitle': 'seconds'}
         },
         {
-            'match': 'stats\.statsd\.(?P<type>graphiteStats\.last_[^\.]+)$',  # last_flush, last_exception. number of seconds since.
+            'match': 'stats\.statsd\.(?P<wtt>graphiteStats\.last_[^\.]+)$',  # last_flush, last_exception. number of seconds since.
             'targets': [
                 {
                     'target_type': 'counter'
                 },
                 {
                     'target_type': 'rate',
-                    'configure': lambda self, match, target: {'target': 'derivative(%s)' % match.string}
+                    'configure': lambda self, target: {'target': 'derivative(%s)' % target['target']}
                 },
                 # this requires:
                 # https://github.com/graphite-project/graphite-web/pull/133
@@ -41,7 +41,7 @@ class StatsdPlugin(Plugin):
                 {
                     'target_type': 'gauge',
                     'default_graph_options': {'vtitle': 'age (sec)'},
-                    'configure': lambda self, match, target: {'target': 'diffSeries(identity("a"),keepLastValue(%s))' % match.string}
+                    'configure': lambda self, target: {'target': 'diffSeries(identity("a"),keepLastValue(%s))' % target['target']}
                 }
             ]
         }
@@ -65,4 +65,24 @@ class StatsdPlugin(Plugin):
         }
     }
 
+    def sanitize(self, target):
+        if target['tags']['wtt'] == 'packets_received':
+            target['tags']['what'] = 'packets'
+            target['tags']['type'] = 'received'
+        if target['tags']['wtt'] == 'bad_lines_seen':
+            target['tags']['what'] = 'statsd_lines'
+            target['tags']['type'] = 'received_bad'
+        if target['tags']['wtt'] == 'numStats':
+            target['tags']['what'] = 'stats'
+            target['tags']['type'] = 'sent'
+        if target['tags']['wtt'] == 'graphiteStats.calculationtime':
+            target['tags']['what'] = 'seconds'
+            target['tags']['type'] = 'calculationtime'
+        if target['tags']['wtt'] == 'graphiteStats.last_flush':
+            target['tags']['what'] = 'timestamp'
+            target['tags']['type'] = 'last_flush'
+        if target['tags']['wtt'] == 'graphiteStats.last_exception':
+            target['tags']['what'] = 'timestamp'
+            target['tags']['type'] = 'last_exception'
+        del target['tags']['wtt']
 # vim: ts=4 et sw=4:

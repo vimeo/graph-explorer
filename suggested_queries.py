@@ -20,17 +20,17 @@ queries = [
         'tags': ['swift', 'dfs']
     },
     {
-        'query': 'diskspace count type=byte_used mountpoint:_srv server:dfvimeodfs',
+        'query': 'diskspace count what=bytes used mountpoint:_srv server:dfvimeodfs',
         'desc': '/srv/* usage',
         'tags': ['disk', 'dfs']
     },
     {
-        'query': 'diskspace count type=byte_used _var dfvimeodfs',
+        'query': 'diskspace count what=bytes used _var dfvimeodfs',
         'desc': '/var usage',
         'tags': ['disk', 'dfs']
     },
     {
-        'query': 'diskspace rate !giga byte_used _var dfvimeodfs',
+        'query': 'diskspace rate !giga bytes used _var dfvimeodfs',
         'desc': 'change in /var usage',
         'tags': ['disk', 'dfs']
     },
@@ -45,17 +45,17 @@ queries = [
         'tags': ['swift', 'dfs']
     },
     {
-        'query': 'container_metrics',
+        'query': 'container_metrics group by what',
         'desc': 'container metrics',
         'tags': ['swift']
     },
     {
-        'query': 'category:dispersion group by type !copies_(found|expected)',
-        'desc': 'dispersion (highlevel health)',  # copies_(found|expected) filtered out because that info is included in the percentage
+        'query': 'category:dispersion group by type',  # this means errors aren't shown, cause they won't have a type.
+        'desc': 'dispersion (highlevel health)',
         'tags': ['swift']
     },
     {
-        'query': 'iostat rate (read|write)_byte dfvimeodfs',
+        'query': 'iostat rate (read|write) byte dfvimeodfs',
         'desc': 'read/write B/s',  # TODO: a better way to paraphrase these. some kind of aggregation?
         'tags': ['disk', 'dfs', 'dfsproxy']
     },
@@ -65,12 +65,12 @@ queries = [
         'tags': ['load', '*']
     },
     {
-        'query': 'bond1 (rx|tx)_bit group by type server:dfs',
+        'query': 'bond1 (rx|tx) bit group by type server:dfs',
         'desc': 'storage network traffic',
         'tags': ['swift', 'dfs', 'dfsproxy']
     },
     {
-        'query': 'network _bit',
+        'query': 'network bits',
         'desc': 'traffic in bit on all interfaces',
         'tags': ['network', '*']
     },
