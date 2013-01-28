@@ -5,7 +5,7 @@ Base Plugin class
 """
 
 
-class Plugin:
+class Plugin(object):
     # color in light resp. dark version
     # better would be just a "base" and programatically compute lighter/darker versions as needed
     colors = {
