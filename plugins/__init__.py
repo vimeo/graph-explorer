@@ -9,7 +9,7 @@ class Plugin:
     # color in light resp. dark version
     # better would be just a "base" and programatically compute lighter/darker versions as needed
     colors = {
-        'blue': ('#5C9DFF', '#375E99'),
+        'blue': ('#5C9DFF', '#0000B2'),
         'yellow': ('#FFFFB2', '#FFFF00'),
         'green': ('#80CC80', '#009900'),
         'brown': ('#694C2E', '#A59482'),
