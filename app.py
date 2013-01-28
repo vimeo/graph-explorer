@@ -97,7 +97,7 @@ def parse_query(query_str):
     # if the user specified "group by foobar" in the query_str, we group by target_type and whatever the user said.
     (query_str, group_by) = parse_out_value(query_str, 'group by ', '[^ ]+', 'default_group_by')
     if group_by != 'default_group_by':
-        query['patterns'].append('%s:' % group_by)
+        query['patterns'].append('%s=' % group_by)
     query['group_by'].append(group_by)
     # split query_str into multiple patterns which are all matched independently
     # this allows you write patterns in any order, and also makes it easy to use negations
