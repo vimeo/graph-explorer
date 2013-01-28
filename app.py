@@ -3,9 +3,9 @@ try:
     import json
 except ImportError:
     try:
-       import simplejson as json
+        import simplejson as json
     except ImportError:
-       raise ImportError("GE requires python2, 2.6 or higher, or 2.5 with simplejson.")
+        raise ImportError("GE requires python2, 2.6 or higher, or 2.5 with simplejson.")
 import os
 import re
 from inspect import isclass
@@ -34,8 +34,8 @@ for f in os.listdir("."):
         imp = __import__('plugins.' + module, globals(), locals(), ['*'])
     except Exception, e:
         errors['plugin_%s' % module] = (
-                "Failed to add plugin '%s'" % module,
-                e
+            "Failed to add plugin '%s'" % module,
+            e
         )
         continue
 
@@ -48,13 +48,13 @@ for f in os.listdir("."):
             # regex error is too vague to stand on its own
             except sre_constants.error, e:
                 errors['plugin_%s' % module] = (
-                        "Failed to add plugin '%s'" % module,
-                        "error problem parsing matching regex: %s" % e
+                    "Failed to add plugin '%s'" % module,
+                    "error problem parsing matching regex: %s" % e
                 )
             except Exception, e:
                 errors['plugin_%s' % module] = (
-                        "Failed to add plugin '%s'" % module,
-                        e
+                    "Failed to add plugin '%s'" % module,
+                    e
                 )
 os.chdir(wd)
 
@@ -373,7 +373,7 @@ def graphs(query=''):
              'len_targets_matching': len(targets_matching),
              'len_graphs_matching': len(graphs_matching),
              'len_graphs_targets_matching': len(graphs_targets_matching),
-    }
+             }
     graphs_matching.update(graphs_targets_matching)
     stats['len_graphs_matching_all'] = len(graphs_matching)
     out = ''
@@ -386,7 +386,7 @@ def graphs(query=''):
         rendered_templates.append(template('snippet.graph', config=config, graph_name=title, graph_data=data))
     args = {'errors': errors,
             'query': query,
-    }
+            }
     args.update(stats)
     out += template('graphs', args) + ''.join(rendered_templates)
     return out
