@@ -25,8 +25,7 @@ class Plugin(object):
         # one or more functions allow you to dynamically configure target properties based on
         # the match object. the target will receive updated fields from the returned dict
         'configure': [lambda self, target: self.default_configure_target(target)],
-        'default_graph_options': {},
-        'default_group_by': None
+        'default_graph_options': {}
     }
 
     # useful configure functions:
@@ -146,7 +145,6 @@ class Plugin(object):
             'id (targetstring)' : {
                 'targetstring': '<..>',
                 'names': { for each tag : a name }, # will be shown in legend. if group_by server, servername will be in title, no need to repeat it here
-                'default_group_by': '<default group_by tag>'
             }
         }
         """

@@ -76,7 +76,7 @@ def list_graphs(metrics):
 def parse_query(query_str):
     query = {
         'patterns': [],
-        'group_by': ['target_type']
+        'group_by': ['target_type=', 'what=', 'server']
     }
 
     # for a call like ('foo bar baz quux', 'bar ', 'baz', 'def')
@@ -92,13 +92,17 @@ def parse_query(query_str):
     (query_str, query['to']) = parse_out_value(query_str, 'to ', '[^ ]+', 'now')
     (query_str, query['from']) = parse_out_value(query_str, 'from ', '[^ ]+', '-24hours')
 
-    # if user doesn't specify any group_by, we automatically group by target_type and
-    # by the tag specified by default_group_by.
-    # if the user specified "group by foobar" in the query_str, we group by target_type and whatever the user said.
-    (query_str, group_by) = parse_out_value(query_str, 'group by ', '[^ ]+', 'default_group_by')
-    if group_by != 'default_group_by':
-        query['patterns'].append('%s=' % group_by)
-    query['group_by'].append(group_by)
+    (query_str, group_by_str) = parse_out_value(query_str, 'GROUP BY ', '[^ ]+', None)
+    (query_str, extra_group_by_str) = parse_out_value(query_str, 'group by ', '[^ ]+', None)
+    if group_by_str is not None:
+        query['group_by'] = group_by_str.split(',')
+    elif extra_group_by_str is not None:
+        query['group_by'] = [tag for tag in query['group_by'] if tag.endswith('=')]
+        query['group_by'].extend(extra_group_by_str.split(','))
+    for tag in query['group_by']:
+        if tag.endswith('='):
+            query['patterns'].append(tag)
+
     # split query_str into multiple patterns which are all matched independently
     # this allows you write patterns in any order, and also makes it easy to use negations
     query['patterns'] += query_str.split()
@@ -286,7 +290,7 @@ def debug_metrics():
 def build_graphs_from_targets(targets, query={}):
     # merge default options..
     defaults = {
-        'group_by': ['target_type', 'default_group_by'],
+        'group_by': [],
         'from': '-24hours',
         'to': 'now'
     }
@@ -299,23 +303,18 @@ def build_graphs_from_targets(targets, query={}):
     # containing all various targets that have the elements specified by group_by
     # graph name: value of each name of the elements specified by group_by (the "constants" for this graph)
     # alias names: values of each name of the elements *not* specified by group_by (the "variables" for this graph)
-    # currently we support these group_by lists:
-    # target_type <tag>
-    # target_type <default_group_by (which also resolves to a tag)>
     # go through all targets, figure out the corresponding graph title and target title and data, and categorize them into graphs
     constants = len(group_by)
     for target_id in sorted(targets.iterkeys()):
         target_data = targets[target_id]
-        target_type = '%s_%s' % (target_data['tags']['plugin'], target_data['tags']['target_type'])
-        constants = ['targets', target_type]
-        if group_by[1] is 'default_group_by':
-            group_by_tag = target_data['config']['default_group_by']
-        else:
-            group_by_tag = group_by[1]
-        # group_by_tag is now something like 'server' or 'type' or None, convert it to the actual value:
-        if group_by_tag is not None:
-            group_by_tag = target_data['tags'][group_by_tag]
-            constants.append(group_by_tag)
+        constants = ['targets']
+        for tag_name in group_by:
+            tag_name = tag_name.replace('=', '')
+            if tag_name in target_data['tags']:  # this will be the case for "strong" tags (see readme)
+                tag_value = target_data['tags'][tag_name]
+            else:
+                tag_value = tag_name + '_unset'
+            constants.append(tag_value)
         variables = []
         for tag_id in sorted(target_data['tags'].iterkeys()):
             tag_value = target_data['tags'][tag_id]

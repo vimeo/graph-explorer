@@ -5,7 +5,6 @@ class NetworkPlugin(Plugin):
     targets = [
         {
             'match': '^servers\.(?P<server>[^\.]+)\.network\.(?P<device>[^\.]+)\.(?P<wt>.*)$',
-            'default_group_by': 'server',
             'target_type': 'gauge',
         }
     ]

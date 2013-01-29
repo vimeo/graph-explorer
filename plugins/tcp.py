@@ -5,7 +5,6 @@ class TcpPlugin(Plugin):
     targets = [
         {
             'match': '^servers\.(?P<server>[^\.]+)\.(?P<protocol>tcp)\.(?P<type>.*)$',
-            'default_group_by': 'server',
             'default_graph_options': {'vtitle': 'per second'},
             'target_type': 'rate',
             'configure': [

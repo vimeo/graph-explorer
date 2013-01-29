@@ -6,19 +6,16 @@ class SwiftProxyServerPlugin(Plugin):
     targets = [
         {
             'match': '^stats.timers\.(?P<server>[^\.]+)\.proxy-server\.(?P<swift_type>account|container|object)\.(?P<http_method>[^\.]+)\.(?P<http_code>[^\.]+)\.timing\.(?P<type>[^\.]+)$',
-            'default_group_by': 'server',
             'default_graph_options': {'vtitle': 'duration in ms'},
             'target_type': 'timer'
         },
         {
             'match': '^stats_counts\.(?P<server>[^\.]+)\.proxy-server\.?(?P<swift_type>account|container|object)?\.?(?P<http_method>[^\.]*)\.?(?P<http_code>[^\.]*)\.(?P<type>[^\.]+)$',
-            'default_group_by': 'server',
             'default_graph_options': {'vtitle': 'events seen in flushInterval'},
             'target_type': 'count'
         },
         {
             'match': '^stats\.(?P<server>[^\.]+)\.proxy-server\.?(?P<swift_type>account|container|object)?\.?(?P<http_method>[^\.]*)\.?(?P<http_code>[^\.]*)\.(?P<type>[^\.]+)$',
-            'default_group_by': 'server',
             'default_graph_options': {'vtitle': 'events/s'},
             'target_type': 'rate'
         },

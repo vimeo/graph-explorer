@@ -5,7 +5,6 @@ class DiskspacePlugin(Plugin):
     targets = [
         {
             'match': '^servers\.(?P<server>[^\.]+)\.diskspace\.(?P<mountpoint>[^\.]+)\.(?P<wwt>.*)$',
-            'default_group_by': 'server',
             'targets': [
                 {
                     'default_graph_options': {'state': 'stacked', 'vtitle': 'space', 'suffixes': 'binary'},

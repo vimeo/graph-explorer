@@ -33,7 +33,6 @@ all metadata is made available as a tag, and an id is generated from all tag key
 
 the configuration also provide settings:
 
-* `default_group_by` (usually `server`)
 * `default_graph_options` which specify how to render these types by default
 * `configure` function or list of functions to further enhance the target dynamically (given the match object and the target along with its config), in addition to the default
   defined function which can also be overridden.
@@ -103,25 +102,32 @@ note:
 These statements are all optional (i.e. have default values) and can occur anywhere within the query.
 Unless mentioned otherwise, the values must not contain white space.
 
-### group by `<tag>`
+### group by `<tagspec>` and GROUP BY `<tagspec>`
 
-default grouping is always at least by target_type, and secondary by `default_group_by` (usually server), or by the tag you specified with this predicate.
-a `:<tag>` pattern is implicitly added.
+`<tagspec>` is a list like so: `foo[=][,bar[=][,baz[=][...]]]`
+basically a comma-separated list of tags with optional '=' suffix to denote soft or hard (see below).
+
+by default, grouping is by `target_type=`, `what=` and `server`.
+The tags `target_type` and `what` are strong, meaning a `<tag>=` pattern is added to the query so that only targets are shown that have the tag.
+The tag `server` is soft so that no pattern is added, and targets without this tag will show up under `server_unset`
+
+You can affect this in two ways:
+* specify `group by <tagspec>` to keep the standard hard tags and replace all soft tags with `foo`, `bar`, etc.
+* specify `GROUP BY <tagspec>` to replace the original list entirely and only group by `foo`, `bar`, etc.
 
 For example, the cpu plugin yields targets with tags:
 
-* target_type: cpu_state_pct
+* target_type: gauge_pct (all of them)
+* what: cpu_state (all of them)
 * type : something like iowait
-* server: hostname
+* server: the host name
+* core: core name (core0, etc)
 
-it has default_group_by set to `server`  
-You'll always have graphs with no other target_types than cpu metrics,
-but additional grouping by:
+* default: grouping by `target_type=`, `what=` and `server`.  So you get a graph for each server, showing the different types for all different cores.
+* `group by type` shows for each type (iowait, idle, etc) a graph comparing all cores on all servers
+* `group by core,server` shows a graph for each core on each server.
 
-* server shows a graph for each server listing all cpu states for that server.
-* type yields a graph for each cpu state (sys, idle, iowait, etc) listing all servers.
-
-This of course extends to >2 tags.
+(a good way to try this out would be to query for `cpu_state` and maybe filter on servername so you only get a few hostnames)
 
 ### from `<word>`
 

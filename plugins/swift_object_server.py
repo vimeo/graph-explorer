@@ -6,19 +6,16 @@ class SwiftObjectServerPlugin(Plugin):
     targets = [
         {
             'match': '^stats\.timers\.(?P<server>[^\.]+)\.object-server\.(?P<http_method>[^\.]+)\.timing\.(?P<what>[^\.]+)$',
-            'default_group_by': 'server',
             'default_graph_options': {'vtitle': 'duration in ms'},
             'target_type': 'timer'
         },
         {
             'match': '^stats_counts\.(?P<server>[^\.]+)\.object-server\.?(?P<http_method>[^\.]*)\.(?P<what>async_pendings|errors|timeouts)$',
-            'default_group_by': 'server',
             'default_graph_options': {'vtitle': 'events seen in flushInterval'},
             'target_type': 'count'
         },
         {
             'match': '^stats\.(?P<server>[^\.]+)\.object-server\.?(?P<http_method>[^\.]*)\.(?P<what>async_pendings|errors|timeouts)$',
-            'default_group_by': 'server',
             'default_graph_options': {'vtitle': 'events/s'},
             'target_type': 'rate'
         }

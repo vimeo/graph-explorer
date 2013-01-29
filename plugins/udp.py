@@ -21,7 +21,6 @@ class UdpPlugin(Plugin):
                     ]
                 }
             ],
-            'default_group_by': 'server',
             'target_type': 'rate'
         }
     ]

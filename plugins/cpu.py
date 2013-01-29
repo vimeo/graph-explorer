@@ -10,7 +10,6 @@ class CpuPlugin(Plugin):
     targets = [
         {
             'match': '^servers\.(?P<server>[^\.]+)\.cpu\.(?P<core>[^\.]+)\.(?P<type>.*)$',
-            'default_group_by': 'server',
             'default_graph_options': {'state': 'stacked'},
             'target_type': 'gauge_pct',
             'configure': lambda self, target: self.add_tag(target, 'what', 'cpu_state')
