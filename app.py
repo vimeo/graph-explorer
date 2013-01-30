@@ -156,7 +156,8 @@ def match_pattern(id, data, pattern):
 # objects is expected to be a dict with elements like id: data
 # id's are matched, and the return value is a dict in the same format
 # if you use tags, make sure data['tags'] is a dict of tags or this'll blow up
-def match(objects, query):
+# if graph, ignores patterns that only apply for targets (tag matching on target_type, what)
+def match(objects, query, graph=False):
     # prepare higher performing query structure
     # note that if you have twice the exact same "word" (ignoring leading '!'), the last one wins
     patterns = {}
@@ -167,9 +168,15 @@ def match(objects, query):
             pattern = pattern[1:]
         patterns[pattern] = {'negate': negate}
         if '=' in pattern:
-            patterns[pattern]['match_tag_equality'] = pattern.split('=')
-        if ':' in pattern:
-            patterns[pattern]['match_tag_regex'] = pattern.split(':')
+            if not graph or pattern not in ('target_type=', 'what='):
+                patterns[pattern]['match_tag_equality'] = pattern.split('=')
+            else:
+                del patterns[pattern]
+        elif ':' in pattern:
+            if not graph or pattern not in ('target_type:', 'what:'):
+                patterns[pattern]['match_tag_regex'] = pattern.split(':')
+            else:
+                del patterns[pattern]
         else:
             patterns[pattern]['match_id_regex'] = re.compile(pattern)
 
@@ -254,7 +261,7 @@ def view_debug(query=''):
     if query:
         query = parse_query(query)
         targets_matching = match(targets_all, query)
-        graphs_matching = match(graphs_all, query)
+        graphs_matching = match(graphs_all, query, True)
         graphs_targets, graphs_targets_options = build_graphs_from_targets(targets_matching, query)
         targets = targets_matching
         graphs = graphs_matching
@@ -365,7 +372,7 @@ def graphs(query=''):
     graphs_all = list_graphs(metrics)
     query = parse_query(query)
     targets_matching = match(targets_all, query)
-    graphs_matching = match(graphs_all, query)
+    graphs_matching = match(graphs_all, query, True)
     graphs_targets_matching = build_graphs_from_targets(targets_matching, query)[0]
     stats = {'len_targets_all': len(targets_all),
              'len_graphs_all': len(graphs_all),

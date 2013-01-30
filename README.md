@@ -97,6 +97,7 @@ the Graphite Query Language is a language designed to:
 note:
 
 * order between patterns is irrelevant
+* tag matching for 'target_type' and 'what' tags are not performed on graph objects, because they don't apply for them.
 
 ## special predicates
 
