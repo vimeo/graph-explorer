@@ -23,10 +23,9 @@ Furthermore, the code is simple and hackable (just a few hundred sLOC), uses sim
 In graphite, a metric has a name and a corresponding time series of values.
 Graph-explorer's plugins define rules which match metric names, parse them and yield a target with associated metadata:
 
-* tags from fields in the metric name (server, service, interface_name, etc) by using named groups in a regex.  
-  usually the last field of a metric is called `type`.  (for example `iowait` or `upper_90` for statsd timers)
+* tags from fields in the metric name (server, service, interface_name, etc) by using named groups in a regex.  (there's some guidelines for tags, see below)
 * target_type (count, rate, gauge, ...)
-* class_name (cpu_state_percent etc)
+* plugin (i.e. 'cpu')
 * the graphite target (often just the metric name, but you can use the [graphite functions](http://graphite.readthedocs.org/en/1.0/functions.html) like `derivative`, `scale()` etc.
 
 all metadata is made available as a tag, and an id is generated from all tag keys and values, to provide easy matching.
@@ -54,6 +53,8 @@ tag definitions:
 "what": the intrinsic thing that we're graphing (not *how* we graph it). i.e. errors, requests, cpu_state (used in vtitle, grouping into graphs)
 "type": extra info. i.e. if what is errors, this can be 'in'. if what is requests, this can be '404'
 "wt": often a metric path will contain one key that has info on both the "what" and "type", "wt" is commonly used to catch it, so you can sanitize it (see below)
+
+all metrics must have a 'target_type' and a 'what'. because otherwise they are meaningless, also because they are used in the default group_by (TODO: show warnings if not)
 
 sanitization
 the process of properly setting "what" and "type" tags from a "wt" tag and deleting the "wt" tag again.
