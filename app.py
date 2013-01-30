@@ -294,6 +294,19 @@ def debug_metrics():
         return "Can't parse metrics file: %s" % e
 
 
+def build_graphs(graphs, query={}):
+    defaults = {
+        'from': '-24hours',
+        'to': 'now'
+    }
+    query = dict(defaults.items() + query.items())
+    query['until'] = query['to']
+    del query['to']
+    for (k, v) in graphs.items():
+        v.update(query)
+    return graphs
+
+
 def build_graphs_from_targets(targets, query={}):
     # merge default options..
     defaults = {
@@ -373,6 +386,7 @@ def graphs(query=''):
     query = parse_query(query)
     targets_matching = match(targets_all, query)
     graphs_matching = match(graphs_all, query, True)
+    graphs_matching = build_graphs(graphs_matching, query)
     graphs_targets_matching = build_graphs_from_targets(targets_matching, query)[0]
     stats = {'len_targets_all': len(targets_all),
              'len_graphs_all': len(graphs_all),
