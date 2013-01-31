@@ -319,45 +319,69 @@ def build_graphs_from_targets(targets, query={}):
     if not targets:
         return (graphs, query)
     group_by = query['group_by']
-    # for each combination of elements specified by group_by, make 1 graph,
-    # containing all various targets that have the elements specified by group_by
-    # graph name: value of each name of the elements specified by group_by (the "constants" for this graph)
-    # alias names: values of each name of the elements *not* specified by group_by (the "variables" for this graph)
-    # go through all targets, figure out the corresponding graph title and target title and data, and categorize them into graphs
-    constants = len(group_by)
+    # for each combination of values of tags from group_by, make 1 graph with
+    # all targets that have these values. so for each graph, we have:
+    # the "constants": tags in the group_by
+    # the "variables": tags not in the group_by, which can have arbitrary values
+    # go through all targets and group them into graphs:
     for target_id in sorted(targets.iterkeys()):
+        constants = {}
+        variables = {}
         target_data = targets[target_id]
-        constants = ['targets']
-        for tag_name in group_by:
-            tag_name = tag_name.replace('=', '')
-            if tag_name in target_data['tags']:  # this will be the case for "strong" tags (see readme)
-                tag_value = target_data['tags'][tag_name]
+        for (tag_name, tag_value) in target_data['tags'].items():
+            if tag_name in group_by or '%s=' % tag_name in group_by:
+                constants[tag_name] = tag_value
             else:
-                tag_value = tag_name + '_unset'
-            constants.append(tag_value)
-        variables = []
-        for tag_id in sorted(target_data['tags'].iterkeys()):
-            tag_value = target_data['tags'][tag_id]
-            if tag_value not in constants and tag_value:
-                variables.append(tag_value)
-
-        graph_title = ' '.join(constants)
-        target_name = ' '.join(variables)
-        if graph_title not in graphs:
+                variables[tag_name] = tag_value
+        graph_key = '__'.join([target_data['tags'][tag_name] for tag_name in constants])
+        if graph_key not in graphs:
             graph = {'from': query['from'], 'until': query['to']}
             graph.update(target_data['config']['default_graph_options'])
-            graph.update({'title': graph_title, 'targets': []})
-            graphs[graph_title] = graph
+            graph.update({'constants': constants, 'targets': []})
+            graphs[graph_key] = graph
         # set all options needed for graphitejs/flot:
         t = {
-            'name': target_name,
+            'variables': variables,
             'target': target_data['target']
         }
         if 'color' in target_data:
             t['color'] = target_data['color']
-        graphs[graph_title]['targets'].append(t)
-    # given all graphs, process them to set any further options
-    # nothing needed at this point.
+        graphs[graph_key]['targets'].append(t)
+    # if in a graph all targets have a tag with the same value, they are
+    # effectively constants, so promote them.  this makes the display of the
+    # graphs less rendundant and paves the path
+    # for later configuration on a per-graph basis.
+    for (graph_key, graph_config) in graphs.items():
+        # get all variable tags throughout all targets in this graph
+        tags_seen = set()
+        for target in graph_config['targets']:
+            for tag_name in target['variables'].keys():
+                tags_seen.add(tag_name)
+
+        # find effective constants from those variables,
+        # and effective variables. (unset tag is a value too)
+        first_values_seen = {}
+        effective_variables = set()  # tags for which we've seen >1 values
+        for target in graph_config['targets']:
+            for tag_name in tags_seen:
+                # already known that we can't promote, continue
+                if tag_name in effective_variables:
+                    continue
+                tag_value = target['variables'].get(tag_name, None)
+                if tag_name not in first_values_seen:
+                    first_values_seen[tag_name] = tag_value
+                elif tag_value != first_values_seen[tag_name]:
+                    effective_variables.add(tag_name)
+        effective_constants = tags_seen - effective_variables
+
+        # promote the effective_constants by adjusting graph and targets:
+        graphs[graph_key]['promoted_constants'] = {}
+        for tag_name in effective_constants:
+            graphs[graph_key]['promoted_constants'][tag_name] = first_values_seen[tag_name]
+            for (i, target) in enumerate(graph_config['targets']):
+                if tag_name in graphs[graph_key]['targets'][i]['variables']:
+                    del graphs[graph_key]['targets'][i]['variables'][tag_name]
+
     return (graphs, query)
 
 
@@ -401,9 +425,9 @@ def graphs(query=''):
         out += template('snippet.graph-deps')
 
     rendered_templates = []
-    for title in sorted(graphs_matching.iterkeys()):
-        data = graphs_matching[title]
-        rendered_templates.append(template('snippet.graph', config=config, graph_name=title, graph_data=data))
+    for key in sorted(graphs_matching.iterkeys()):
+        data = graphs_matching[key]
+        rendered_templates.append(template('snippet.graph', config=config, graph_key=key, graph_data=data))
     args = {'errors': errors,
             'query': query,
             }

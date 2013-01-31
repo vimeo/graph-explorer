@@ -1,5 +1,17 @@
-<h2>{{graph_name}}</h2>
-%graph_id = graph_name.replace('.','').replace('-','_').replace(' ','_') # disallowed in var names
+%graph_id = graph_key.replace('.','').replace('-','_').replace(' ','_') # disallowed in var names
+%if 'constants' in graph_data:
+%    graph_name_constants = ' '.join(graph_data['constants'].values())
+%    graph_name_promoted_constants = ' '.join(graph_data['promoted_constants'].values())
+%    graph_name = '<b>%s</b> %s' % (graph_name_constants, graph_name_promoted_constants)
+%else:
+%    graph_name = graph_key
+%end
+% for (i, target) in enumerate(graph_data['targets']):
+%     if 'name' not in target and 'variables' in target:
+%         graph_data['targets'][i]['name'] = ' '.join(target['variables'].values())
+%     end
+% end
+<h2>{{!graph_name}}</h2>
 %try: import json
 %except ImportError: import simplejson as json
         <div class="chart_container flot" id="chart_container_flot_{{graph_id}}">
