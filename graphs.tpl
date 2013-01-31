@@ -1,5 +1,5 @@
 %include snippet.errors errors=errors
-
+% if 'query' in globals():
 % if not query:
     <div class="row">
     % include snippet.info msg='Empty query.  Nothing to display.'
@@ -18,4 +18,9 @@
     # graphs matching: {{len_graphs_matching}}/{{len_graphs_all}}<br/>
     # graphs from matching targets: {{len_graphs_targets_matching}}<br/>
     # total graphs: {{len_graphs_matching_all}}<br/>
+% end
+% else:
+    <div class="row">
+    % include snippet.info msg='No query processed.  Nothing to display.'
+    </div>
 % end
