@@ -32,7 +32,6 @@ all metadata is made available as a tag, and an id is generated from all tag key
 
 the configuration also provide settings:
 
-* `default_graph_options` which specify how to render these types by default
 * `configure` function or list of functions to further enhance the target dynamically (given the match object and the target along with its config), in addition to the default
   defined function which can also be overridden.
 
@@ -153,6 +152,17 @@ accepts anything graphite accepts (see above)
 * `targets dfs1 from noon+yesterday`: see all targets available for server dfs1
 * `diskspace_count type=byte_used mountpoint:_srv server:foo`: compare bytes used across all mountpoints matching '/srv' on all servers matching 'foo'.
 * `diskspace_rate type=byte_used mountpoint:_srv server:foo group by type`: similar, but compare the rate of change, and show graphs for each type (`bytes_free`, `inodes_used`, etc) so you can compare each server and/mountpoint.
+
+
+## Display of graphs:
+
+* all tags are displayed in a label whose color is deterministically computed from the name of the tag; they are also always printed in a consistent order
+  so that it's easy to discern what's what, and consistent throughout the entire app.
+* all tags that are constant for a graph (due to grouping by them, or because retrieved targets happen to share the same tag values) are shown as the graph title
+* the vertical title shows more info about the `<what>`, `<type>` and `<target_type>` in a more humanly readble form ("/s" for rate, "/<interval>" for counts, etc.
+* all tags that are variable across targets in a graph are shown as labels in the target legend. click on them to get more info about the metric (graphite metric name, found tags, etc)
+* in preferences.py you can define your count interval (statsd flushInterval) and graph options so that you can for example use binary prefixes instead of SI for diskspace/memory graphs;
+ stacked graphs when displaying cpu states, etc.
 
 
 ## Dependencies

@@ -7,12 +7,10 @@ class DiskspacePlugin(Plugin):
             'match': '^servers\.(?P<server>[^\.]+)\.diskspace\.(?P<mountpoint>[^\.]+)\.(?P<wwt>.*)$',
             'targets': [
                 {
-                    'default_graph_options': {'state': 'stacked', 'vtitle': 'space', 'suffixes': 'binary'},
-                    'target_type': 'count',
+                    'target_type': 'gauge',
                     'configure': lambda self, target: self.configure_color(target)
                 },
                 {
-                    'default_graph_options': {'state': 'stacked', 'vtitle': 'space change per minute', 'suffixes': 'binary'},
                     'target_type': 'rate',
                     # try to show this in a useful way
                     # 'derivative(movingAverage(%s,50))' % match.string  # -> still shows FS clenaups as huge downspikes. log() graphs aren't very clear

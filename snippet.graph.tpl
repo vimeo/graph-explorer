@@ -31,7 +31,32 @@
             graph_name = "{{graph_key}}";
         }
         $("#h2_{{graph_id}}").html(graph_name);
-        //graph_data["vtitle"] = what,type and target_type as /s etc
+
+        //automatically generate vtitles, if possible
+        vtitle = "";
+        target_type = "";
+        if ('target_type' in constants) {
+            target_type = constants['target_type'];
+        }
+        if ('what' in constants) {
+            if (target_type == 'counter') {
+                vtitle += 'total' + display_tag('what', constants['what']);
+            } else {
+                vtitle += display_tag('what', constants['what']);
+            }
+        }
+        if ('type' in constants) {
+            vtitle += display_tag('type', constants['type']);
+        }
+        if (vtitle != "") {
+            if (target_type == 'rate') {
+                vtitle += "/s";
+            } else if (target_type == 'count') {
+                vtitle += "/" + count_interval;
+            }
+            graph_data["vtitle"] = vtitle;
+        }
+
         // interactive legend elements -> use labelFormatter (specifying name: '<a href..>foo</a>' doesn't work)
         // but this function only sees the label and series, so any extra data must be encoded in the label
         labelFormatter = function(label, series) {

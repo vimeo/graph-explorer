@@ -11,6 +11,7 @@ import re
 from inspect import isclass
 from bottle import route, template, request, static_file, redirect, response
 import config
+import preferences
 import sre_constants
 
 # contains all errors as key:(title,msg) items.
@@ -348,7 +349,6 @@ def build_graphs_from_targets(targets, query={}):
         graph_key = '__'.join([target_data['tags'][tag_name] for tag_name in constants])
         if graph_key not in graphs:
             graph = {'from': query['from'], 'until': query['to']}
-            graph.update(target_data['config']['default_graph_options'])
             graph.update({'constants': constants, 'targets': []})
             graphs[graph_key] = graph
         # set all options needed for graphitejs/flot:
@@ -394,6 +394,32 @@ def build_graphs_from_targets(targets, query={}):
             for (i, target) in enumerate(graph_config['targets']):
                 if tag_name in graphs[graph_key]['targets'][i]['variables']:
                     del graphs[graph_key]['targets'][i]['variables'][tag_name]
+
+        # now that graph config is "rich", merge in settings from preferences
+        constants = dict(graphs[graph_key]['constants'].items() + graphs[graph_key]['promoted_constants'].items())
+        for (match_rules, graph_options) in preferences.graph_options:
+            rule_match = True
+            for (tag_k, tag_v) in match_rules.items():
+                if tag_k not in constants:
+                    rule_match = False
+                    break
+                if isinstance(tag_v, basestring):
+                    if constants[tag_k] != tag_v:
+                        rule_match = False
+                        break
+                else:
+                    # tag_v is a list -> OR of multiple allowed options
+                    tag_match = False
+                    for option in tag_v:
+                        if constants[tag_k] == option:
+                            tag_match = True
+                    if not tag_match:
+                        rule_match = False
+                        break
+            if rule_match:
+                graphs[graph_key].update(graph_options)
+
+
 
     return (graphs, query)
 
@@ -449,7 +475,7 @@ def graphs(query=''):
     graphs = []
     for key in sorted(graphs_matching.iterkeys()):
         graphs.append((key, graphs_matching[key]))
-    out += template('snippet.graphs', config=config, graphs=graphs, tags=tags)
+    out += template('snippet.graphs', config=config, graphs=graphs, tags=tags, count_interval=preferences.count_interval)
     return out
 
 # vim: ts=4 et sw=4:

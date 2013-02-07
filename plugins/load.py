@@ -5,7 +5,6 @@ class LoadPlugin(Plugin):
     targets = [
         {
             'match': '^servers\.(?P<server>[^\.]+)\.loadavg\.(?P<wt>.*)$',
-            'default_graph_options': {'state': 'stacked'},
             'target_type': 'count'
         }
     ]

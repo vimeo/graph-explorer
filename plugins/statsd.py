@@ -8,7 +8,6 @@ class StatsdPlugin(Plugin):
     targets = [
         {
             'match': 'statsd\.(?P<wtt>numStats)',
-            'default_graph_options': {'vtitle': 'stats (metrics) seen in interval'},
             'target_type': 'count'
         },
         {
@@ -16,13 +15,11 @@ class StatsdPlugin(Plugin):
                 #'^stats\.(?P<server>timers)\.(?P<timer>.*)\.count$',
                 '^stats\.(?P<server>statsd)\.(?P<wtt>[^\.]+)$',  # packets_received, bad_lines_seen
             ],
-            'default_graph_options': {'vtitle': 'packets received per timer metric in interval'},
             'target_type': 'count'
         },
         {
             'match': '^stats\.(?P<server>statsd)\.(?P<wtt>graphiteStats\.calculationtime)$',
             'target_type': 'gauge',
-            'default_graph_options': {'vtitle': 'seconds'}
         },
         {
             'match': 'stats\.statsd\.(?P<wtt>graphiteStats\.last_[^\.]+)$',  # last_flush, last_exception. number of seconds since.
@@ -40,7 +37,6 @@ class StatsdPlugin(Plugin):
                 # the keepLastValue is a workaround for https://github.com/graphite-project/graphite-web/pull/91
                 {
                     'target_type': 'gauge',
-                    'default_graph_options': {'vtitle': 'age (sec)'},
                     'configure': lambda self, target: {'target': 'diffSeries(identity("a"),keepLastValue(%s))' % target['target']}
                 }
             ]

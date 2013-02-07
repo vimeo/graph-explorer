@@ -8,12 +8,10 @@ class IostatPlugin(Plugin):
     targets = [
         {
             'match': '^servers\.(?P<server>[^\.]+)\.iostat\.(?P<device>[^\.]+)\.(?P<wt>.*)$',
-            'default_graph_options': {'state': 'stacked'},
             'target_type': 'gauge'
         },
         {
             'match': '^servers\.(?P<server>[^\.]+)\.iostat\.(?P<device>[^\.]+)\.(?P<wt>.*_per_second)$',
-            'default_graph_options': {'state': 'stacked', 'vtitle': 'events/s'},
             'target_type': 'rate'
         }
     ]

@@ -25,7 +25,6 @@ class Plugin(object):
         # one or more functions allow you to dynamically configure target properties based on
         # the match object. the target will receive updated fields from the returned dict
         'configure': [lambda self, target: self.default_configure_target(target)],
-        'default_graph_options': {}
     }
 
     # useful configure functions:

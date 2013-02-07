@@ -2,7 +2,6 @@
     <li><a href="https://github.com/graphite-project/graphite-web/issues/103">graphite bug</a>
         breaking our graphs when using scale(), movingAverage() and maybe more, and when using function aliases like sum()</li>
     <li>display tags properly (colored labels) in group by info, and other pages like debug, inspect</li>
-    <li>automatically generate vtitles: show constants: what (current if gage, total if counter) type (/s if rate, /flushInterval if count) [on server]</li>
     <li>a way to plot sums of matching targets. for example: disk sum(_srv) sum (!_srv) to show 2 plots. or by extension: any graphite function</li>
     <li>allow "or" style matches across groups of patterns,like so: cpu iowait dfs || plugin=udp dfs1. maybe this can be integrated with the above</li>
     <li>number of put/delete requests arriving on swift proxy</li>
