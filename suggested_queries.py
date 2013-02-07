@@ -20,12 +20,12 @@ queries = [
         'tags': ['swift', 'dfs']
     },
     {
-        'query': 'diskspace count what=bytes used mountpoint:_srv server:dfvimeodfs',
+        'query': 'diskspace gauge what=bytes used mountpoint:_srv server:dfvimeodfs',
         'desc': '/srv/* usage',
         'tags': ['disk', 'dfs']
     },
     {
-        'query': 'diskspace count what=bytes used _var dfvimeodfs',
+        'query': 'diskspace gauge what=bytes used _var dfvimeodfs',
         'desc': '/var usage',
         'tags': ['disk', 'dfs']
     },
@@ -60,7 +60,7 @@ queries = [
         'tags': ['disk', 'dfs', 'dfsproxy']
     },
     {
-        'query': 'plugin=load count group by type !05 !15',
+        'query': 'plugin=load group by type !05 !15',
         'desc': 'compare load across machines',  # no 5,15 minutely avg, we already have 1 minutely
         'tags': ['load', '*']
     },

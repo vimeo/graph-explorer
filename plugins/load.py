@@ -5,7 +5,7 @@ class LoadPlugin(Plugin):
     targets = [
         {
             'match': '^servers\.(?P<server>[^\.]+)\.loadavg\.(?P<wt>.*)$',
-            'target_type': 'count'
+            'target_type': 'gauge'
         }
     ]
 
