@@ -354,6 +354,7 @@ def build_graphs_from_targets(targets, query={}):
         # set all options needed for graphitejs/flot:
         t = {
             'variables': variables,
+            'graphite_metric': target_data['graphite_metric'],
             'target': target_data['target']
         }
         if 'color' in target_data:
@@ -420,7 +421,11 @@ def graphs(query=''):
     targets_all = list_targets(metrics)
     graphs_all = list_graphs(metrics)
     query = parse_query(query)
+    tags = set()
     targets_matching = match(targets_all, query)
+    for target in targets_matching.values():
+        for tag_name in target['tags'].keys():
+            tags.add(tag_name)
     graphs_matching = match(graphs_all, query, True)
     graphs_matching = build_graphs(graphs_matching, query)
     graphs_targets_matching = build_graphs_from_targets(targets_matching, query)[0]
@@ -436,15 +441,15 @@ def graphs(query=''):
     if len(graphs_matching) > 0 and request.headers.get('X-Requested-With') != 'XMLHttpRequest':
         out += template('snippet.graph-deps')
 
-    rendered_templates = []
-    for key in sorted(graphs_matching.iterkeys()):
-        data = graphs_matching[key]
-        rendered_templates.append(template('snippet.graph', config=config, graph_key=key, graph_data=data))
     args = {'errors': errors,
             'query': query,
             }
     args.update(stats)
-    out += template('graphs', args) + ''.join(rendered_templates)
+    out += template('graphs', args)
+    graphs = []
+    for key in sorted(graphs_matching.iterkeys()):
+        graphs.append((key, graphs_matching[key]))
+    out += template('snippet.graphs', config=config, graphs=graphs, tags=tags)
     return out
 
 # vim: ts=4 et sw=4:

@@ -107,8 +107,8 @@ class Plugin(object):
         target = {
             'config': target_config,
             'tags': tags,
-            # default target is the match string == the metric in graphite
-            'target': match.string
+            'graphite_metric': match.string,  # keep reference to graphite metric
+            'target': match.string  # most sensible default, can be changed of course..
         }
         return target
 
