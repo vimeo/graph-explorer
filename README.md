@@ -195,6 +195,14 @@ For apache2 this works:
 `./graph-explorer.py` and your page is available at `<ip>:8080`
 
 
+## First steps
+
+* go to the debug page and see if any of metrics are being recognized.  You'll see tables of all tags found across your targets. and below that all enhanced metrics found.
+* if there's no metrics there, make sure you have a recent metrics.json file and plugins that have correct regular expressions that can match your metric names.  A good starting point is using statsd and the diamond monitoring agent.
+* start with a simple query like the name of a plugin or something you're sure will match something. example 'statsd' or 'plugin=statsd' or 'statsd count' etc.  the graph names and target names give you clues on other words you can use to filter.
+* you can also just easily write your own plugins
+
+
 ## Getting in touch
 
 * irc: #monitoringlove on freenode (I'm there, Dieterbe)
