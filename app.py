@@ -243,6 +243,18 @@ def meta():
     return render_page(body, 'meta')
 
 
+@route('/inspect/<metric>')
+def inspect_metric(metric=''):
+    metrics = [metric]
+    targets = list_targets(metrics)
+    args = {'errors': errors,
+            'plugin_names': plugin_names,
+            'targets': targets,
+            }
+    body = template('body.inspect', args)
+    return render_page(body, 'inspect')
+
+
 @route('/debug')
 @route('/debug/<query>')
 def view_debug(query=''):
