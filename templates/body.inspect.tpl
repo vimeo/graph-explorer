@@ -1,5 +1,5 @@
   <div class="container-fluid">
-%include snippet.errors errors=errors
+%include templates/snippet.errors errors=errors
      <div class="row">
         <div class="span12">
           <h2>Targets</h2>

@@ -220,7 +220,7 @@ def static(path):
 @route('/index/<query>', method='GET')
 def index(query=''):
     from suggested_queries import suggested_queries
-    body = template('body.index', errors=errors, query=query, suggested_queries=suggested_queries)
+    body = template('templates/body.index', errors=errors, query=query, suggested_queries=suggested_queries)
     return render_page(body)
 
 
@@ -230,7 +230,7 @@ def render_page(body, page='index'):
         e = None
     except OSError, e:
         stat = None
-    return str(template('page', body=body, page=page, stat_metrics=stat, stat_metrics_error=e))
+    return str(template('templates/page', body=body, page=page, stat_metrics=stat, stat_metrics_error=e))
 
 
 @route('/index', method='POST')
@@ -240,7 +240,7 @@ def index_post():
 
 @route('/meta')
 def meta():
-    body = template('body.meta', todo=template('todo'.upper()))
+    body = template('templates/body.meta', todo=template('templates/' + 'todo'.upper()))
     return render_page(body, 'meta')
 
 
@@ -252,7 +252,7 @@ def inspect_metric(metric=''):
             'plugin_names': plugin_names,
             'targets': targets,
             }
-    body = template('body.inspect', args)
+    body = template('templates/body.inspect', args)
     return render_page(body, 'inspect')
 
 
@@ -263,11 +263,11 @@ def view_debug(query=''):
         metrics = load_metrics()
     except IOError, e:
         errors['metrics_file'] = ("Can't load metrics file", e)
-        body = template('snippet.errors', errors=errors)
+        body = template('templates/snippet.errors', errors=errors)
         return render_page(body, 'debug')
     except ValueError, e:
         errors['metrics_file'] = ("Can't parse metrics file", e)
-        body = template('snippet.errors', errors=errors)
+        body = template('templates/snippet.errors', errors=errors)
         return render_page(body, 'debug')
     targets_all = list_targets(metrics)
     graphs_all = list_graphs(metrics)
@@ -290,7 +290,7 @@ def view_debug(query=''):
             'graphs_targets': graphs_targets,
             'graphs_targets_options': graphs_targets_options
             }
-    body = template('body.debug', args)
+    body = template('templates/body.debug', args)
     return render_page(body, 'debug')
 
 
@@ -436,14 +436,14 @@ def graphs(query=''):
         metrics = load_metrics()
     except IOError, e:
         errors['metrics_file'] = ("Can't load metrics file", e)
-        return template('graphs', errors=errors)
+        return template('templates/graphs', errors=errors)
     except ValueError, e:
         errors['metrics_file'] = ("Can't parse metrics file", e)
-        return template('graphs', errors=errors)
+        return template('templates/graphs', errors=errors)
     if not query:
         query = request.forms.get('query')
     if not query:
-        return template('graphs', query=query, errors=errors)
+        return template('templates/graphs', query=query, errors=errors)
     targets_all = list_targets(metrics)
     graphs_all = list_graphs(metrics)
     query = parse_query(query)
@@ -465,17 +465,17 @@ def graphs(query=''):
     stats['len_graphs_matching_all'] = len(graphs_matching)
     out = ''
     if len(graphs_matching) > 0 and request.headers.get('X-Requested-With') != 'XMLHttpRequest':
-        out += template('snippet.graph-deps')
+        out += template('templates/snippet.graph-deps')
 
     args = {'errors': errors,
             'query': query,
             }
     args.update(stats)
-    out += template('graphs', args)
+    out += template('templates/graphs', args)
     graphs = []
     for key in sorted(graphs_matching.iterkeys()):
         graphs.append((key, graphs_matching[key]))
-    out += template('snippet.graphs', config=config, graphs=graphs, tags=tags, count_interval=preferences.count_interval)
+    out += template('templates/snippet.graphs', config=config, graphs=graphs, tags=tags, count_interval=preferences.count_interval)
     return out
 
 # vim: ts=4 et sw=4:

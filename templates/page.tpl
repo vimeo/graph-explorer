@@ -70,7 +70,7 @@
 
     <script src="../assets/js/jquery-1.7.2.min.js"></script>
     <script src="../assets/js/bootstrap.js"></script>
-    %include snippet.graph-deps
+    %include templates/snippet.graph-deps
 
 {{!body}}
 

@@ -6,5 +6,5 @@ count_interval = {{count_interval}};
 </script>
 
 % for (k,v) in graphs:
-%     include snippet.graph config=config, graph_key=k, graph_data=v
+%     include templates/snippet.graph config=config, graph_key=k, graph_data=v
 % end

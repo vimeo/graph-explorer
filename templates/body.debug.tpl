@@ -26,7 +26,7 @@
 % end
 
   <div class="container-fluid">
-%include snippet.errors errors=errors
+%include templates/snippet.errors errors=errors
      <a href="/debug/metrics">cached metrics</a>
      <div class="row">
         <div class="span3">
