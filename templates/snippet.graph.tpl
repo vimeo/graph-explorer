@@ -8,52 +8,13 @@
             <form class="toggler" id="line_stack_form_flot_{{graph_id}}"></form>
         </div>
         <script language="javascript">
-        function display_tag(tag_name, tag_value) {
-            // at some point it'll probably make sense to make the background color the inverse of the foreground color
-            // cause there'll be so many foreground colors that are not always visible on any particular background.
-            return "<span class='label' style='color:#" + colormap[tag_name] +"; background-color:#333;'>" + tag_value + "</span>";
-        }
-        function generate_title_from(tags, order_pre, order_post) {
-            var title = '';
-            order_pre.forEach(function(tag) {if(tag in tags) {title += display_tag(tag, tags[tag]); }});
-            $.map(tags, function (tag_v,tag) {if($.inArray(tag, order_pre) < 0 && $.inArray(tag, order_post) < 0) {title += display_tag(tag,tag_v); }});
-            order_post.forEach(function(tag) {if(tag in tags) {title += display_tag(tag, tags[tag]); }});
-            return title;
-        }
 	    $(document).ready(function () {
 		var graph_data = {{!json.dumps(graph_data)}};
+        graph_data['constants_all'] = jQuery.extend({}, graph_data['constants'], graph_data['promoted_constants']);
 
-        // set graph_name; with each tag in its own color. this way it's very clear how it's related to the query (esp. the group by)
-        var constants = jQuery.extend({}, graph_data['constants'], graph_data['promoted_constants']);
-        graph_name = generate_title_from(constants, ['what', 'type', 'target_type'], ['server', 'plugin']);
-        if(graph_name == "") {
-            // this was probably a predefined graph, or at least one for which no constants are known
-            graph_name = "{{graph_key}}";
-        }
-        $("#h2_{{graph_id}}").html(graph_name);
-
-        //automatically generate vtitles, if possible
-        vtitle = "";
-        target_type = "";
-        if ('target_type' in constants) {
-            target_type = constants['target_type'];
-        }
-        if ('what' in constants) {
-            if (target_type == 'counter') {
-                vtitle += 'total' + display_tag('what', constants['what']);
-            } else {
-                vtitle += display_tag('what', constants['what']);
-            }
-        }
-        if ('type' in constants) {
-            vtitle += display_tag('type', constants['type']);
-        }
+        $("#h2_{{graph_id}}").html(get_graph_name("{{graph_key}}", graph_data));
+        vtitle = get_vtitle(graph_data);
         if (vtitle != "") {
-            if (target_type == 'rate') {
-                vtitle += "/s";
-            } else if (target_type == 'count') {
-                vtitle += "/" + count_interval;
-            }
             graph_data["vtitle"] = vtitle;
         }
 

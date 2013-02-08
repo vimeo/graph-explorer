@@ -10,6 +10,7 @@
 <script src="../graphitejs/flot/jquery.flot.time.js"></script>
 <script src="../graphitejs/flot/jquery.flot.stack.js"></script>
 <script src="../graphitejs/jquery.flot.axislabels.js"></script>
+<script src="../assets/js/graph-explorer.js"></script>
 <script src="../assets/js/crc32.js"></script>
 <link type="text/css" rel="stylesheet" href="../graphitejs/rickshaw/rickshaw.css">
 <link type="text/css" rel="stylesheet" href="../assets/css/graphitejs.css">
