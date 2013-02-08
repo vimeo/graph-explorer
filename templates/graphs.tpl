@@ -11,12 +11,11 @@
 tags = {{!list(tags)}};
 colormap = create_colormap(tags);
 count_interval = {{count_interval}};
+$("#patterns").html(generate_pattern_display({{!list(query['patterns'])}}));
+$("#group_by").html(generate_pattern_display({{!list(query['group_by'])}}));
 </script>
-    % def labels(l):
-    %    return ' '.join(['<span class="label">%s</span>' % i for i in l])
-    % end
-    Patterns: {{!labels(query['patterns'])}}<br/>
-    Group by: {{!labels(query['group_by'])}}<br/>
+    Patterns: <span id="patterns"></span><br/>
+    Group by: <span id="group_by"></span><br/>
     From: {{query['from']}}<br/>
     To: {{query['to']}}<br/>
     # targets matching: {{len_targets_matching}}/{{len_targets_all}}<br/>

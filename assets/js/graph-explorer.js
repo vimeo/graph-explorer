@@ -3,6 +3,24 @@ function display_tag(tag_name, tag_value) {
     // cause there'll be so many foreground colors that are not always visible on any particular background.
     return "<span class='label' style='color:#" + colormap[tag_name] +"; background-color:#333;'>" + tag_value + "</span>";
 }
+function display_word(word) {
+    // word can be anything. a misc. string, a tag, a <tag>:, !<tag>=, etc
+    // if it matches on a tag, display it correctly for that tag
+    orig = word;
+    if (word.charAt(0) == '!') {
+        word = word.slice(1);
+    }
+    word = word.split('=')[0].split(':')[0];
+    if (word in colormap) {
+        return display_tag(word, orig);
+    }
+    return "<span class='label'>" + orig + "</span>";
+}
+function generate_pattern_display(patterns) {
+    var string = '';
+    patterns.forEach(function(word) {string += display_word(word) });
+    return string;
+}
 function generate_title_from(tags, order_pre, order_post) {
     var title = '';
     order_pre.forEach(function(tag) {if(tag in tags) {title += display_tag(tag, tags[tag]); }});
