@@ -467,15 +467,19 @@ def graphs(query=''):
     if len(graphs_matching) > 0 and request.headers.get('X-Requested-With') != 'XMLHttpRequest':
         out += template('templates/snippet.graph-deps')
 
-    args = {'errors': errors,
-            'query': query,
-            }
-    args.update(stats)
-    out += template('templates/graphs', args)
     graphs = []
     for key in sorted(graphs_matching.iterkeys()):
         graphs.append((key, graphs_matching[key]))
-    out += template('templates/snippet.graphs', config=config, graphs=graphs, tags=tags, count_interval=preferences.count_interval)
+
+    args = {'errors': errors,
+            'query': query,
+            'config': config,
+            'graphs': graphs,
+            'tags': tags,
+            'count_interval': preferences.count_interval
+            }
+    args.update(stats)
+    out += template('templates/graphs', args)
     return out
 
 # vim: ts=4 et sw=4:
