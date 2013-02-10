@@ -1,6 +1,6 @@
-[submodule "graphitejs"]
-	path = graphitejs
-	url = https://github.com/Dieterbe/graphitejs.git
+[submodule "timeserieswidget"]
+	path = timeserieswidget
+	url = https://github.com/Dieterbe/timeserieswidget.git
 [submodule "DataTables"]
 	path = DataTables
 	url = https://github.com/DataTables/DataTables.git

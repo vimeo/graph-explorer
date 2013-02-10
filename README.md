@@ -175,7 +175,7 @@ accepts anything graphite accepts (see above)
 git clone https://github.com/Dieterbe/graph-explorer.git
 cd graph-explorer
 git submodule update --init
-cd graphitejs
+cd timeserieswidget
 git submodule update --init
 ```
 

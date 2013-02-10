@@ -21,10 +21,10 @@
                         <br/>less then 1000 lines including all html, js, css and python (excluding bundled dependencies)
                     </li>
                     <li>
-                        <a href="https://github.com/Dieterbe/graphitejs">graphitejs jquery plugin</a>:
+                        <a href="https://github.com/Dieterbe/timeserieswidget">timeserieswidget jquery plugin</a>:
                         <br/>provides the interactive client-side graphs in less then 500 lines (excluding bundled dependencies)
                     </li>
-                    <li><a href="http://www.flotcharts.org/">flot charting library</a> used by graphitejs.
+                    <li><a href="http://www.flotcharts.org/">flot charting library</a> used by timeserieswidget.
                         <br/>see pointers to flot tickets in the feature comparison table of the graph explorer README
                     </li>
                     <li>we also depend on a bunch of other things (bottlepy, bootstrap, cyborg theme for bootstrap).

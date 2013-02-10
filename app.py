@@ -205,8 +205,8 @@ def stat_metrics():
 
 
 @route('<path:re:/assets/.*>')
-@route('<path:re:/graphitejs/.*js>')
-@route('<path:re:/graphitejs/.*css>')
+@route('<path:re:/timeserieswidget/.*js>')
+@route('<path:re:/timeserieswidget/.*css>')
 @route('<path:re:/DataTables/media/js/.*js>')
 @route('<path:re:/DataTablesPlugins/integration/bootstrap/.*js>')
 @route('<path:re:/DataTablesPlugins/integration/bootstrap/.*css>')
@@ -351,7 +351,7 @@ def build_graphs_from_targets(targets, query={}):
             graph = {'from': query['from'], 'until': query['to']}
             graph.update({'constants': constants, 'targets': []})
             graphs[graph_key] = graph
-        # set all options needed for graphitejs/flot:
+        # set all options needed for timeserieswidget/flot:
         t = {
             'variables': variables,
             'graphite_metric': target_data['graphite_metric'],
