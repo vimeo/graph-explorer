@@ -207,6 +207,8 @@ def stat_metrics():
 @route('<path:re:/assets/.*>')
 @route('<path:re:/timeserieswidget/.*js>')
 @route('<path:re:/timeserieswidget/.*css>')
+@route('<path:re:/timeserieswidget/timezone-js/src/.*js>')
+@route('<path:re:/timeserieswidget/tz/.*>')
 @route('<path:re:/DataTables/media/js/.*js>')
 @route('<path:re:/DataTablesPlugins/integration/bootstrap/.*js>')
 @route('<path:re:/DataTablesPlugins/integration/bootstrap/.*css>')
@@ -476,7 +478,7 @@ def graphs(query=''):
             'config': config,
             'graphs': graphs,
             'tags': tags,
-            'count_interval': preferences.count_interval
+            'preferences': preferences
             }
     args.update(stats)
     out += template('templates/graphs', args)

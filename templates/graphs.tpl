@@ -10,7 +10,7 @@
 <script language="javascript">
 tags = {{!list(tags)}};
 colormap = create_colormap(tags);
-count_interval = {{count_interval}};
+count_interval = {{preferences.count_interval}};
 $("#patterns").html(generate_pattern_display({{!list(query['patterns'])}}));
 $("#group_by").html(generate_pattern_display({{!list(query['group_by'])}}));
 </script>
@@ -23,7 +23,7 @@ $("#group_by").html(generate_pattern_display({{!list(query['group_by'])}}));
     # graphs from matching targets: {{len_graphs_targets_matching}}<br/>
     # total graphs: {{len_graphs_matching_all}}<br/>
 % for (k,v) in graphs:
-%     include templates/snippet.graph config=config, graph_key=k, graph_data=v
+%     include templates/snippet.graph config=config, graph_key=k, graph_data=v, preferences=preferences
 % end
 % end
 % else:

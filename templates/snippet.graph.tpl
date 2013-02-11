@@ -51,6 +51,8 @@
 		    series: {stack: true, lines: { show: true, lineWidth: 0, fill: true }},
 		    xaxis: { mode: "time" },
 		    legend: { container: '#legend_flot_{{graph_id}}', noColumns: 1, labelFormatter: labelFormatter },
+            zoneFileBasePath: '../timeserieswidget/tz',
+            tz: "{{preferences.timezone}}",
 		};
 		var graph_flot_{{graph_id}} = $.extend({}, defaults, graph_data);
 	        $("#chart_flot_{{graph_id}}").graphiteFlot(graph_flot_{{graph_id}}, function(err) { console.log(err); });

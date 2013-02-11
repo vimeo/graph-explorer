@@ -10,6 +10,7 @@
 <script src="../timeserieswidget/flot/jquery.flot.time.js"></script>
 <script src="../timeserieswidget/flot/jquery.flot.stack.js"></script>
 <script src="../timeserieswidget/jquery.flot.axislabels.js"></script>
+<script src="../timeserieswidget/timezone-js/src/date.js"></script>
 <script src="../assets/js/graph-explorer.js"></script>
 <script src="../assets/js/crc32.js"></script>
 <link type="text/css" rel="stylesheet" href="../timeserieswidget/rickshaw/rickshaw.css">
