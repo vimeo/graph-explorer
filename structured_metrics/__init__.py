@@ -21,10 +21,15 @@ class StructuredMetrics(object):
 
 
     def load_plugins(self):
-        # Load all the plugins sub-modules and create a list of
-        # plugin_objects and plugin_names
+        '''
+        loads all the plugins sub-modules
+        returns encountered errors, doesn't raise them because
+        whoever calls this function defines how any errors are
+        handled. meanwhile, loading must continue
+        '''
         from plugins import Plugin
         import plugins
+        errors = []
         plugins_dir = os.path.dirname(plugins.__file__)
         wd = os.getcwd()
         os.chdir(plugins_dir)
@@ -35,8 +40,7 @@ class StructuredMetrics(object):
             try:
                 imp = __import__('plugins.' + module, globals(), locals(), ['*'])
             except Exception, e:
-                os.chdir(wd)
-                raise PluginError(module, "Failed to add plugin '%s'" % module, e)
+                errors.append(PluginError(module, "Failed to add plugin '%s'" % module, e))
                 continue
 
             for itemname in dir(imp):
@@ -47,13 +51,12 @@ class StructuredMetrics(object):
                         self.plugin_names.append(module)
                     # regex error is too vague to stand on its own
                     except sre_constants.error, e:
-                        os.chdir(wd)
                         e = "error problem parsing matching regex: %s" % e
-                        raise PluginError(module, "Failed to add plugin '%s'" % module, e)
+                        errors.append(PluginError(module, "Failed to add plugin '%s'" % module, e))
                     except Exception, e:
-                        os.chdir(wd)
-                        raise PluginError(module, "Failed to add plugin '%s'" % module, e)
+                        errors.append(PluginError(module, "Failed to add plugin '%s'" % module, e))
         os.chdir(wd)
+        return errors
 
     def list_targets(self, metrics):
         targets = {}

@@ -18,11 +18,8 @@ import structured_metrics
 errors = {}
 
 s_metrics = structured_metrics.StructuredMetrics()
-try:
-    s_metrics.load_plugins()
-except structured_metrics.PluginError, e:
+for e in s_metrics.load_plugins():
     errors['plugin_' % e.plugin] = (e.msg, e.underlying_error)
-    pass
 
 
 def parse_query(query_str):
