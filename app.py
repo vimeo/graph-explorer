@@ -8,70 +8,21 @@ except ImportError:
         raise ImportError("GE requires python2, 2.6 or higher, or 2.5 with simplejson.")
 import os
 import re
-from inspect import isclass
 from bottle import route, template, request, static_file, redirect, response
 import config
 import preferences
-import sre_constants
+import structured_metrics
 
 # contains all errors as key:(title,msg) items.
 # will be used throughout the runtime to track all encountered errors
 errors = {}
 
-# Load all the plugins sub-modules and create a list of
-# plugin_objects and plugin_names
-from plugins import Plugin
-import plugins
-plugin_objects = []
-plugin_names = []
-plugins_dir = os.path.dirname(plugins.__file__)
-wd = os.getcwd()
-os.chdir(plugins_dir)
-for f in os.listdir("."):
-    if f == '__init__.py' or not f.endswith(".py"):
-        continue
-    module = f[:-3]
-    try:
-        imp = __import__('plugins.' + module, globals(), locals(), ['*'])
-    except Exception, e:
-        errors['plugin_%s' % module] = (
-            "Failed to add plugin '%s'" % module,
-            e
-        )
-        continue
-
-    for itemname in dir(imp):
-        item = getattr(imp, itemname)
-        if isclass(item) and item != Plugin and issubclass(item, Plugin):
-            try:
-                plugin_objects.append(item())
-                plugin_names.append(module)
-            # regex error is too vague to stand on its own
-            except sre_constants.error, e:
-                errors['plugin_%s' % module] = (
-                    "Failed to add plugin '%s'" % module,
-                    "error problem parsing matching regex: %s" % e
-                )
-            except Exception, e:
-                errors['plugin_%s' % module] = (
-                    "Failed to add plugin '%s'" % module,
-                    e
-                )
-os.chdir(wd)
-
-
-def list_targets(metrics):
-    targets = {}
-    for t_o in plugin_objects:
-        targets.update(t_o.list_targets(metrics))
-    return targets
-
-
-def list_graphs(metrics):
-    graphs = {}
-    for t_o in plugin_objects:
-        graphs.update(t_o.list_graphs(metrics))
-    return graphs
+s_metrics = structured_metrics.StructuredMetrics()
+try:
+    s_metrics.load_plugins()
+except structured_metrics.PluginError, e:
+    errors['plugin_' % e.plugin] = (e.msg, e.underlying_error)
+    pass
 
 
 def parse_query(query_str):
@@ -249,9 +200,9 @@ def meta():
 @route('/inspect/<metric>')
 def inspect_metric(metric=''):
     metrics = [metric]
-    targets = list_targets(metrics)
+    targets = s_metrics.list_targets(metrics)
     args = {'errors': errors,
-            'plugin_names': plugin_names,
+            'plugin_names': s_metrics.plugin_names,
             'targets': targets,
             }
     body = template('templates/body.inspect', args)
@@ -271,8 +222,8 @@ def view_debug(query=''):
         errors['metrics_file'] = ("Can't parse metrics file", e)
         body = template('templates/snippet.errors', errors=errors)
         return render_page(body, 'debug')
-    targets_all = list_targets(metrics)
-    graphs_all = list_graphs(metrics)
+    targets_all = s_metrics.list_targets(metrics)
+    graphs_all = s_metrics.list_graphs(metrics)
     if query:
         query = parse_query(query)
         targets_matching = match(targets_all, query)
@@ -286,7 +237,7 @@ def view_debug(query=''):
         graphs = graphs_all
 
     args = {'errors': errors,
-            'plugin_names': plugin_names,
+            'plugin_names': s_metrics.plugin_names,
             'targets': targets,
             'graphs': graphs,
             'graphs_targets': graphs_targets,
@@ -431,8 +382,8 @@ def build_graphs_from_targets(targets, query={}):
 def graphs(query=''):
     '''
     get all relevant graphs matching query,
-    graphs yielded by plugins directly,
-    enriched by combining the yielded targets
+    graphs from structured_metrics targets, as well as graphs
+    defined in structured_metrics plugins
     '''
     try:
         metrics = load_metrics()
@@ -446,8 +397,8 @@ def graphs(query=''):
         query = request.forms.get('query')
     if not query:
         return template('templates/graphs', query=query, errors=errors)
-    targets_all = list_targets(metrics)
-    graphs_all = list_graphs(metrics)
+    targets_all = s_metrics.list_targets(metrics)
+    graphs_all = s_metrics.list_graphs(metrics)
     query = parse_query(query)
     tags = set()
     targets_matching = match(targets_all, query)
