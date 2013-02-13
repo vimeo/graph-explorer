@@ -1,22 +1,16 @@
 #!/usr/bin/env python2
-try:
-    import json
-except ImportError:
-    try:
-        import simplejson as json
-    except ImportError:
-        raise ImportError("GE requires python2, 2.6 or higher, or 2.5 with simplejson.")
 import os
 import re
 from bottle import route, template, request, static_file, redirect, response
 import config
 import preferences
-import structured_metrics
+import structured_metrics, backend
 
 # contains all errors as key:(title,msg) items.
 # will be used throughout the runtime to track all encountered errors
 errors = {}
 
+backend = backend.Backend(config)
 s_metrics = structured_metrics.StructuredMetrics()
 for e in s_metrics.load_plugins():
     errors['plugin_' % e.plugin] = (e.msg, e.underlying_error)
@@ -143,15 +137,6 @@ def match(objects, query, graph=False):
     return objects_matching
 
 
-def load_metrics():
-    f = open('metrics.json', 'r')
-    return json.load(f)
-
-
-def stat_metrics():
-    return os.stat('metrics.json')
-
-
 @route('<path:re:/assets/.*>')
 @route('<path:re:/timeserieswidget/.*js>')
 @route('<path:re:/timeserieswidget/.*css>')
@@ -176,7 +161,7 @@ def index(query=''):
 
 def render_page(body, page='index'):
     try:
-        stat = stat_metrics()
+        stat = backend.stat_metrics()
         e = None
     except OSError, e:
         stat = None
@@ -210,7 +195,7 @@ def inspect_metric(metric=''):
 @route('/debug/<query>')
 def view_debug(query=''):
     try:
-        metrics = load_metrics()
+        metrics = backend.load_metrics()
     except IOError, e:
         errors['metrics_file'] = ("Can't load metrics file", e)
         body = template('templates/snippet.errors', errors=errors)
@@ -248,7 +233,7 @@ def view_debug(query=''):
 def debug_metrics():
     response.content_type = 'text/plain'
     try:
-        return "\n".join(load_metrics())
+        return "\n".join(backend.load_metrics())
     except IOError, e:
         response.status = 500
         return "Can't load metrics file: %s" % e
@@ -383,7 +368,7 @@ def graphs(query=''):
     defined in structured_metrics plugins
     '''
     try:
-        metrics = load_metrics()
+        metrics = backend.load_metrics()
     except IOError, e:
         errors['metrics_file'] = ("Can't load metrics file", e)
         return template('templates/graphs', errors=errors)
