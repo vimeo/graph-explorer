@@ -1,19 +1,74 @@
 #!/usr/bin/env python2
-import os
 import re
+import time
+import sys
 from bottle import route, template, request, static_file, redirect, response
 import config
 import preferences
-import structured_metrics, backend
+import structured_metrics
+from backend import Backend, MetricsError
+import thread
 
 # contains all errors as key:(title,msg) items.
 # will be used throughout the runtime to track all encountered errors
 errors = {}
 
-backend = backend.Backend(config)
+# will contain the latest data
+metrics = targets_all = graphs_all = None
+last_update = None
+
+
+def log(msg):
+    print "%s: %s" % (time.ctime(time.time()), msg)
+
+backend = Backend(config)
 s_metrics = structured_metrics.StructuredMetrics()
+log("loading plugins")
 for e in s_metrics.load_plugins():
     errors['plugin_' % e.plugin] = (e.msg, e.underlying_error)
+
+
+def build_data():
+    global metrics
+    global targets_all
+    global graphs_all
+    global last_update
+    log('build_data() start')
+    try:
+        (metrics, targets_all, graphs_all) = backend.update_data(s_metrics)
+        last_update = time.time()
+        log('build_data() end ok')
+    except MetricsError, e:
+        sys.stderr.write("[%s] %s\n" % (e.msg, e.underlying_error))
+        errors['metrics_file'] = (e.msg, e.underlying_error)
+        log('build_data() failed')
+
+thread.start_new_thread(build_data, ())
+
+
+def data_ready():
+    return bool(metrics and targets_all and graphs_all)
+
+
+@route("/refresh_data")
+def refresh_data():
+    global metrics
+    global targets_all
+    global graphs_all
+    try:
+        stat_metrics = backend.stat_metrics()
+        if last_update is not None and stat_metrics.st_mtime < last_update:
+            return ("metrics.json is last updated %s, "
+                    "rebuilding data structures wouldn't make sense cause they were "
+                    "last rebuilt %s" % (time.ctime(stat_metrics.st_mtime), time.ctime(last_update)))
+        (metrics, targets_all, graphs_all) = backend.update_data(s_metrics)
+        if 'metrics_file' in errors:
+            del errors['metrics_file']
+        return 'ok'
+    except MetricsError, e:
+        errors['metrics_file'] = (e.msg, e.underlying_error)
+        response.status = 500
+        return "errors: %s" % ' '.join('[%s] %s' % (k, v) for (k, v) in errors.items())
 
 
 def parse_query(query_str):
@@ -160,12 +215,7 @@ def index(query=''):
 
 
 def render_page(body, page='index'):
-    try:
-        stat = backend.stat_metrics()
-        e = None
-    except OSError, e:
-        stat = None
-    return str(template('templates/page', body=body, page=page, stat_metrics=stat, stat_metrics_error=e))
+    return str(template('templates/page', body=body, page=page, last_update=last_update))
 
 
 @route('/index', method='POST')
@@ -194,18 +244,11 @@ def inspect_metric(metric=''):
 @route('/debug')
 @route('/debug/<query>')
 def view_debug(query=''):
-    try:
-        metrics = backend.load_metrics()
-    except IOError, e:
-        errors['metrics_file'] = ("Can't load metrics file", e)
+    if 'metrics_file' in errors:
         body = template('templates/snippet.errors', errors=errors)
         return render_page(body, 'debug')
-    except ValueError, e:
-        errors['metrics_file'] = ("Can't parse metrics file", e)
-        body = template('templates/snippet.errors', errors=errors)
-        return render_page(body, 'debug')
-    targets_all = s_metrics.list_targets(metrics)
-    graphs_all = s_metrics.list_graphs(metrics)
+    if not data_ready():
+        return "server is (presumably) still building needed datastructures. can't continue"
     if query:
         query = parse_query(query)
         targets_matching = match(targets_all, query)
@@ -232,14 +275,12 @@ def view_debug(query=''):
 @route('/debug/metrics')
 def debug_metrics():
     response.content_type = 'text/plain'
-    try:
-        return "\n".join(backend.load_metrics())
-    except IOError, e:
+    if not data_ready():
+        return "server is (presumably) still building needed datastructures. can't continue"
+    if 'metrics_file' in errors:
         response.status = 500
-        return "Can't load metrics file: %s" % e
-    except ValueError, e:
-        response.status = 500
-        return "Can't parse metrics file: %s" % e
+        return errors
+    return "\n".join(metrics)
 
 
 def build_graphs(graphs, query={}):
@@ -367,20 +408,14 @@ def graphs(query=''):
     graphs from structured_metrics targets, as well as graphs
     defined in structured_metrics plugins
     '''
-    try:
-        metrics = backend.load_metrics()
-    except IOError, e:
-        errors['metrics_file'] = ("Can't load metrics file", e)
-        return template('templates/graphs', errors=errors)
-    except ValueError, e:
-        errors['metrics_file'] = ("Can't parse metrics file", e)
+    if 'metrics_file' in errors:
         return template('templates/graphs', errors=errors)
     if not query:
         query = request.forms.get('query')
     if not query:
         return template('templates/graphs', query=query, errors=errors)
-    targets_all = s_metrics.list_targets(metrics)
-    graphs_all = s_metrics.list_graphs(metrics)
+    if not data_ready():
+        return "server is (presumably) still building needed datastructures. can't continue"
     query = parse_query(query)
     tags = set()
     targets_matching = match(targets_all, query)
