@@ -29,9 +29,9 @@
             name = "";
             // at some point, we'll probably want to order the variables; just like how we compose graph titles.
             $.map(data["variables"], function (v,k) { name += " " + display_tag(k, v);});
-            // there's nothing about this target that sets it apart in the graph (i.e. only one target in the graph)
+            // there's nothing about this target that's not already in the graph title
             if (name == "") {
-                name = "single_target";
+                name = "empty";
             }
             return "<a href='/inspect/" + data['graphite_metric'] +"'>" + name + "</a>";
         }
