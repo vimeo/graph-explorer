@@ -10,8 +10,8 @@
           <input type="submit" style="display:none;"/>
           <input type="text" class="span11" data-provide="typeahead" id="query" name="query" value="{{query}}"/>
           </form></li>
-          <li class="nav-header">Options</li>
-          <li><a href="#" id="clearzoom">clear zoom</a></li>
+          <!-- some day... <li class="nav-header">Options</li>
+          <li><a href="#" id="clearzoom">clear zoom</a></li> -->
           <li class="nav-header">Suggested queries</li>
             {{!suggested_queries['notes']}}
             % for query in suggested_queries['queries']:
