@@ -27,6 +27,7 @@ class Plugin(object):
         'configure': [lambda self, target: self.default_configure_target(target)],
     }
     priority = 0
+    targets_found = 0
 
     # useful configure functions:
     def default_configure_target(self, target):
@@ -155,6 +156,7 @@ class Plugin(object):
                     target = self.__create_target(match, target)
                     target = self.__sanitize_target(target)
                     target = self.__configure_target(target)
+                    self.targets_found += 1
                     yield (self.get_target_id(target), target)
                     continue
 
