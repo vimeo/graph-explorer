@@ -56,12 +56,10 @@
             </ul>
           </div><!--/.nav-collapse -->
             <ul class="nav pull-right">
-            % if stat_metrics_error is not None:
-            <li><a>metrics info: <span class="label label-important">{{stat_metrics_error}}</a></a> </li>
-            % else:
+            <li><a href="/refresh_data"><span class="icon-refresh"></span></a></li>
+            % if last_update is not None:
             % import time
-            % mtime = time.ctime(int(stat_metrics.st_mtime))
-            <li><a>last metrics update: {{mtime}}</a> </li>
+            <li><a>last metrics update: {{time.ctime(last_update)}}</a> </li>
             % end
             </ul>
         </div>
