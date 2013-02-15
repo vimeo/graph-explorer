@@ -105,7 +105,7 @@ the values must not contain white space.
 
 ### `graph|list `
 
-default: graph
+default: graph  
 this statement goes in the beginning of the query.
 
 * graph (default): builds and shows the graphs from your input
