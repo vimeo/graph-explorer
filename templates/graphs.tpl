@@ -18,6 +18,7 @@ $("#group_by").html(generate_pattern_display({{!list(query['group_by'])}}));
     Group by: <span id="group_by"></span><br/>
     From: {{query['from']}}<br/>
     To: {{query['to']}}<br/>
+    Limit: {{query['limit_targets']}}<br/>
     # targets matching: {{len_targets_matching}}/{{len_targets_all}}<br/>
     # graphs matching: {{len_graphs_matching}}/{{len_graphs_all}}<br/>
     # graphs from matching targets: {{len_graphs_targets_matching}}<br/>

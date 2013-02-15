@@ -101,6 +101,8 @@ def parse_query(query_str):
         if tag.endswith('='):
             query['patterns'].append(tag)
 
+    (query_str, query['limit_targets']) = parse_out_value(query_str, 'limit ', '[^ ]+', 500)
+
     # split query_str into multiple patterns which are all matched independently
     # this allows you write patterns in any order, and also makes it easy to use negations
     query['patterns'] += query_str.split()
@@ -301,7 +303,8 @@ def build_graphs_from_targets(targets, query={}):
     defaults = {
         'group_by': [],
         'from': '-24hours',
-        'to': 'now'
+        'to': 'now',
+        'limit_targets': 500
     }
     query = dict(defaults.items() + query.items())
     graphs = {}
@@ -313,7 +316,7 @@ def build_graphs_from_targets(targets, query={}):
     # the "constants": tags in the group_by
     # the "variables": tags not in the group_by, which can have arbitrary values
     # go through all targets and group them into graphs:
-    for target_id in sorted(targets.iterkeys()):
+    for (i, target_id) in enumerate(sorted(targets.iterkeys())):
         constants = {}
         variables = {}
         target_data = targets[target_id]
@@ -336,6 +339,9 @@ def build_graphs_from_targets(targets, query={}):
         if 'color' in target_data:
             t['color'] = target_data['color']
         graphs[graph_key]['targets'].append(t)
+
+        if i + 1 == query['limit_targets']:
+            break
     # if in a graph all targets have a tag with the same value, they are
     # effectively constants, so promote them.  this makes the display of the
     # graphs less rendundant and paves the path

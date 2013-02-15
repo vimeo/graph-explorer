@@ -140,6 +140,12 @@ accepts anything [graphite accepts](http://graphite.readthedocs.org/en/1.0/url-a
 default: 'now'.  
 accepts anything graphite accepts (see above)
 
+
+### limit `<number>`
+
+default: 500
+limit returned targets (to avoid killing you browser and/or graphite server). 0 means no limit
+
 ## Examples
 
 * `cpu`: all cpu graphs (for all machines)
