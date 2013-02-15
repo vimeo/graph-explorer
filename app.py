@@ -403,9 +403,6 @@ def build_graphs_from_targets(targets, query={}):
                         break
             if rule_match:
                 graphs[graph_key].update(graph_options)
-
-
-
     return (graphs, query)
 
 
