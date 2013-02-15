@@ -119,7 +119,7 @@ basically a comma-separated list of tags with optional '=' suffix to denote soft
 
 by default, grouping is by `target_type=`, `what=` and `server`.
 The tags `target_type` and `what` are strong, meaning a `<tag>=` pattern is added to the query so that only targets are shown that have the tag.
-The tag `server` is soft so that no pattern is added, and targets without this tag will show up under `server_unset`
+The tag `server` is soft so that no pattern is added, and targets without this tag will show up too.
 
 You can affect this in two ways:
 * specify `group by <tagspec>` to keep the standard hard tags and replace all soft tags with `foo`, `bar`, etc.
