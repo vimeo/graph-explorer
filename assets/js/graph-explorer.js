@@ -37,6 +37,10 @@ function get_graph_name(key, graph_data) {
     }
     return graph_name;
 }
+// http://stackoverflow.com/questions/280634/endswith-in-javascript
+function endsWith(str, suffix) {
+        return str.indexOf(suffix, str.length - suffix.length) !== -1;
+}
 function get_vtitle(graph_data) {
     //automatically generate vtitle, if possible
     var vtitle = "";
@@ -53,6 +57,10 @@ function get_vtitle(graph_data) {
     }
     if ('type' in graph_data['constants_all']) {
         vtitle += display_tag('type', graph_data['constants_all']['type']);
+    }
+    // gauge_pct etc
+    if (endsWith(target_type, '_pct')) {
+        vtitle += ' %';
     }
     if (vtitle != "") {
         if (target_type == 'rate') {
