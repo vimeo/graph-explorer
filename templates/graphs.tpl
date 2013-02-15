@@ -19,12 +19,16 @@ $("#group_by").html(generate_pattern_display({{!list(query['group_by'])}}));
     From: {{query['from']}}<br/>
     To: {{query['to']}}<br/>
     Limit: {{query['limit_targets']}}<br/>
+    Statement: {{query['statement']}}<br/>
     # targets matching: {{len_targets_matching}}/{{len_targets_all}}<br/>
     # graphs matching: {{len_graphs_matching}}/{{len_graphs_all}}<br/>
     # graphs from matching targets: {{len_graphs_targets_matching}}<br/>
     # total graphs: {{len_graphs_matching_all}}<br/>
 % for (k,v) in graphs:
 %     include templates/snippet.graph config=config, graph_key=k, graph_data=v, preferences=preferences
+% end
+% for target in targets_list:
+{{target}}</br>
 % end
 % end
 % else:

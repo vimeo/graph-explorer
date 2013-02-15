@@ -87,6 +87,8 @@ def parse_query(query_str):
             query_str = query_str[:match.start(1)] + query_str[match.end(1):]
         return (query_str, value)
 
+    (query_str, query['statement']) = parse_out_value(query_str, '^', '(graph|list)', 'graph')
+
     (query_str, query['to']) = parse_out_value(query_str, 'to ', '[^ ]+', 'now')
     (query_str, query['from']) = parse_out_value(query_str, 'from ', '[^ ]+', '-24hours')
 
@@ -304,6 +306,7 @@ def build_graphs_from_targets(targets, query={}):
         'group_by': [],
         'from': '-24hours',
         'to': 'now',
+        'statement': 'graph',
         'limit_targets': 500
     }
     query = dict(defaults.items() + query.items())
@@ -430,27 +433,36 @@ def graphs(query=''):
             tags.add(tag_name)
     graphs_matching = match(graphs_all, query, True)
     graphs_matching = build_graphs(graphs_matching, query)
-    graphs_targets_matching = build_graphs_from_targets(targets_matching, query)[0]
     stats = {'len_targets_all': len(targets_all),
-             'len_graphs_all': len(graphs_all),
-             'len_targets_matching': len(targets_matching),
-             'len_graphs_matching': len(graphs_matching),
-             'len_graphs_targets_matching': len(graphs_targets_matching),
-             }
-    graphs_matching.update(graphs_targets_matching)
-    stats['len_graphs_matching_all'] = len(graphs_matching)
+            'len_graphs_all': len(graphs_all),
+            'len_targets_matching': len(targets_matching),
+            'len_graphs_matching': len(graphs_matching),
+    }
     out = ''
-    if len(graphs_matching) > 0 and request.headers.get('X-Requested-With') != 'XMLHttpRequest':
-        out += template('templates/snippet.graph-deps')
-
     graphs = []
-    for key in sorted(graphs_matching.iterkeys()):
-        graphs.append((key, graphs_matching[key]))
+    targets_list = []
+    # the code to handle different statements, and the view
+    # templates could be a bit prettier, but for now it'll do.
+    if query['statement'] == 'graph':
+        graphs_targets_matching = build_graphs_from_targets(targets_matching, query)[0]
+        stats['len_graphs_targets_matching'] = len(graphs_targets_matching)
+        graphs_matching.update(graphs_targets_matching)
+        stats['len_graphs_matching_all'] = len(graphs_matching)
+        if len(graphs_matching) > 0 and request.headers.get('X-Requested-With') != 'XMLHttpRequest':
+            out += template('templates/snippet.graph-deps')
+        for key in sorted(graphs_matching.iterkeys()):
+            graphs.append((key, graphs_matching[key]))
+    elif query['statement'] == 'list':
+        # for now, only supports targets, not graphs
+        targets_list = targets_matching
+        stats['len_graphs_targets_matching'] = 0
+        stats['len_graphs_matching_all'] = 0
 
     args = {'errors': errors,
             'query': query,
             'config': config,
             'graphs': graphs,
+            'targets_list': targets_list,
             'tags': tags,
             'preferences': preferences
             }

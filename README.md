@@ -100,8 +100,17 @@ note:
 
 ## special predicates
 
-These statements are all optional (i.e. have default values) and can occur anywhere within the query.
-Unless mentioned otherwise, the values must not contain white space.
+Unless mentioned otherwise, these statements are all optional (i.e. have default values), can occur anywhere within the query and
+the values must not contain white space.
+
+### `graph|list `
+
+default: graph
+this statement goes in the beginning of the query.
+
+* graph (default): builds and shows the graphs from your input
+* list: shows all matching targets (not the matching graphs)
+
 
 ### group by `<tagspec>` and GROUP BY `<tagspec>`
 
