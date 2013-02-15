@@ -19,7 +19,7 @@
             </table>
 %end
             <h2>Plugins used</h2>
-{{','.join(plugin_names)}}
+{{','.join([plugin_name for (plugin_name, plugin_object) in plugins])}}
        </div>
       </div>
     </div> <!-- /container -->

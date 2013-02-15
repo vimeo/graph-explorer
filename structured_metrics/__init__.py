@@ -16,8 +16,7 @@ class PluginError(Exception):
 class StructuredMetrics(object):
 
     def __init__(self):
-        self.plugin_objects = []
-        self.plugin_names = []
+        self.plugins = []
 
 
     def load_plugins(self):
@@ -47,8 +46,7 @@ class StructuredMetrics(object):
                 item = getattr(imp, itemname)
                 if isclass(item) and item != Plugin and issubclass(item, Plugin):
                     try:
-                        self.plugin_objects.append(item())
-                        self.plugin_names.append(module)
+                        self.plugins.append((module, item()))
                     # regex error is too vague to stand on its own
                     except sre_constants.error, e:
                         e = "error problem parsing matching regex: %s" % e
@@ -56,17 +54,27 @@ class StructuredMetrics(object):
                     except Exception, e:
                         errors.append(PluginError(module, "Failed to add plugin '%s'" % module, e))
         os.chdir(wd)
+        # sort plugins by their matching priority
+        self.plugins = sorted(self.plugins, key=lambda t: t[1].priority, reverse=True)
         return errors
 
     def list_targets(self, metrics):
         targets = {}
-        for t_o in self.plugin_objects:
-            targets.update(t_o.list_targets(metrics))
+        for metric in metrics:
+            metric_matched = False
+            for (i, plugin) in enumerate(self.plugins):
+                (plugin_name, plugin_object) = plugin
+                for (k, v) in plugin_object.find_targets(metric):
+                    metric_matched = True
+                    targets[k] = v
+                if metric_matched:
+                    break
         return targets
 
     def list_graphs(self, metrics):
         graphs = {}
-        for t_o in self.plugin_objects:
-            graphs.update(t_o.list_graphs(metrics))
+        for plugin in self.plugins:
+            (plugin_name, plugin_object) = plugin
+            graphs.update(plugin_object.list_graphs(metrics))
         return graphs
 

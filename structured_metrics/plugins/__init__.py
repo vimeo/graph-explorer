@@ -26,6 +26,7 @@ class Plugin(object):
         # the match object. the target will receive updated fields from the returned dict
         'configure': [lambda self, target: self.default_configure_target(target)],
     }
+    priority = 0
 
     # useful configure functions:
     def default_configure_target(self, target):
@@ -137,28 +138,25 @@ class Plugin(object):
         """
         return {}
 
-    def list_targets(self, metrics):
+    def find_targets(self, metric):
         """
-        For given list of metrics, list all possible targets according to our pattern
-        The return value is as follows: {
-            'id (targetstring)' : {
+        For given metrics, yield all possible targets according to our pattern
+        yield a tuple of id  (targetstring) and target, being:
+            {
                 'targetstring': '<..>',
                 'names': { for each tag : a name }, # will be shown in legend. if group_by server, servername will be in title, no need to repeat it here
             }
         }
         """
-        targets = {}
-        for metric in metrics:
-            for target in self.targets:
-                for match_object in target['match_object']:
-                    match = match_object.search(metric)
-                    if match is not None:
-                        target = self.__create_target(match, target)
-                        target = self.__sanitize_target(target)
-                        target = self.__configure_target(target)
-                        targets[self.get_target_id(target)] = target
-                        continue
-        return targets
+        for target in self.targets:
+            for match_object in target['match_object']:
+                match = match_object.search(metric)
+                if match is not None:
+                    target = self.__create_target(match, target)
+                    target = self.__sanitize_target(target)
+                    target = self.__configure_target(target)
+                    yield (self.get_target_id(target), target)
+                    continue
 
     def list_graphs(self, metrics):
         """

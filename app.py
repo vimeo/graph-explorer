@@ -238,7 +238,7 @@ def inspect_metric(metric=''):
     metrics = [metric]
     targets = s_metrics.list_targets(metrics)
     args = {'errors': errors,
-            'plugin_names': s_metrics.plugin_names,
+            'plugins': s_metrics.plugins,
             'targets': targets,
             }
     body = template('templates/body.inspect', args)
@@ -266,7 +266,7 @@ def view_debug(query=''):
         graphs = graphs_all
 
     args = {'errors': errors,
-            'plugin_names': s_metrics.plugin_names,
+            'plugins': s_metrics.plugins,
             'targets': targets,
             'graphs': graphs,
             'graphs_targets': graphs_targets,
