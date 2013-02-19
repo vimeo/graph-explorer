@@ -9,7 +9,7 @@ class CatchallDiamondPlugin(Plugin):
 
     targets = [
         {
-            'match': '^servers\.(?P<server>[^\.]+)\.?(?P<n1>[^\.]*)\.?(?P<n2>[^\.]*)\.?(?P<n3>[^\.]*)\.?(?P<n4>[^\.]*)$',
+            'match': '^servers\.(?P<server>[^\.]+)\.(?P<n1>[^\.]+)\.?(?P<n2>[^\.]*)\.?(?P<n3>[^\.]*)\.?(?P<n4>[^\.]*)$',
             'target_type': 'unknown',
             'configure': [
                 lambda self, target: self.add_tag(target, 'what', 'unknown'),

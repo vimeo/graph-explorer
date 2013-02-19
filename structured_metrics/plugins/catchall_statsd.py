@@ -9,7 +9,7 @@ class CatchallStatsdPlugin(Plugin):
 
     targets = [
         {
-            'match': '^stats\.gauges\.?(?P<n1>[^\.]*)\.?(?P<n2>[^\.]*)\.?(?P<n3>[^\.]*)\.?(?P<n4>[^\.]*)\.?(?P<n5>[^\.]*)\.?(?P<n6>[^\.]*)\.?(?P<n7>[^\.]*)$',
+            'match': '^stats\.gauges\.(?P<n1>[^\.]+)\.?(?P<n2>[^\.]*)\.?(?P<n3>[^\.]*)\.?(?P<n4>[^\.]*)\.?(?P<n5>[^\.]*)\.?(?P<n6>[^\.]*)\.?(?P<n7>[^\.]*)$',
             'target_type': 'gauge',
             'configure': [
                 lambda self, target: self.add_tag(target, 'what', 'unknown'),
@@ -17,7 +17,7 @@ class CatchallStatsdPlugin(Plugin):
             ]
         },
         {
-            'match': '^stats\.timers\.?(?P<n1>[^\.]*)\.?(?P<n2>[^\.]*)\.?(?P<n3>[^\.]*)\.?(?P<n4>[^\.]*)\.?(?P<n5>[^\.]*)\.?(?P<n6>[^\.]*)\.?(?P<n7>[^\.]*)$',
+            'match': '^stats\.timers\.(?P<n1>[^\.]+)\.?(?P<n2>[^\.]*)\.?(?P<n3>[^\.]*)\.?(?P<n4>[^\.]*)\.?(?P<n5>[^\.]*)\.?(?P<n6>[^\.]*)\.?(?P<n7>[^\.]*)$',
             'target_type': 'gauge',
             'configure': [
                 lambda self, target: self.add_tag(target, 'what', 'unknown'),
@@ -25,7 +25,7 @@ class CatchallStatsdPlugin(Plugin):
             ]
         },
         {
-            'match': '^stats\.?(?P<n1>[^\.]*)\.?(?P<n2>[^\.]*)\.?(?P<n3>[^\.]*)\.?(?P<n4>[^\.]*)\.?(?P<n5>[^\.]*)\.?(?P<n6>[^\.]*)\.?(?P<n7>[^\.]*)$',
+            'match': '^stats\.(?P<n1>[^\.]+)\.?(?P<n2>[^\.]*)\.?(?P<n3>[^\.]*)\.?(?P<n4>[^\.]*)\.?(?P<n5>[^\.]*)\.?(?P<n6>[^\.]*)\.?(?P<n7>[^\.]*)$',
             'no_match': '^stats\.timers\.',
             'target_type': 'rate',
             'configure': [
@@ -34,7 +34,7 @@ class CatchallStatsdPlugin(Plugin):
             ]
         },
         {
-            'match': '^stats_counts\.?(?P<n1>[^\.]*)\.?(?P<n2>[^\.]*)\.?(?P<n3>[^\.]*)\.?(?P<n4>[^\.]*)\.?(?P<n5>[^\.]*)\.?(?P<n6>[^\.]*)\.?(?P<n7>[^\.]*)$',
+            'match': '^stats_counts\.(?P<n1>[^\.]+)\.?(?P<n2>[^\.]*)\.?(?P<n3>[^\.]*)\.?(?P<n4>[^\.]*)\.?(?P<n5>[^\.]*)\.?(?P<n6>[^\.]*)\.?(?P<n7>[^\.]*)$',
             'target_type': 'count',
             'configure': [
                 lambda self, target: self.add_tag(target, 'what', 'unknown'),
