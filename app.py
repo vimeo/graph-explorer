@@ -437,7 +437,7 @@ def graphs(query=''):
     }
     out = ''
     graphs = []
-    targets_list = []
+    targets_list = {}
     # the code to handle different statements, and the view
     # templates could be a bit prettier, but for now it'll do.
     if query['statement'] == 'graph':

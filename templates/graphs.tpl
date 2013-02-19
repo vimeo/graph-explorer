@@ -27,8 +27,8 @@ $("#group_by").html(generate_pattern_display({{!list(query['group_by'])}}));
 % for (k,v) in graphs:
 %     include templates/snippet.graph config=config, graph_key=k, graph_data=v, preferences=preferences
 % end
-% for target in targets_list:
-{{target}}</br>
+% for target_id in targets_list.iterkeys():
+<a href="/inspect/{{targets_list[target_id]['graphite_metric']}}">{{target_id}}</a></br>
 % end
 % end
 % else:
