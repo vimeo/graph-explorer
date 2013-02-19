@@ -25,7 +25,7 @@ backend = Backend(config)
 s_metrics = structured_metrics.StructuredMetrics()
 log("loading plugins")
 for e in s_metrics.load_plugins():
-    errors['plugin_' % e.plugin] = (e.msg, e.underlying_error)
+    errors['plugin_%s' % e.plugin] = (e.msg, e.underlying_error)
 
 
 def build_data():
