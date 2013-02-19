@@ -26,6 +26,7 @@ class CatchallStatsdPlugin(Plugin):
         },
         {
             'match': '^stats\.?(?P<n1>[^\.]*)\.?(?P<n2>[^\.]*)\.?(?P<n3>[^\.]*)\.?(?P<n4>[^\.]*)\.?(?P<n5>[^\.]*)\.?(?P<n6>[^\.]*)\.?(?P<n7>[^\.]*)$',
+            'no_match': '^stats\.timers\.',
             'target_type': 'rate',
             'configure': [
                 lambda self, target: self.add_tag(target, 'what', 'unknown'),
