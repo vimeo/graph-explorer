@@ -33,7 +33,7 @@
             if (name == "") {
                 name = "empty";
             }
-            return "<a href='/inspect/" + data['graphite_metric'] +"'>" + name + "</a>";
+            return "<a href='/inspect/^" + data['graphite_metric'] +"$'>" + name + "</a>";
         }
         $.map(graph_data['targets'], function (v,k) {
             v["name"] = JSON.stringify(v, null, 2);

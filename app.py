@@ -233,9 +233,11 @@ def meta():
     return render_page(body, 'meta')
 
 
-@route('/inspect/<metric>')
-def inspect_metric(metric=''):
-    metrics = [metric]
+# accepts comma separated list of regexes,
+# any metric matching one of the regexes will be shown
+@route('/inspect/<regexes>')
+def inspect_metric(regexes=''):
+    metrics = backend.yield_metrics(regexes.split(','))
     targets = s_metrics.list_targets(metrics)
     args = {'errors': errors,
             'plugins': s_metrics.plugins,

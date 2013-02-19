@@ -7,6 +7,7 @@ except ImportError:
     except ImportError:
         raise ImportError("GE requires python2, 2.6 or higher, or 2.5 with simplejson.")
 import os
+import re
 
 
 class MetricsError(Exception):
@@ -39,6 +40,17 @@ class Backend(object):
             raise MetricsError("Can't load metrics file", e)
         except ValueError, e:
             raise MetricsError("Can't parse metrics file", e)
+
+    # yields metrics that match at least one of the specified patterns
+    def yield_metrics(self, match):
+        match_objects = [re.compile(regex) for regex in match]
+        metrics = self.load_metrics()
+        for metric in metrics:
+            for m_o in match_objects:
+                match = m_o.search(metric)
+                if match is not None:
+                    yield metric
+                    break
 
     def stat_metrics(self):
         try:
