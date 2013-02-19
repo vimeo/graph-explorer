@@ -87,6 +87,14 @@ class Plugin(object):
             for regex in target['match']:
                 # can raise sre_constants.error ! and maybe other regex errors.
                 targets[id]['match_object'].append(re.compile(regex))
+            # similar for 'no_match' if specified
+            if 'no_match' in target:
+                if isinstance(target['no_match'], basestring):
+                    target['no_match'] = [target['no_match']]
+                targets[id]['no_match_object'] = []
+                for regex in target['no_match']:
+                    targets[id]['no_match_object'].append(re.compile(regex))
+
         return targets
 
     def __init__(self):
@@ -149,7 +157,18 @@ class Plugin(object):
             }
         }
         """
+        # for every target config, see if the metric meets all criteria
         for target in self.targets:
+            # metric must not match any of the no_match objects
+            yield_metric = True
+            for no_match_object in target.get('no_match_object', []):
+                no_match = no_match_object.search(metric)
+                if no_match is not None:
+                    yield_metric = False
+                    break
+            if not yield_metric:
+                continue
+            # any match object that creates a match is a winner, yield it
             for match_object in target['match_object']:
                 match = match_object.search(metric)
                 if match is not None:
