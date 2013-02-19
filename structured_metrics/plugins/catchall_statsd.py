@@ -17,10 +17,25 @@ class CatchallStatsdPlugin(Plugin):
             ]
         },
         {
-            'match': '^stats\.timers\.(?P<n1>[^\.]+)\.?(?P<n2>[^\.]*)\.?(?P<n3>[^\.]*)\.?(?P<n4>[^\.]*)\.?(?P<n5>[^\.]*)\.?(?P<n6>[^\.]*)\.?(?P<n7>[^\.]*)$',
+            'match': '^stats\.timers\.(?P<n1>[^\.]+)\.?(?P<n2>[^\.]*)\.?(?P<n3>[^\.]*)\.?(?P<n4>[^\.]*)\.?(?P<n5>[^\.]*)\.?(?P<n6>[^\.]*)\.?(?P<n7>[^\.]*)\.(?P<type>[^\.]+)$',
+            'no_match': '\.count$',
             'target_type': 'gauge',
             'configure': [
-                lambda self, target: self.add_tag(target, 'what', 'unknown'),
+                lambda self, target: self.add_tag(target, 'what', 'ms'),
+                lambda self, target: self.add_tag(target, 'source', 'statsd')
+            ]
+        },
+        {
+            # TODO: for some reason the 'count' at the end makes this regex quite slow
+            # you can see this in StructuredMetrics.list_targets if you print
+            # something for every metric. timers will be very slowly. if you
+            # make it (?P<type>[^\.]+) it becomes fast again, but we need to
+            # match on only the ones ending on count :(
+            'match': '^stats\.timers\.(?P<n1>[^\.]+)\.?(?P<n2>[^\.]*)\.?(?P<n3>[^\.]*)\.?(?P<n4>[^\.]*)\.?(?P<n5>[^\.]*)\.?(?P<n6>[^\.]*)\.?(?P<n7>[^\.]*)\.count$',
+            'target_type': 'count',
+            'configure': [
+                lambda self, target: self.add_tag(target, 'what', 'packets'),
+                lambda self, target: self.add_tag(target, 'type', 'timer'),
                 lambda self, target: self.add_tag(target, 'source', 'statsd')
             ]
         },
