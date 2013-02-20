@@ -94,13 +94,15 @@ class Plugin(object):
                 targets[id]['no_match_object'] = []
                 for regex in target['no_match']:
                     targets[id]['no_match_object'].append(re.compile(regex))
-
+            # track how many times this one has been yielded, for limit setting
+            targets[id]['yielded'] = 0
         return targets
 
     def __init__(self):
         self.targets = self.get_targets()
         for (id, config) in self.graphs.items():
             self.graphs[id]['match_object'] = re.compile(config['match'])
+            self.graphs[id]['yielded'] = 0
 
     def get_target_id(self, target):
         target_key = ['targets']
@@ -158,7 +160,9 @@ class Plugin(object):
         }
         """
         # for every target config, see if the metric meets all criteria
-        for target in self.targets:
+        for (id, target) in enumerate(self.targets):
+            if 'limit' in target and target['limit'] == target['yielded']:
+                continue
             # metric must not match any of the no_match objects
             yield_metric = True
             for no_match_object in target.get('no_match_object', []):
@@ -176,6 +180,7 @@ class Plugin(object):
                     target = self.__sanitize_target(target)
                     target = self.__configure_target(target)
                     self.targets_found += 1
+                    self.targets[id]['yielded'] += 1
                     yield (self.get_target_id(target), target)
                     continue
 
@@ -190,6 +195,8 @@ class Plugin(object):
         default_graph = {'tags': {'plugin': self.classname_to_tag()}}
         for metric in metrics:
             for (id, config) in self.graphs.items():
+                if 'limit' in config and self.graphs[id]['yielded'] == config['limit']:
+                    continue
                 match = config['match_object'].search(metric)
                 if match is not None:
                     graph = default_graph.copy()
@@ -200,6 +207,7 @@ class Plugin(object):
                         # latter if needed.
                         if isinstance(target, basestring):
                             graph['targets'][i] = {'target': target, 'name': target}
+                    self.graphs[id]['yielded'] += 1
                     graphs[id] = graph
         return graphs
 

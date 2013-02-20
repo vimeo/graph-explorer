@@ -40,6 +40,19 @@ class StatsdPlugin(Plugin):
                     'configure': lambda self, target: {'target': 'diffSeries(identity("a"),keepLastValue(%s))' % target['target']}
                 }
             ]
+        },
+        {
+            'match': '^stats\.timers',
+            'limit': 1,
+            'target_type': 'count',
+            'configure': [
+                # why the interesting ingfix order, you ask? because that's the order
+                # in which graphite returns them, so timeserieswidget must be
+                # able to recognize it.
+                lambda self, target: {'target': 'sumSeries(%s)' % ','.join(['stats.timers.%s.count' % infix for infix in ['*', '*.*.*.*.*', '*.*.*.*', '*.*.*', '*.*']])},
+                lambda self, target: self.add_tag(target, 'what', 'packets'),
+                lambda self, target: self.add_tag(target, 'type', 'received_timer'),
+            ]
         }
     ]
     # example graph definition. (can be seen by querying for eg.
@@ -47,10 +60,15 @@ class StatsdPlugin(Plugin):
     # further..
     graphs = {
         'statsd_graph': {
-            'match': '^stats.statsd.packets_received$',
+            'match': '^stats\.statsd',
+            'limit': 1,
             'graph': {
                 'targets': [
                     'stats.statsd.packets_received',
+                    {
+                        'name': 'timer packets received per flushinterval',
+                        'target': 'sumSeries(%s)' % ','.join(['stats.timers.%s.count' % infix for infix in ['*', '*.*.*.*.*', '*.*.*.*', '*.*.*', '*.*']])
+                    },
                     'stats.statsd.bad_lines_seen',
                     'stats.statsd.graphiteStats.calculationtime',
                     'derivative(stats.statsd.graphiteStats.last_flush)',
@@ -62,6 +80,8 @@ class StatsdPlugin(Plugin):
     }
 
     def sanitize(self, target):
+        if 'wtt' not in target['tags']:
+            return
         if target['tags']['wtt'] == 'packets_received':
             target['tags']['what'] = 'packets'
             target['tags']['type'] = 'received'

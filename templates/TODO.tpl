@@ -20,8 +20,5 @@
     <li>allow updating metrics.json file from a dropdown menu when you hoover over 'last metrucs update'</li>
     <li>ajax refresh for 'last metrics update'</li>
     <li>plugin for http://obfuscurity.com/2012/06/Watching-the-Carbon-Feed</li>
-    <li>allow plugins to yield targets without corresponding to particular metrics. i.e. for statsd this is useful:
-    sum(stats.timers.*.count,stats.timers.*.*.count,stats.timers.*.*.*.count,stats.timers.*.*.*.*.count,stats.timers.*.*.*.*.*.count)
-    </li>
     <li>maybe... under query, suggest tags, and even patterns (by going over metrics, stripping out all tags and listing what remains, uniqued)</li>
 </ul>
