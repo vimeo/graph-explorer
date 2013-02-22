@@ -10,5 +10,9 @@ graph_options = [
         [
             {'plugin': 'cpu'},
             {'state': 'stacked'}
+        ],
+        [
+            {'what': 'freq', 'type': 'relative'},
+            {'state': 'stacked'}
         ]
 ]

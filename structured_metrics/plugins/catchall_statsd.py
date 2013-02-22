@@ -31,11 +31,24 @@ class CatchallStatsdPlugin(Plugin):
             'match': '^stats\.timers\.(?P<n1>[^\.]+)\.?(?P<n2>[^\.]*)\.?(?P<n3>[^\.]*)\.?(?P<n4>[^\.]*)\.?(?P<n5>[^\.]*)\.?(?P<n6>[^\.]*)\.?(?P<n7>[^\.]*)\.(?P<upper_limit>[^\.]+)$',
             'no_match': '\.count$',
             'target_type': 'gauge',
-            'configure': [
-                lambda self, target: self.add_tag(target, 'what', 'freq'),
-                lambda self, target: self.add_tag(target, 'type', 'absolute'),
-                lambda self, target: self.add_tag(target, 'source', 'statsd')
+            'targets': [
+                {
+                    'configure': [
+                        lambda self, target: self.add_tag(target, 'what', 'freq'),
+                        lambda self, target: self.add_tag(target, 'type', 'absolute'),
+                        lambda self, target: self.add_tag(target, 'source', 'statsd')
+                    ]
+                },
+                {
+                    'configure': [
+                        lambda self, target: self.add_tag(target, 'what', 'freq'),
+                        lambda self, target: self.add_tag(target, 'type', 'relative'),
+                        lambda self, target: self.add_tag(target, 'source', 'statsd'),
+                        lambda self, target: {'target': 'divideSeries(%s,%s)' % (target['target'],target['target'].replace(target['tags']['upper_limit'],'count'))}
+                    ]
+                }
             ]
+
         },
         {
             # TODO: for some reason the 'count' at the end makes this regex quite slow
