@@ -18,10 +18,22 @@ class CatchallStatsdPlugin(Plugin):
         },
         {
             'match': '^stats\.timers\.(?P<n1>[^\.]+)\.?(?P<n2>[^\.]*)\.?(?P<n3>[^\.]*)\.?(?P<n4>[^\.]*)\.?(?P<n5>[^\.]*)\.?(?P<n6>[^\.]*)\.?(?P<n7>[^\.]*)\.(?P<type>[^\.]+)$',
-            'no_match': '\.count$',
+            'no_match': ['\.count$', '\.bin_[^\.]+$'],
             'target_type': 'gauge',
             'configure': [
                 lambda self, target: self.add_tag(target, 'what', 'ms'),
+                lambda self, target: self.add_tag(target, 'source', 'statsd')
+            ]
+        },
+        {
+            # we could of course do \.bin_(?P<upper_limit>[^\.]+)$ at the end
+            # (and no no_match), but i think that makes the regex slower
+            'match': '^stats\.timers\.(?P<n1>[^\.]+)\.?(?P<n2>[^\.]*)\.?(?P<n3>[^\.]*)\.?(?P<n4>[^\.]*)\.?(?P<n5>[^\.]*)\.?(?P<n6>[^\.]*)\.?(?P<n7>[^\.]*)\.(?P<upper_limit>[^\.]+)$',
+            'no_match': '\.count$',
+            'target_type': 'gauge',
+            'configure': [
+                lambda self, target: self.add_tag(target, 'what', 'freq'),
+                lambda self, target: self.add_tag(target, 'type', 'absolute'),
                 lambda self, target: self.add_tag(target, 'source', 'statsd')
             ]
         },
