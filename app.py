@@ -271,7 +271,7 @@ def view_debug(query=''):
         body = template('templates/snippet.errors', errors=errors)
         return render_page(body, 'debug')
     if not data_ready():
-        return "server is (presumably) still building needed datastructures. can't continue"
+        return "server is still building needed datastructures. can't continue"
     if query:
         query = parse_query(query)
         targets_matching = match(targets_all, query)
@@ -299,7 +299,7 @@ def view_debug(query=''):
 def debug_metrics():
     response.content_type = 'text/plain'
     if not data_ready():
-        return "server is (presumably) still building needed datastructures. can't continue"
+        return "server is still building needed datastructures. can't continue"
     if 'metrics_file' in errors:
         response.status = 500
         return errors
@@ -440,7 +440,7 @@ def graphs(query=''):
     if not query:
         return template('templates/graphs', query=query, errors=errors)
     if not data_ready():
-        return "server is (presumably) still building needed datastructures. can't continue"
+        return "server is still building needed datastructures. can't continue"
     query = parse_query(query)
     tags = set()
     targets_matching = match(targets_all, query)
