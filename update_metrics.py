@@ -7,6 +7,8 @@ import logging
 import config
 from backend import Backend, MetricsError
 
+os.chdir(os.path.dirname(__file__))
+
 logger = logging.getLogger('update_metrics')
 logger.setLevel(logging.DEBUG)
 chandler = logging.StreamHandler()
