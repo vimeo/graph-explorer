@@ -8,6 +8,7 @@ except ImportError:
         raise ImportError("GE requires python2, 2.6 or higher, or 2.5 with simplejson.")
 import os
 import re
+import logging
 
 
 class MetricsError(Exception):
@@ -59,11 +60,11 @@ class Backend(object):
             raise MetricsError("Can't load metrics file", e)
 
     def update_data(self, s_metrics):
-        print "loading metrics"
+        logging.debug("loading metrics")
         metrics = self.load_metrics()
-        print "listing targets"
+        logging.debug("listing targets")
         targets_all = s_metrics.list_targets(metrics)
-        print "listing graphs"
+        logging.debug("listing graphs")
         graphs_all = s_metrics.list_graphs(metrics)
 
         return (metrics, targets_all, graphs_all)

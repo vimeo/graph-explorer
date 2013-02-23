@@ -8,6 +8,7 @@ import preferences
 import structured_metrics
 from backend import Backend, MetricsError
 import thread
+import logging
 
 # contains all errors as key:(title,msg) items.
 # will be used throughout the runtime to track all encountered errors
@@ -17,31 +18,38 @@ errors = {}
 metrics = targets_all = graphs_all = None
 last_update = None
 
+logger = logging.getLogger('app')
+logger.setLevel(logging.DEBUG)
+chandler = logging.StreamHandler()
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+chandler.setFormatter(formatter)
+logger.addHandler(chandler)
+if config.log_file:
+    fhandler = logging.FileHandler(config.log_file)
+    fhandler.setFormatter(formatter)
+    logger.addHandler(fhandler)
 
-def log(msg):
-    print "%s: %s" % (time.ctime(time.time()), msg)
-
+logger.debug('app starting')
 backend = Backend(config)
 s_metrics = structured_metrics.StructuredMetrics()
-log("loading plugins")
+logger.debug("loading plugins")
 for e in s_metrics.load_plugins():
     errors['plugin_%s' % e.plugin] = (e.msg, e.underlying_error)
-
 
 def build_data():
     global metrics
     global targets_all
     global graphs_all
     global last_update
-    log('build_data() start')
+    logger.debug('build_data() start')
     try:
         (metrics, targets_all, graphs_all) = backend.update_data(s_metrics)
         last_update = time.time()
-        log('build_data() end ok')
+        logger.debug('build_data() end ok')
     except MetricsError, e:
-        sys.stderr.write("[%s] %s\n" % (e.msg, e.underlying_error))
         errors['metrics_file'] = (e.msg, e.underlying_error)
-        log('build_data() failed')
+        logger.error("[%s] %s", e.msg, e.underlying_error)
+        logger.error('build_data() failed')
 
 thread.start_new_thread(build_data, ())
 
@@ -55,18 +63,25 @@ def refresh_data():
     global metrics
     global targets_all
     global graphs_all
+    logger.debug('refresh_data() start')
     try:
         stat_metrics = backend.stat_metrics()
         if last_update is not None and stat_metrics.st_mtime < last_update:
+            nice_metrics_mtime = time.ctime(stat_metrics.st_mtime)
+            nice_last_update = time.ctime(last_update)
+            logger.debug('refresh_data() not needed. metrics.json mtime %s, last_update %s', nice_metrics_mtime, nice_last_update)
             return ("metrics.json is last updated %s, "
                     "rebuilding data structures wouldn't make sense cause they were "
-                    "last rebuilt %s" % (time.ctime(stat_metrics.st_mtime), time.ctime(last_update)))
+                    "last rebuilt %s" % (nice_metrics_mtime, nice_last_update))
         (metrics, targets_all, graphs_all) = backend.update_data(s_metrics)
         if 'metrics_file' in errors:
             del errors['metrics_file']
+        logger.debug('refresh_data() end ok')
         return 'ok'
     except MetricsError, e:
         errors['metrics_file'] = (e.msg, e.underlying_error)
+        logger.error("[%s] %s", e.msg, e.underlying_error)
+        logger.error('refresh_data() failed')
         response.status = 500
         return "errors: %s" % ' '.join('[%s] %s' % (k, v) for (k, v) in errors.items())
 

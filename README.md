@@ -201,7 +201,7 @@ git submodule update --init
 $EDITOR config.py
 # if you want annotated events using [anthracite](https://github.com/Dieterbe/anthracite) set `anthracite_url`
 # run update_metrics.py (protip: use cron), this downloads metrics.json and builds enhanced metrics.
-*/20 * * * * /path/to/graph-explorer/update_metrics.py >/dev/null
+*/20 * * * * /path/to/graph-explorer/update_metrics.py &>/dev/null
 ```
 
 ## Configuration of graphite server
