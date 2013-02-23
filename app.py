@@ -55,7 +55,9 @@ thread.start_new_thread(build_data, ())
 
 
 def data_ready():
-    return bool(metrics and targets_all and graphs_all)
+    ret = bool(metrics is not None)
+    logger.debug("data_ready() called, returning %s", str(ret))
+    return ret
 
 
 @route("/refresh_data")
