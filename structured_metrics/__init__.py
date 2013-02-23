@@ -59,6 +59,9 @@ class StructuredMetrics(object):
         return errors
 
     def list_targets(self, metrics):
+        for plugin in self.plugins:
+            (plugin_name, plugin_object) = plugin
+            plugin_object.reset_target_yield_counters()
         targets = {}
         for metric in metrics:
             metric_matched = False
@@ -75,6 +78,7 @@ class StructuredMetrics(object):
         graphs = {}
         for plugin in self.plugins:
             (plugin_name, plugin_object) = plugin
+            plugin_object.reset_graph_yield_counters()
             graphs.update(plugin_object.list_graphs(metrics))
         return graphs
 

@@ -94,14 +94,20 @@ class Plugin(object):
                 targets[id]['no_match_object'] = []
                 for regex in target['no_match']:
                     targets[id]['no_match_object'].append(re.compile(regex))
-            # track how many times this one has been yielded, for limit setting
-            targets[id]['yielded'] = 0
         return targets
 
     def __init__(self):
         self.targets = self.get_targets()
         for (id, config) in self.graphs.items():
             self.graphs[id]['match_object'] = re.compile(config['match'])
+
+    # track how many times targets/graphs have been yielded, for limit setting
+    def reset_target_yield_counters(self):
+        for (id, target) in enumerate(self.targets):
+            self.targets[id]['yielded'] = 0
+
+    def reset_graph_yield_counters(self):
+        for id in self.graphs.keys():
             self.graphs[id]['yielded'] = 0
 
     def get_target_id(self, target):
