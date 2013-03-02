@@ -1,7 +1,7 @@
 function display_tag(tag_name, tag_value) {
     // at some point it'll probably make sense to make the background color the inverse of the foreground color
     // cause there'll be so many foreground colors that are not always visible on any particular background.
-    return "<span class='label' style='color:#" + colormap[tag_name] +"; background-color:#333;'>" + tag_value + "</span>";
+    return "<span class='label' title='" + tag_name + "' style='color:#" + colormap[tag_name] +"; background-color:#333;'>" + tag_value + "</span>";
 }
 function display_word(word) {
     // word can be anything. a misc. string, a tag, a <tag>:, !<tag>=, etc
