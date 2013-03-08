@@ -1,8 +1,9 @@
 # Structured metrics
 
-the graphite metric space is a flat tree, which is hard/troublesome to organize, and restrictive when searching/querying/grouping (for) metrics  
+the graphite metric space is a simple tree, which is hard/troublesome to organize, and restrictive when searching/querying/grouping (for) metrics.
+Many metrics also have unclear names (what exactly does this measure? per which time interval?)
 
-`structured_metrics` is a lightweight python library that uses plugins to read in a list of metric names and convert it into a multi-dimensional tag space.
+`structured_metrics` is a lightweight python library that uses plugins to read in a list of metric names and convert it into a multi-dimensional tag space of clear, sanitized targets.
 
 per metric, one or more "enhanced targets" are yielded by:
 
@@ -15,7 +16,7 @@ per metric, one or more "enhanced targets" are yielded by:
 and a `rate` with applies the `derivative` function, averaged out versions, views across different metrics, etc.)
 * you can also apply further configuration, for example setting default colors (i.e. errors in red, cpu idle in green, ...)
 
-This way you can make your metrics structured, clearly defined, avoid the organisation problem, have much more freedom for searching/querying, and show arbitrary metadata in the graphing phase.
+This way you can make your metrics clearly defined, avoid the organisation problem, have much more freedom for searching/querying, and show arbitrary metadata in the graphing phase.
 
 `structured_metrics` comes with a bunch of plugins (for the diamond monitoring agent, statsd, openstack swift),
 including fallback plugins that just assign node tags like n1, n2, n3, etc so you always have all your metrics available from the start.
