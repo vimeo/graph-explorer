@@ -35,15 +35,13 @@ class CatchallStatsdPlugin(Plugin):
             'targets': [
                 {
                     'configure': [
-                        lambda self, target: self.add_tag(target, 'what', 'freq'),
-                        lambda self, target: self.add_tag(target, 'type', 'absolute'),
+                        lambda self, target: self.add_tag(target, 'what', 'freq_abs'),
                         lambda self, target: self.add_tag(target, 'source', 'statsd')
                     ]
                 },
                 {
                     'configure': [
-                        lambda self, target: self.add_tag(target, 'what', 'freq'),
-                        lambda self, target: self.add_tag(target, 'type', 'relative'),
+                        lambda self, target: self.add_tag(target, 'what', 'freq_rel'),
                         lambda self, target: self.add_tag(target, 'source', 'statsd'),
                         lambda self, target: {'target': 'divideSeries(%s,%s)' % (target['target'],target['target'].replace(target['tags']['upper_limit'],'count'))}
                     ]

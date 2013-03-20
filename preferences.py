@@ -12,7 +12,7 @@ graph_options = [
             {'state': 'stacked'}
         ],
         [
-            {'what': 'freq', 'type': 'relative'},
+            {'what': 'freq_rel'},
             {'state': 'stacked'}
         ]
 ]
