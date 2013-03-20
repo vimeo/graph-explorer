@@ -1,7 +1,6 @@
 #!/usr/bin/env python2
 import re
 import time
-import sys
 from bottle import route, template, request, static_file, redirect, response
 import config
 import preferences
@@ -35,6 +34,7 @@ s_metrics = structured_metrics.StructuredMetrics()
 logger.debug("loading plugins")
 for e in s_metrics.load_plugins():
     errors['plugin_%s' % e.plugin] = (e.msg, e.underlying_error)
+
 
 def build_data():
     global metrics
@@ -450,10 +450,10 @@ def graphs(query=''):
     graphs_matching = match(graphs_all, query, True)
     graphs_matching = build_graphs(graphs_matching, query)
     stats = {'len_targets_all': len(targets_all),
-            'len_graphs_all': len(graphs_all),
-            'len_targets_matching': len(targets_matching),
-            'len_graphs_matching': len(graphs_matching),
-    }
+             'len_graphs_all': len(graphs_all),
+             'len_targets_matching': len(targets_matching),
+             'len_graphs_matching': len(graphs_matching),
+             }
     out = ''
     graphs = []
     targets_list = {}
