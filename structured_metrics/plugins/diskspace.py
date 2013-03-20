@@ -12,13 +12,8 @@ class DiskspacePlugin(Plugin):
                 },
                 {
                     'target_type': 'rate',
-                    # try to show this in a useful way
-                    # 'derivative(movingAverage(%s,50))' % match.string  # -> still shows FS clenaups as huge downspikes. log() graphs aren't very clear
-                    # 'removeBelowValue(derivative(%s),-10000000)' % match.string  # graphite internal server error?
-                    # 'derivative(movingAverage(%s,50.0))' % match.string  # can still show spikes though.. wish i could do movingAverage(%s,50) or so but graphite barfs on that.
-                    # 'movingAverage(derivative(%s),500)' % match.string  # graphite changes this to 500.0 so tswidget doesn't recognize it.. and with 500.0 graphite barfs
                     'configure': [
-                        lambda self, target: {'target': 'derivative(%s)' % target['target']},
+                        lambda self, target: {'target': 'movingAverage(derivative(%s),60)' % target['target']},
                         lambda self, target: self.configure_color(target)
                     ]
                 }

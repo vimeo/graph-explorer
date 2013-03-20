@@ -46,10 +46,7 @@ class StatsdPlugin(Plugin):
             'limit': 1,
             'target_type': 'count',
             'configure': [
-                # why the interesting ingfix order, you ask? because that's the order
-                # in which graphite returns them, so timeserieswidget must be
-                # able to recognize it.
-                lambda self, target: {'target': 'sumSeries(%s)' % ','.join(['stats.timers.%s.count' % infix for infix in ['*', '*.*.*.*.*', '*.*.*.*', '*.*.*', '*.*']])},
+                lambda self, target: {'target': 'sumSeries(%s)' % ','.join(['stats.timers.%s.count' % infix for infix in ['*', '*.*', '*.*.*', '*.*.*.*', '*.*.*.*.*']])},
                 lambda self, target: self.add_tag(target, 'what', 'packets'),
                 lambda self, target: self.add_tag(target, 'type', 'received_timer'),
             ]
