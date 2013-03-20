@@ -75,6 +75,7 @@ def refresh_data():
             return ("metrics.json is last updated %s, "
                     "rebuilding data structures wouldn't make sense cause they were "
                     "last rebuilt %s" % (nice_metrics_mtime, nice_last_update))
+        # TODO if already running, just return "already running" or something
         (metrics, targets_all, graphs_all) = backend.update_data(s_metrics)
         if 'metrics_file' in errors:
             del errors['metrics_file']
