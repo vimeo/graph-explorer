@@ -50,7 +50,7 @@ Some exceptions for things that are accepted to be upper case are http methods (
 
 tag definitions:
 "what": the intrinsic thing that we're graphing (not *how* we graph it). i.e. errors, requests, cpu_state (used in vtitle, grouping into graphs)
-"type": extra info. i.e. if what is errors, this can be 'in'. if what is requests, this can be '404'
+"type": extra info. i.e. if what is errors, this can be 'in'. if what is requests, this can be '404'. sometimes you may want to put multiple words here, and that's ok (but consider creating new tags for those)
 "wt": often a metric path will contain one key that has info on both the "what" and "type", "wt" is commonly used to catch it, so you can sanitize it (see below)
 
 all metrics must have a 'target_type' and a 'what'. because otherwise they are meaningless, also because they are used in the default group_by (TODO: show warnings if not)
