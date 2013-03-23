@@ -186,12 +186,10 @@ limit returned targets (to avoid killing you browser and/or graphite server). 0 
 
 ## Installation
 
+Just get a code checkout and initialize all git submodules, like so:
+
 ```
-git clone https://github.com/Dieterbe/graph-explorer.git
-cd graph-explorer
-git submodule update --init
-cd timeserieswidget
-git submodule update --init
+git clone --recursive https://github.com/Dieterbe/graph-explorer.git
 ```
 
 ## Configuration of graph-explorer
