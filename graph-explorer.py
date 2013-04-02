@@ -4,7 +4,9 @@ import os
 from bottle import run, debug, PasteServer
 import config
 
-os.chdir(os.path.dirname(__file__))
+app_dir = os.path.dirname(__file__)
+if app_dir:
+    os.chdir(app_dir)
 
 debug(True)
 run('app', reloader=True, host=config.listen_host, port=config.listen_port, server=PasteServer)
