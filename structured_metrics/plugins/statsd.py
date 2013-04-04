@@ -4,25 +4,35 @@ from . import Plugin
 class StatsdPlugin(Plugin):
     '''
     'use this in combination with: derivative(statsd.*.udp_packet_receive_errors)',
+    assumes that if you use prefixStats, it's of the format statsd.<statsd_server> , adjust as needed.
     '''
     targets = [
         {
-            'match': 'statsd\.(?P<wtt>numStats)',
-            'target_type': 'count'
+            'match': 'statsd\.?(?P<server>[^\.]*)\.(?P<wtt>numStats)',
+            'target_type': 'gauge'
         },
         {
             'match': [
-                #'^stats\.(?P<server>timers)\.(?P<timer>.*)\.count$',
-                '^stats\.(?P<server>statsd)\.(?P<wtt>[^\.]+)$',  # packets_received, bad_lines_seen
+                '^stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>processing_time)$',
             ],
-            'target_type': 'count'
+            'target_type': 'gauge'
         },
         {
-            'match': '^stats\.(?P<server>statsd)\.(?P<wtt>graphiteStats\.calculationtime)$',
+            'match': [
+                '^stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>[^\.]+)$',  # packets_received, bad_lines_seen
+            ],
+            'target_type': 'counter'
+        },
+        {
+            'match': '^stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>graphiteStats\.calculationtime)$',
             'target_type': 'gauge',
         },
         {
-            'match': 'stats\.statsd\.(?P<wtt>graphiteStats\.last_[^\.]+)$',  # last_flush, last_exception. number of seconds since.
+            'match': 'stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>graphiteStats\.flush_[^\.]+)$',  # flush_length, flush_time
+            'target_type': 'gauge'
+        },
+        {
+            'match': 'stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>graphiteStats\.last_[^\.]+)$',  # last_flush, last_exception. number of seconds since.
             'targets': [
                 {
                     'target_type': 'counter'
@@ -56,7 +66,7 @@ class StatsdPlugin(Plugin):
     # 'statsd_graph').  not very useful right now. want to explore this
     # further..
     graphs = {
-        'statsd_graph': {
+        'statsd_graph_example_nothing_new_here': {
             'match': '^stats\.statsd',
             'limit': 1,
             'graph': {
@@ -87,13 +97,22 @@ class StatsdPlugin(Plugin):
             target['tags']['type'] = 'received_bad'
         if target['tags']['wtt'] == 'numStats':
             target['tags']['what'] = 'stats'
-            target['tags']['type'] = 'sent'
+            target['tags']['type'] = 'sent_to_graphite'
         if target['tags']['wtt'] == 'graphiteStats.calculationtime':
-            target['tags']['what'] = 'seconds'
+            target['tags']['what'] = 'ms'
             target['tags']['type'] = 'calculationtime'
         if target['tags']['wtt'] == 'graphiteStats.last_flush':
             target['tags']['what'] = 'timestamp'
             target['tags']['type'] = 'last_flush'
+        if target['tags']['wtt'] == 'graphiteStats.flush_length':
+            target['tags']['what'] = 'bytes'
+            target['tags']['type'] = 'flush_to_graphite'
+        if target['tags']['wtt'] == 'graphiteStats.flush_time':
+            target['tags']['what'] = 'ms'
+            target['tags']['type'] = 'flush_to_graphite'
+        if target['tags']['wtt'] == 'processing_time':
+            target['tags']['what'] = 'ms'
+            target['tags']['type'] = 'processing'
         if target['tags']['wtt'] == 'graphiteStats.last_exception':
             target['tags']['what'] = 'timestamp'
             target['tags']['type'] = 'last_exception'
