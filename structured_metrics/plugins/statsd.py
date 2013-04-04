@@ -32,14 +32,10 @@ class StatsdPlugin(Plugin):
             'target_type': 'gauge'
         },
         {
-            'match': 'stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>graphiteStats\.last_[^\.]+)$',  # last_flush, last_exception. number of seconds since.
+            'match': 'stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>graphiteStats\.last_[^\.]+)$',  # last_flush, last_exception. unix timestamp
             'targets': [
                 {
                     'target_type': 'counter'
-                },
-                {
-                    'target_type': 'rate',
-                    'configure': lambda self, target: {'target': 'derivative(%s)' % target['target']}
                 },
                 # this requires:
                 # https://github.com/graphite-project/graphite-web/pull/133
@@ -101,9 +97,20 @@ class StatsdPlugin(Plugin):
         if target['tags']['wtt'] == 'graphiteStats.calculationtime':
             target['tags']['what'] = 'ms'
             target['tags']['type'] = 'calculationtime'
+        if target['tags']['wtt'] == 'graphiteStats.last_exception':
+            if target['tags']['target_type'] == 'counter':
+                target['tags']['what'] = 'timestamp'
+                target['tags']['type'] = 'last_exception'
+            else:  # gauge
+                target['tags']['what'] = 'seconds'
+                target['tags']['type'] = 'last_exception age'
         if target['tags']['wtt'] == 'graphiteStats.last_flush':
-            target['tags']['what'] = 'timestamp'
-            target['tags']['type'] = 'last_flush'
+            if target['tags']['target_type'] == 'counter':
+                target['tags']['what'] = 'timestamp'
+                target['tags']['type'] = 'last_flush'
+            else:  # gauge
+                target['tags']['what'] = 'seconds'
+                target['tags']['type'] = 'last_flush age'
         if target['tags']['wtt'] == 'graphiteStats.flush_length':
             target['tags']['what'] = 'bytes'
             target['tags']['type'] = 'flush_to_graphite'
@@ -113,8 +120,5 @@ class StatsdPlugin(Plugin):
         if target['tags']['wtt'] == 'processing_time':
             target['tags']['what'] = 'ms'
             target['tags']['type'] = 'processing'
-        if target['tags']['wtt'] == 'graphiteStats.last_exception':
-            target['tags']['what'] = 'timestamp'
-            target['tags']['type'] = 'last_exception'
         del target['tags']['wtt']
 # vim: ts=4 et sw=4:
