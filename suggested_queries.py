@@ -65,7 +65,7 @@ queries = [
         'tags': ['load', '*']
     },
     {
-        'query': 'bond1 (rx|tx) bit group by type server:dfs',
+        'query': 'bond. (rx|tx) bit group by type server:dfs',
         'desc': 'storage network traffic',
         'tags': ['swift', 'dfs', 'dfsproxy']
     },
