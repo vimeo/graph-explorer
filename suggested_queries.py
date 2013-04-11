@@ -74,17 +74,6 @@ queries = [
         'desc': 'traffic in bit on all interfaces',
         'tags': ['network', '*']
     },
-    {
-        'query': 'plugin=statsd',
-        'desc': 'statsd health part 1: statsd.js',
-        'tags': ['statsd']
-    },
-    {
-        'query': 'plugin=udp server:statsd group by type',
-        'desc': 'statsd health part 2: udp',
-        'tags': ['statsd', 'udp']
-    }
-
 ]
 suggested_queries = {
     'notes': 'swift means the app.<br/>dfs means the object servers, dfsproxy the proxy servers',

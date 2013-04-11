@@ -237,6 +237,23 @@ def index(query=''):
     return render_page(body)
 
 
+@route('/dashboards')
+@route('/dashboards/<dashboard_name>')
+def slash_dashboards(dashboard_name=None):
+    if dashboard_name:
+        try:
+            d = __import__('dashboards.%s' % dashboard_name, globals(), locals(), ['queries'])
+        except Exception, e:
+            errors['dashboard_%s' % dashboard_name ] = ("Failed to load dashboard '%s'" % dashboard_name, e)
+            body = template('templates/body.dashboards', errors=errors)
+            return render_page(body, 'dashboards')
+        dashboard = template('templates/body.dashboard', errors=errors, dashboard=dashboard_name, queries=d.queries)
+        return render_page(dashboard)
+    else:
+        dashboard = template('templates/body.dashboards', errors=errors)
+        return render_page(dashboard)
+
+
 def render_page(body, page='index'):
     return str(template('templates/page', body=body, page=page, last_update=last_update))
 
