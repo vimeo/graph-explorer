@@ -221,7 +221,6 @@ For apache2 this works:
 * go to the debug page and see if any of metrics are being recognized.  You'll see tables of all tags found across your targets. and below that all enhanced metrics found.
 * if there's no metrics there, make sure you have a recent metrics.json file and plugins that have correct regular expressions that can match your metric names.  A good starting point is using statsd and the diamond monitoring agent.
 * start with a simple query like the name of a plugin or something you're sure will match something. example 'statsd' or 'plugin=statsd' or 'statsd count' etc.  the graph names and target names give you clues on other words you can use to filter.
-* you can also just easily write your own plugins
 
 
 ## Troubleshooting
@@ -239,6 +238,28 @@ especially, check that the http requests to `graphite/render/?<...>` return actu
 * i get some error wrt graphite/apache cors access restriction
 
 see section 'Configuration of graphite server' above
+
+
+## Writing your own plugins
+
+Definitely read 'Enhanced Metrics' above, and preferrably the entire readme.
+A simple plugin such as diskspace.py is a good starting point.
+Notice:
+
+* targets is a list of rules (and 'subrules' under the 'targets' key which inherit from their parent)
+* the match regex must match a metric for it to yield an enhanced metric, all named groups will become tags
+* target_type must be one of the predefined values (see above)
+* one or more configurations can be applied, or override `default_configure_target` which always gets called
+  in these functions you can return a dict which'll get merged into your target (or just alter the target directly).
+  use this to change tags, the target, etc.
+
+`backend.update_data()` loads your metrics and gets matching targets and graphs by calling `list_targets(metrics)` and `list_graphs(metrics)` on a structured_metrics object.
+* the latter calls `list_graphs` on your plugin objects (this is for the statically defined graphs which you probably don't use).
+* `list_targets` goes over every metric, and for each goes over every plugin (ordered by priority), and
+  * calls `plugin_object.find_targets(metric)`, which goes over all target configs in the plugin and tries each out.
+  * each target config can have multiple match regexes. each can yield a target. (it gets created, sanitized, and the configure functions are run)
+  * each target config for which none of the no_match regexes matches, or the limit is reached, doesn't get yielded.
+  * first plugin that yields one or more targets wins for this metric (no other plugins are tried for that metric). that's why catchall plugins have lowest priority.
 
 
 ## Getting in touch
