@@ -105,7 +105,8 @@ def parse_query(query_str):
             query_str = query_str[:match.start(1)] + query_str[match.end(1):]
         return (query_str, value)
 
-    (query_str, query['statement']) = parse_out_value(query_str, '^', '(graph|list)', 'graph')
+    (query_str, query['statement']) = parse_out_value(query_str, '^', '(graph|list) ', 'graph')
+    query['statement'] = query['statement'].rstrip()
 
     (query_str, query['to']) = parse_out_value(query_str, 'to ', '[^ ]+', 'now')
     (query_str, query['from']) = parse_out_value(query_str, 'from ', '[^ ]+', '-24hours')
