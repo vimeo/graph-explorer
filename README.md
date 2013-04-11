@@ -224,6 +224,19 @@ For apache2 this works:
 * you can also just easily write your own plugins
 
 
+## Troubleshooting
+
+* no graphs show up and I don't know why.
+
+first check in the top section if there are target matching and 'total graphs' is > 0.  
+if not, your query expression might be too restricting.  or maybe it didn't find your metrics from metrics.json (see 'targets matching: x/total')  
+if yes, check for any errors in the javascript console, (in firefox you need firebug, in chrome and such 'tools->javascript console')
+
+* i get some error wrt graphite/apache cors access restriction
+
+see section 'Configuration of graphite server' above
+
+
 ## Getting in touch
 
 * irc: #monitoringlove on freenode (I'm there, Dieterbe)
