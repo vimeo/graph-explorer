@@ -232,6 +232,10 @@ first check in the top section if there are target matching and 'total graphs' i
 if not, your query expression might be too restricting.  or maybe it didn't find your metrics from metrics.json (see 'targets matching: x/total')  
 if yes, check for any errors in the javascript console, (in firefox you need firebug, in chrome and such 'tools->javascript console')
 
+also check all network requests in the network tab, and make sure they return http 200 or 304
+especially, check that the http requests to `graphite/render/?<...>` return actual data.
+(if not, there's something wrong with the request uri/targets.  you may be suffering from [this graphite bug](https://github.com/graphite-project/graphite-web/issues/289))
+
 * i get some error wrt graphite/apache cors access restriction
 
 see section 'Configuration of graphite server' above
