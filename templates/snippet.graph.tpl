@@ -51,6 +51,7 @@
 		    series: {stack: true, lines: { show: true, lineWidth: 0, fill: true }},
 		    xaxis: { mode: "time" },
 		    legend: { container: '#legend_flot_{{graph_id}}', noColumns: 1, labelFormatter: labelFormatter },
+            hover_details: true,
             zoneFileBasePath: '../timeserieswidget/tz',
             tz: "{{preferences.timezone}}",
 		};
