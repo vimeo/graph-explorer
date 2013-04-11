@@ -14,7 +14,7 @@ per metric, one or more "enhanced targets" are yielded by:
 
 * you can yield multiple targets with different settings (for example a `counter` which just points to the graphite target,
 and a `rate` with applies the `derivative` function, averaged out versions, views across different metrics, etc.)
-* you can also apply further configuration, for example setting default colors (i.e. errors in red, cpu idle in green, ...)
+* you can also apply further configuration, for example I add a tag 'angle' with value '10m_average' when i apply `movingAverage(<metric>,10)`
 
 This way you can make your metrics clearly defined, avoid the organisation problem, have much more freedom for searching/querying, and show arbitrary metadata in the graphing phase.
 

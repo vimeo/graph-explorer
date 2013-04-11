@@ -4,6 +4,7 @@
     <li>remove statically configured "suggested queries" (or make it an optional module). instead, track last_use and times_used of each query (after ordering), and show popular queries based on frecency. and/or allow saving queries with manual notes</li>
     <li>define how to generate (multiple) targets for any metric (to render as a count, a rate, etc)</li>
     <li>display tags properly (colored labels) on other pages like debug, inspect</li>
+    <li>no s_m plugins should configure anything re: color. make 'color policies' in config.py. make them dependent on group by tag, so that group by type doesn't list all servers in the same color</li>
     <li>a way to plot sums of matching targets. for example: disk sum(_srv) sum (!_srv) to show 2 plots. or by extension: any graphite function</li>
     <li>allow "or" style matches across groups of patterns,like so: cpu iowait dfs || plugin=udp dfs1. maybe this can be integrated with the above</li>
     <li>i.e. timeouts, disconnects are 'whats' for which it can make sense to graph them together. maybe as 'events'? but how to define this configuration? (see swift_proxy_server)</li>
