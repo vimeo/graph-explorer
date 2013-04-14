@@ -4,25 +4,26 @@ timezone = "America/New_York"
 # match on target properties (before matching) and apply settings accordingly
 # this option doesn't actually work yet
 target_options = [
-        [
-            {'server': 'df.*'},
-            {'env': 'production'}
-        ]
+    [
+        {'server': 'df.*'},  # match
+        {'env': 'production'}  # set option
+    ]
 ]
 
-# match on graph properties (after matching) and apply settings accordingly
+# match on graph properties (after matching) and apply options accordingly.
 # all tags must match, if multiple tags are given in a list, they are OR'ed
 graph_options = [
-        [
-            {'plugin': ['diskspace', 'memory'], 'what': 'bytes'},
-            {'state': 'stacked', 'suffixes': 'binary'}
-        ],
-        [
-            {'plugin': 'cpu'},
-            {'state': 'stacked'}
-        ],
-        [
-            {'what': 'freq_rel'},
-            {'state': 'stacked'}
-        ]
+    [
+        {'plugin': ['diskspace', 'memory'], 'what': 'bytes'},  # match
+        {'state': 'stacked', 'suffixes': 'binary'}  # set option
+    ],
+    [
+        {'plugin': 'cpu'},
+        {'state': 'stacked'}
+    ],
+    [
+        {'what': 'freq_rel'},
+        {'state': 'stacked'}
+    ],
 ]
+
