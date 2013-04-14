@@ -7,7 +7,7 @@ A highly interactive dashboard to satisfy varying ad-hoc information needs acros
 
 you can then use expressive queries which leverage this metadata to filter targets and group them into graphs in arbitrary ways.
 Something like SQL but targets for rows and a list of graph definitions as a result set.
-The graphs themselves support annotated events and are also interactive and can be toggled between stacked/lines mode, more features (like toggling and reordering of targets, realtime zooming/panning) are on the way.
+The graphs themselves support annotated events and are also interactive because it uses [timeserieswidget](https://github.com/Dieterbe/timeserieswidget)
 
 Quick example videos which are dated but give you an idea:
 
