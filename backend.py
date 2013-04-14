@@ -69,4 +69,36 @@ class Backend(object):
 
         return (metrics, targets_all, graphs_all)
 
+
+def get_action_on_rules_match(rules, subject):
+    '''
+    rules being a a list of tuples, and each tuple having 2 elements, like:
+    {'plugin': ['diskspace', 'memory'], 'what': 'bytes'},
+    action
+
+    the dict is a list of conditions that must match (and). if the value is an iterable, those count as OR
+    action can be whatever you want. if the condition match, action is returned.
+    '''
+    for (match_rules, action) in rules:
+        rule_match = True
+        for (tag_k, tag_v) in match_rules.items():
+            if tag_k not in subject:
+                rule_match = False
+                break
+            if isinstance(tag_v, basestring):
+                if subject[tag_k] != tag_v:
+                    rule_match = False
+                    break
+            else:
+                # tag_v is a list -> OR of multiple allowed options
+                tag_match = False
+                for option in tag_v:
+                    if subject[tag_k] == option:
+                        tag_match = True
+                if not tag_match:
+                    rule_match = False
+                    break
+    if rule_match:
+        return action
+
 # vim: ts=4 et sw=4:

@@ -5,7 +5,7 @@ from bottle import route, template, request, static_file, redirect, response
 import config
 import preferences
 import structured_metrics
-from backend import Backend, MetricsError
+from backend import Backend, MetricsError, get_action_on_rules_match
 import thread
 import logging
 
@@ -420,27 +420,9 @@ def build_graphs_from_targets(targets, query={}):
 
         # now that graph config is "rich", merge in settings from preferences
         constants = dict(graphs[graph_key]['constants'].items() + graphs[graph_key]['promoted_constants'].items())
-        for (match_rules, graph_options) in preferences.graph_options:
-            rule_match = True
-            for (tag_k, tag_v) in match_rules.items():
-                if tag_k not in constants:
-                    rule_match = False
-                    break
-                if isinstance(tag_v, basestring):
-                    if constants[tag_k] != tag_v:
-                        rule_match = False
-                        break
-                else:
-                    # tag_v is a list -> OR of multiple allowed options
-                    tag_match = False
-                    for option in tag_v:
-                        if constants[tag_k] == option:
-                            tag_match = True
-                    if not tag_match:
-                        rule_match = False
-                        break
-            if rule_match:
-                graphs[graph_key].update(graph_options)
+        graph_option = get_action_on_rules_match(preferences.graph_options, constants)
+        if graph_option:
+            graphs[graph_key].update(graph_option)
     return (graphs, query)
 
 
