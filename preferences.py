@@ -11,6 +11,8 @@ target_options = [
 ]
 
 # match on graph properties (after matching) and apply options accordingly.
+# if options is a dict, merge it into the graph. if it's a function, the graph
+# gets passed and the return value is used as new graph definition.
 # all tags must match, if multiple tags are given in a list, they are OR'ed
 graph_options = [
     [

@@ -422,7 +422,10 @@ def build_graphs_from_targets(targets, query={}):
         constants = dict(graphs[graph_key]['constants'].items() + graphs[graph_key]['promoted_constants'].items())
         graph_option = get_action_on_rules_match(preferences.graph_options, constants)
         if graph_option:
-            graphs[graph_key].update(graph_option)
+            if isinstance(graph_option, dict):
+                graphs[graph_key].update(graph_option)
+            else:
+                graphs[graph_key] = graph_option(graphs[graph_key])
     return (graphs, query)
 
 
