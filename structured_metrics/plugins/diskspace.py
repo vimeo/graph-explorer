@@ -8,31 +8,14 @@ class DiskspacePlugin(Plugin):
             'targets': [
                 {
                     'target_type': 'gauge',
-                    'configure': lambda self, target: self.configure_color(target)
                 },
                 {
                     'target_type': 'rate',
-                    'configure': [
-                        lambda self, target: {'target': 'movingAverage(derivative(%s),60)' % target['target']},
-                        lambda self, target: self.configure_color(target)
-                    ]
+                    'configure': lambda self, target: {'target': 'movingAverage(derivative(%s),60)' % target['target']},
                 }
             ]
         }
     ]
-
-    def configure_color(self, target):
-        mount = target['tags']['mountpoint']
-        color_assign = {
-            '_var': self.colors['red'][0],
-            '_lib': self.colors['orange'][1],
-            '_boot': self.colors['blue'][0],
-            '_tmp': self.colors['purple'][0],
-            '_root': self.colors['green'][0]
-        }
-        if mount in color_assign:
-            return {'color': color_assign[mount]}
-        return {}
 
     def sanitize(self, target):
         (what, type) = target['tags']['wwt'].split('_')

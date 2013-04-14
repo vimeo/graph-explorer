@@ -9,15 +9,6 @@ class LoadPlugin(Plugin):
         }
     ]
 
-    def default_configure_target(self, target):
-        # add extra light version..
-        red = ('#FFA791', self.colors['red'][0], self.colors['red'][1])
-        t = target['tags']['type']
-        color_assign = {'01': 2, '05': 1, '15': 0}
-        if t in color_assign.keys():
-            target['color'] = red[color_assign[t]]
-        return target
-
     def sanitize(self, target):
         if target['tags']['wt'] in ('01','05','15'):
             target['tags']['what'] = 'load'

@@ -10,6 +10,7 @@ target_options = [
     ]
 ]
 
+from preferences_color import apply_colors
 # match on graph properties (after matching) and apply options accordingly.
 # if options is a dict, merge it into the graph. if it's a function, the graph
 # gets passed and the return value is used as new graph definition.
@@ -27,5 +28,9 @@ graph_options = [
         {'what': 'freq_rel'},
         {'state': 'stacked'}
     ],
+    [
+        {},
+        apply_colors
+    ]
 ]
 

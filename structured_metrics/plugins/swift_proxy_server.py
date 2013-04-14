@@ -35,18 +35,4 @@ class SwiftProxyServerPlugin(Plugin):
             target['tags']['type'] = sanitizer[wt][1]
         del target['tags']['wt']
 
-    def default_configure_target(self, target):
-        m = target['tags'].get('http_method', '')
-        t = target['tags'].get('type', '')
-        if m == 'GET'       and t in ('lower', 'timeouts', 'xfer'): target['color'] = self.colors['blue'][0]
-        if m == 'GET'       and t in ('upper_90', 'errors')       : target['color'] = self.colors['blue'][1]
-        if m == 'HEAD'      and t in ('lower', 'timeouts', 'xfer'): target['color'] = self.colors['yellow'][0]
-        if m == 'HEAD'      and t in ('upper_90', 'errors')       : target['color'] = self.colors['yellow'][1]
-        if m == 'PUT'       and t in ('lower', 'timeouts', 'xfer'): target['color'] = self.colors['green'][0]
-        if m == 'PUT'       and t in ('upper_90', 'errors')       : target['color'] = self.colors['green'][1]
-        if m == 'REPLICATE' and t in ('lower', 'timeouts', 'xfer'): target['color'] = self.colors['brown'][0]
-        if m == 'REPLICATE' and t in ('upper_90', 'errors')       : target['color'] = self.colors['brown'][1]
-        if m == 'DELETE'    and t in ('lower', 'timeouts', 'xfer'): target['color'] = self.colors['red'][0]
-        if m == 'DELETE'    and t in ('upper_90', 'errors')       : target['color'] = self.colors['red'][1]
-
 # vim: ts=4 et sw=4:
