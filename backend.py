@@ -77,7 +77,7 @@ def get_action_on_rules_match(rules, subject):
     action
 
     the dict is a list of conditions that must match (and). if the value is an iterable, those count as OR
-    action can be whatever you want. if the condition match, action is returned.
+    action can be whatever you want. the action for the first matching rule is returned.
     '''
     for (match_rules, action) in rules:
         rule_match = True
@@ -98,7 +98,7 @@ def get_action_on_rules_match(rules, subject):
                 if not tag_match:
                     rule_match = False
                     break
-    if rule_match:
-        return action
+        if rule_match:
+            return action
 
 # vim: ts=4 et sw=4:
