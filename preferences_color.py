@@ -42,10 +42,14 @@ def get_tag_value(graph, target, tag):
     return t
 
 
-# update target colors in a clever, dynamic way
 def apply_colors(graph):
     '''
-        # the graph will look something like:
+    update target colors in a clever, dynamic way. basically it's about defining
+    colors for certain metrics (such as cpu idle metric = green), but since you
+    can group by arbitrary things, you might have a graph comparing the idle
+    values for different servers, in which case they should not be all green.
+
+    # the graph will look something like:
         {
             'promoted_constants': {'type': 'update_time', 'plugin': 'carbon'},
             'from': '-24hours',
