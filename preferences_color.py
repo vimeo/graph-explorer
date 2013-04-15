@@ -80,7 +80,7 @@ def apply_colors(graph):
         '_lib': colors['orange'][1],
         '_boot': colors['blue'][0],
         '_tmp': colors['purple'][0],
-        '_root': colors['green'][0]
+        'root': colors['green'][0]
     }
 
     color_assign_load = {
