@@ -72,7 +72,7 @@ def apply_colors(graph):
         'iowait': colors['orange'][0],
         'guest': colors['white'],
         'guest_nice': colors['white'],
-        'steal': colors['white']  # i make these white cause i'm not sure if they're relevant
+        'steal': '#FFA791'  # brighter red
     }
 
     color_assign_mountpoint = {
