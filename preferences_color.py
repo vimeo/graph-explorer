@@ -132,8 +132,7 @@ def apply_colors(graph):
         m = get_unique_tag_value(graph, target, 'http_method')
         if m is not None:
             t = {'m': m, 'w': target['tags']['what']}
-            color = backend.get_action_on_rules_match(color_assign_swift, t)
-            if color:
+            for color in backend.get_action_on_rules_match(color_assign_swift, t):
                 graph['targets'][i]['color'] = color
 
     return graph

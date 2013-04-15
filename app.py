@@ -420,8 +420,7 @@ def build_graphs_from_targets(targets, query={}):
 
         # now that graph config is "rich", merge in settings from preferences
         constants = dict(graphs[graph_key]['constants'].items() + graphs[graph_key]['promoted_constants'].items())
-        graph_option = get_action_on_rules_match(preferences.graph_options, constants)
-        if graph_option:
+        for graph_option in get_action_on_rules_match(preferences.graph_options, constants):
             if isinstance(graph_option, dict):
                 graphs[graph_key].update(graph_option)
             else:

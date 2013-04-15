@@ -11,10 +11,12 @@ target_options = [
 ]
 
 from preferences_color import apply_colors
-# match on graph properties (after matching) and apply options accordingly.
+# match on graph properties (after targets are matched and graph is built)
+# and apply options accordingly.
 # if options is a dict, merge it into the graph. if it's a function, the graph
 # gets passed and the return value is used as new graph definition.
 # all tags must match, if multiple tags are given in a list, they are OR'ed
+# multiple matches can occur, they are performed in order.
 graph_options = [
     [
         {'plugin': ['diskspace', 'memory'], 'what': 'bytes'},  # match
