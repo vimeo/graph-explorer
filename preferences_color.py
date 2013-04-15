@@ -129,9 +129,17 @@ def apply_colors(graph):
                 graph['targets'][i]['color'] = color_assign_load[t]
 
         # swift
+        # technically the use of the get [unique] tag values is not correct
+        # here. a better approach would be just doing the matching and seeing
+        # if we gave anything the same color, and then deal with that.  because
+        # with multiple tags, one of which can have multiple values, etc,
+        # things become a bit more complicated.  we basically want to know "is
+        # there any other target in the graph that matches the same
+        # conditions?"
         m = get_unique_tag_value(graph, target, 'http_method')
+        w = get_tag_value(graph, target, 'what')
         if m is not None:
-            t = {'m': m, 'w': target['tags']['what']}
+            t = {'m': m, 'w': w}
             for color in backend.get_action_on_rules_match(color_assign_swift, t):
                 graph['targets'][i]['color'] = color
 
