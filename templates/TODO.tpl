@@ -1,12 +1,11 @@
 <ul>
-    <li><a href="https://github.com/graphite-project/graphite-web/issues/103">graphite bug</a>
-        breaking our graphs when using scale(), movingAverage() and maybe more, and when using function aliases like sum()</li>
     <li>remove statically configured "suggested queries" (or make it an optional module). instead, track last_use and times_used of each query (after ordering), and show popular queries based on frecency. and/or allow saving queries with manual notes</li>
     <li>define how to generate (multiple) targets for any metric (to render as a count, a rate, etc)</li>
     <li>display tags properly (colored labels) on other pages like debug, inspect</li>
     <li>a way to plot sums of matching targets. for example: disk sum(_srv) sum (!_srv) to show 2 plots. or by extension: any graphite function</li>
     <li>allow "or" style matches across groups of patterns,like so: cpu iowait dfs || plugin=udp dfs1. maybe this can be integrated with the above</li>
-    <li>i.e. timeouts, disconnects are 'whats' for which it can make sense to graph them together. maybe as 'events'? but how to define this configuration? (see swift_proxy_server)</li>
+    <li>i.e. timeouts, disconnects are 'whats' for which it can make sense to graph them together. maybe as 'events'? but how to define this configuration? (see swift_proxy_server)
+    -> postprocess with rules to add more tags?</li>
     <li>"global" rules -> everything with server:df.* -> tag env=prod-df</li>
     <li>fix what/type/target_type for timers in all plugins (already done in catchall_statsd)</li>
     <li>'consolidate by <timespan interval>' phrase, or just interactive slider.</li>
@@ -21,7 +20,6 @@ but enforcing that might be a bit too much (and cause us to write to many simila
 because they only depend on how the regex was defined, if user wants to match on tag, key must obviously always exist.)</li>
     <li>histograms will be better (see http://localhost:8080/index/bin_%20group%20by%20type) after: 1) don't display empty tags in title 2) fix target colors</li>
     <li>filestat: display percentage as assigned/max ? same idea for disk used and others. maybe a new generic target type thing</li>
-    <li>based on target_type, set graph vtitle (unless overridden by plugin, but you should have a good reason to do so)</li>
     <li>query-driven unit conversion ('in B', 'in Mbps', 'in GiB', etc)</li>
     <li>auto adjust height of graphs based on #targets. with many targets, the legends start to overlap</li>
     <li>a way to distribute this including deps directly for easy and reliable install</li>
