@@ -29,3 +29,15 @@ because they only depend on how the regex was defined, if user wants to match on
     <li>plugin for http://obfuscurity.com/2012/06/Watching-the-Carbon-Feed</li>
     <li>maybe... under query, suggest tags, and even patterns (by going over metrics, stripping out all tags and listing what remains, uniqued)</li>
 </ul>
+Ponderings:
+<ul>
+<li>
+note: graphiteStats.last_exception can be rendered as "unix timestamp in seconds" and "age in seconds"
+what: "last_exception age" ? no cause it should be on the same graph as last_flush age (same "what") so maybe what is "age in seconds" en what_extra last_expcetion?
+so what is not necessarily the intrinsic thing we're monitoring, but what we're displaying on the graph
+</li>
+<li>automatic different extra rendering modes or "angles" (i.e. default is count or something, rate (default implementation is just `derivative()`), if a rate is stored,
+integral to get running total, multiple movingAverages, ...)
+but make them all overridable. (e.g. load plugin can use the stored 5/15m averages because those targets are just available)
+</li>
+</ul>
