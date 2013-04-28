@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+import os
 import re
 import time
 from bottle import route, template, request, static_file, redirect, response
@@ -16,6 +17,7 @@ errors = {}
 # will contain the latest data
 metrics = targets_all = graphs_all = None
 last_update = None
+targets_all_cache_file_mtime = graphs_all_cache_file_mtime = None
 
 logger = logging.getLogger('app')
 logger.setLevel(logging.DEBUG)
@@ -41,9 +43,17 @@ def build_data():
     global targets_all
     global graphs_all
     global last_update
+    global targets_all_cache_file_mtime
+    global graphs_all_cache_file_mtime
     logger.debug('build_data() start')
     try:
-        (metrics, targets_all, graphs_all) = backend.update_data(s_metrics)
+        if not (os.path.isfile(config.targets_all_cache_file) and \
+            os.path.isfile(config.graphs_all_cache_file) and \
+            os.path.isfile(config.filename_metrics)):
+            backend.update_data(s_metrics)
+        (metrics, targets_all, graphs_all) = backend.load_data()
+        targets_all_cache_file_mtime = os.path.getmtime(config.targets_all_cache_file)
+        graphs_all_cache_file_mtime = os.path.getmtime(config.graphs_all_cache_file)
         last_update = time.time()
         logger.debug('build_data() end ok')
     except MetricsError, e:
@@ -54,39 +64,19 @@ def build_data():
 thread.start_new_thread(build_data, ())
 
 
+def is_data_latest():
+    global targets_all_cache_file_mtime
+    global graphs_all_cache_file_mtime
+    if os.path.getmtime(config.targets_all_cache_file) != targets_all_cache_file_mtime \
+        or os.path.getmtime(config.graphs_all_cache_file) != graphs_all_cache_file_mtime:
+        return False
+    return True
+
+
 def data_ready():
     ret = bool(metrics is not None)
     logger.debug("data_ready() called, returning %s", str(ret))
     return ret
-
-
-@route("/refresh_data")
-def refresh_data():
-    global metrics
-    global targets_all
-    global graphs_all
-    logger.debug('refresh_data() start')
-    try:
-        stat_metrics = backend.stat_metrics()
-        if last_update is not None and stat_metrics.st_mtime < last_update:
-            nice_metrics_mtime = time.ctime(stat_metrics.st_mtime)
-            nice_last_update = time.ctime(last_update)
-            logger.debug('refresh_data() not needed. metrics.json mtime %s, last_update %s', nice_metrics_mtime, nice_last_update)
-            return ("metrics.json is last updated %s, "
-                    "rebuilding data structures wouldn't make sense cause they were "
-                    "last rebuilt %s" % (nice_metrics_mtime, nice_last_update))
-        # TODO if already running, just return "already running" or something
-        (metrics, targets_all, graphs_all) = backend.update_data(s_metrics)
-        if 'metrics_file' in errors:
-            del errors['metrics_file']
-        logger.debug('refresh_data() end ok')
-        return 'ok'
-    except MetricsError, e:
-        errors['metrics_file'] = (e.msg, e.underlying_error)
-        logger.error("[%s] %s", e.msg, e.underlying_error)
-        logger.error('refresh_data() failed')
-        response.status = 500
-        return "errors: %s" % ' '.join('[%s] %s' % (k, v) for (k, v) in errors.items())
 
 
 def parse_query(query_str):
@@ -232,6 +222,8 @@ def static(path):
 @route('/index/', method='GET')
 @route('/index/<query>', method='GET')
 def index(query=''):
+    if targets_all_cache_file_mtime != None and graphs_all_cache_file_mtime != None and not is_data_latest():
+        build_data()
     from suggested_queries import suggested_queries
     body = template('templates/body.index', errors=errors, query=query, suggested_queries=suggested_queries)
     return render_page(body)

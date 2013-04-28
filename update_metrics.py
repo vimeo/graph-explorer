@@ -6,6 +6,7 @@ import logging
 
 import config
 from backend import Backend, MetricsError
+import structured_metrics
 
 os.chdir(os.path.dirname(__file__))
 
@@ -22,18 +23,12 @@ if config.log_file:
 
 try:
     backend = Backend(config)
+    s_metrics = structured_metrics.StructuredMetrics()
+    s_metrics.load_plugins()
     logger.info("fetching/saving metrics from graphite...")
     backend.download_metrics_json()
+    backend.update_data(s_metrics) # cache these configs to disk file
     logger.info("success!")
-    logger.info("if the server is running, I'll hit the refresh endpoint..")
-    response = urllib2.urlopen("http://localhost:%i/refresh_data" % config.listen_port)
-    if response.getcode() != 200:
-        logger.warning("failed")
-    logger.debug(response.read())
-
-except urllib2.URLError, e:
-    logger.error("something went wrong (maybe/sortof)..: %s", e)
-    sys.exit(1)
 except Exception, e:
     logger.error("sorry, something went wrong: %s", e)
     sys.exit(2)
