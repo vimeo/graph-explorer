@@ -171,6 +171,7 @@ class Plugin(object):
                     target = self.__create_target(match, target)
                     target = self.__sanitize_target(target)
                     target = self.__configure_target(target)
+                    del target['config']  # not needed beyond this point
                     self.targets_found += 1
                     self.targets[id]['yielded'] += 1
                     yield (self.get_target_id(target), target)

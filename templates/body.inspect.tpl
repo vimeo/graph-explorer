@@ -6,7 +6,7 @@
 % for (target_k,target_v) in targets.items():
             Key:{{target_k}}</br>
             <table class="table">
-%  for attrib_k in ('graphite_metric', 'target', 'config'):
+%  for attrib_k in ('graphite_metric', 'target'):
 %  attrib_v = target_v[attrib_k]
                 <tr><td>{{attrib_k}}</td><td>{{attrib_v}}</td></tr>
 %  end
