@@ -28,7 +28,7 @@ try:
     logger.info("fetching/saving metrics from graphite...")
     backend.download_metrics_json()
     logger.info("generating structured metrics data...")
-    backend.update_data(s_metrics) # cache these configs to disk file
+    backend.update_data(s_metrics)
     logger.info("success!")
 except Exception, e:
     logger.error("sorry, something went wrong: %s", e)

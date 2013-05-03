@@ -7,7 +7,6 @@ import config
 import preferences
 import structured_metrics
 from backend import Backend, MetricsError, get_action_on_rules_match
-import thread
 import logging
 
 # contains all errors as key:(title,msg) items.
@@ -15,7 +14,7 @@ import logging
 errors = {}
 
 # will contain the latest data
-metrics = targets_all = graphs_all = None
+targets_all = graphs_all = None
 last_update = None
 targets_all_cache_file_mtime = graphs_all_cache_file_mtime = None
 
@@ -38,30 +37,23 @@ for e in s_metrics.load_plugins():
     errors['plugin_%s' % e.plugin] = (e.msg, e.underlying_error)
 
 
-def build_data():
-    global metrics
+def load_data():
     global targets_all
     global graphs_all
     global last_update
     global targets_all_cache_file_mtime
     global graphs_all_cache_file_mtime
-    logger.debug('build_data() start')
+    logger.debug('load_data() start')
     try:
-        if not (os.path.isfile(config.targets_all_cache_file) and \
-            os.path.isfile(config.graphs_all_cache_file) and \
-            os.path.isfile(config.filename_metrics)):
-            backend.update_data(s_metrics)
-        (metrics, targets_all, graphs_all) = backend.load_data()
+        (targets_all, graphs_all) = backend.load_data()
         targets_all_cache_file_mtime = os.path.getmtime(config.targets_all_cache_file)
         graphs_all_cache_file_mtime = os.path.getmtime(config.graphs_all_cache_file)
         last_update = time.time()
-        logger.debug('build_data() end ok')
+        logger.debug('load_data() end ok')
     except MetricsError, e:
         errors['metrics_file'] = (e.msg, e.underlying_error)
         logger.error("[%s] %s", e.msg, e.underlying_error)
-        logger.error('build_data() failed')
-
-thread.start_new_thread(build_data, ())
+        logger.error('load_data() failed')
 
 
 def is_data_latest():
@@ -73,10 +65,8 @@ def is_data_latest():
     return True
 
 
-def data_ready():
-    ret = bool(metrics is not None)
-    logger.debug("data_ready() called, returning %s", str(ret))
-    return ret
+def is_data_loaded():
+    return (targets_all is not None and graphs_all is not None)
 
 
 def parse_query(query_str):
@@ -281,8 +271,8 @@ def view_debug(query=''):
     if 'metrics_file' in errors:
         body = template('templates/snippet.errors', errors=errors)
         return render_page(body, 'debug')
-    if not data_ready():
-        return "server is still building needed datastructures. can't continue"
+    if not is_data_loaded():
+        return "server is waiting until structured metrics dataset is ready. can't continue"
     if query:
         query = parse_query(query)
         targets_matching = match(targets_all, query)
@@ -309,12 +299,12 @@ def view_debug(query=''):
 @route('/debug/metrics')
 def debug_metrics():
     response.content_type = 'text/plain'
-    if not data_ready():
-        return "server is still building needed datastructures. can't continue"
+    if not is_data_loaded():
+        return "server is waiting until structured metrics dataset is ready. can't continue"
     if 'metrics_file' in errors:
         response.status = 500
         return errors
-    return "\n".join(metrics)
+    return "\n".join([v['graphite_metric'] for v in sorted(targets_all.values())])
 
 
 def build_graphs(graphs, query={}):
@@ -434,8 +424,8 @@ def graphs(query=''):
         query = request.forms.get('query')
     if not query:
         return template('templates/graphs', query=query, errors=errors)
-    if not data_ready():
-        return "server is still building needed datastructures. can't continue"
+    if not is_data_loaded():
+        return "server is waiting until structured metrics dataset is ready. can't continue"
     query = parse_query(query)
     tags = set()
     targets_matching = match(targets_all, query)

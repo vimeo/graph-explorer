@@ -76,14 +76,12 @@ class Backend(object):
         open(config.graphs_all_cache_file, 'w').write(pickle.dumps(graphs_all))
 
     def load_data(self):
-        logging.debug("loading metrics")
-        metrics = self.load_metrics()
         logging.debug("loading targets")
         targets_all = pickle.loads(open('targets_all.cache').read())
         logging.debug("loading graphs")
         graphs_all = pickle.loads(open('graphs_all.cache').read())
 
-        return (metrics, targets_all, graphs_all)
+        return (targets_all, graphs_all)
 
 
 def get_action_on_rules_match(rules, subject):
