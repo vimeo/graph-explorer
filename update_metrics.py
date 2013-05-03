@@ -27,6 +27,7 @@ try:
     s_metrics.load_plugins()
     logger.info("fetching/saving metrics from graphite...")
     backend.download_metrics_json()
+    logger.info("generating structured metrics data...")
     backend.update_data(s_metrics) # cache these configs to disk file
     logger.info("success!")
 except Exception, e:
