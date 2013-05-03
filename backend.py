@@ -67,7 +67,7 @@ class Backend(object):
         logging.debug("loading metrics")
         metrics = self.load_metrics()
 
-        logging.debug("updatinging targets")
+        logging.debug("updating targets")
         targets_all = s_metrics.list_targets(metrics)
         open(config.targets_all_cache_file, 'w').write(pickle.dumps(targets_all))
 
