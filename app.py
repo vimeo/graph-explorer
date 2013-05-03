@@ -59,6 +59,8 @@ def load_data():
 def is_data_latest():
     global targets_all_cache_file_mtime
     global graphs_all_cache_file_mtime
+    if targets_all_cache_file_mtime is None or graphs_all_cache_file_mtime is None:
+        return False
     if os.path.getmtime(config.targets_all_cache_file) != targets_all_cache_file_mtime \
         or os.path.getmtime(config.graphs_all_cache_file) != graphs_all_cache_file_mtime:
         return False
@@ -212,8 +214,13 @@ def static(path):
 @route('/index/', method='GET')
 @route('/index/<query>', method='GET')
 def index(query=''):
-    if targets_all_cache_file_mtime != None and graphs_all_cache_file_mtime != None and not is_data_latest():
-        build_data()
+    if not is_data_latest():
+        try:
+            load_data()
+        except IOError, EOFError:
+            # pickle file not complete yet
+            pass
+
     from suggested_queries import suggested_queries
     body = template('templates/body.index', errors=errors, query=query, suggested_queries=suggested_queries)
     return render_page(body)
