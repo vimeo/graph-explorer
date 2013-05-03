@@ -56,7 +56,6 @@
             </ul>
           </div><!--/.nav-collapse -->
             <ul class="nav pull-right">
-            <li><a href="/refresh_data"><span class="icon-refresh"></span></a></li>
             % if last_update is not None:
             % import time
             <li><a>last metrics update: {{time.ctime(last_update)}}</a> </li>
