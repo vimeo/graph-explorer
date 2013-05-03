@@ -9,6 +9,10 @@ except ImportError:
 import os
 import re
 import logging
+import pickle
+import md5
+
+import config
 
 
 class MetricsError(Exception):
@@ -62,10 +66,22 @@ class Backend(object):
     def update_data(self, s_metrics):
         logging.debug("loading metrics")
         metrics = self.load_metrics()
-        logging.debug("listing targets")
+
+        logging.debug("updatinging targets")
         targets_all = s_metrics.list_targets(metrics)
-        logging.debug("listing graphs")
+        open(config.targets_all_cache_file, 'w').write(pickle.dumps(targets_all))
+
+        logging.debug("updating graphs")
         graphs_all = s_metrics.list_graphs(metrics)
+        open(config.graphs_all_cache_file, 'w').write(pickle.dumps(graphs_all))
+
+    def load_data(self):
+        logging.debug("loading metrics")
+        metrics = self.load_metrics()
+        logging.debug("loading targets")
+        targets_all = pickle.loads(open('targets_all.cache').read())
+        logging.debug("loading graphs")
+        graphs_all = pickle.loads(open('graphs_all.cache').read())
 
         return (metrics, targets_all, graphs_all)
 
