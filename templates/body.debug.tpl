@@ -29,18 +29,7 @@
 %include templates/snippet.errors errors=errors
      <a href="/debug/metrics">cached metrics</a>
      <div class="row">
-        <div class="span3">
-          <h2>Plugins</h2>
-          <table class="table table-condensed">
-%for (plugin_name, plugin_object) in plugins:
-            <tr><td>{{plugin_name}}<a href="/index/plugin={{plugin_name}}"> <i class="icon-zoom-in icon-white"></i></a>
-                              <a href="/debug/plugin={{plugin_name}}"> <i class="icon-filter icon-white"></i></a>
-            [{{plugin_object.targets_found}}]
-</td></tr>
-%end
-          </table>
-       </div>
-        <div class="span10">
+        <div class="span12">
           <h2>Tags seen</h2>
            <table>
                 <tr>

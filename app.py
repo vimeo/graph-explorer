@@ -32,9 +32,6 @@ if config.log_file:
 logger.debug('app starting')
 backend = Backend(config)
 s_metrics = structured_metrics.StructuredMetrics()
-logger.debug("loading plugins")
-for e in s_metrics.load_plugins():
-    errors['plugin_%s' % e.plugin] = (e.msg, e.underlying_error)
 
 
 def load_data():
@@ -265,7 +262,6 @@ def inspect_metric(regexes=''):
     metrics = backend.yield_metrics(regexes.split(','))
     targets = s_metrics.list_targets(metrics)
     args = {'errors': errors,
-            'plugins': s_metrics.plugins,
             'targets': targets,
             }
     body = template('templates/body.inspect', args)
@@ -293,7 +289,6 @@ def view_debug(query=''):
         graphs = graphs_all
 
     args = {'errors': errors,
-            'plugins': s_metrics.plugins,
             'targets': targets,
             'graphs': graphs,
             'graphs_targets': graphs_targets,
