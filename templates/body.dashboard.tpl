@@ -5,7 +5,7 @@
           <h2>{{dashboard}}</h2>
 <ul>
 % for q in queries:
-<li><a href="/index/{{q}}">{{q}}</a>
+<li><a href="/index/{{isinstance(q, dict) and q['query'] or q}}">{{isinstance(q, dict) and q['description'] or q}}</a>
 %end
 </ul>
        </div>
