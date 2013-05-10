@@ -198,8 +198,9 @@ git clone --recursive https://github.com/Dieterbe/graph-explorer.git
 # inside the graph-explorer directory
 $EDITOR config.py
 # if you want annotated events using [anthracite](https://github.com/Dieterbe/anthracite) set `anthracite_url`
-# run update_metrics.py (protip: use cron), this downloads metrics.json and builds enhanced metrics.
+# run update_metrics.py (protip: use cron), this downloads metrics.json and builds the enhanced metrics (tag datastructures).
 */20 * * * * /path/to/graph-explorer/update_metrics.py &>/dev/null
+(note, if you have a lot of metrics, this can take a while. takes 5minutes on my 80k metrics)
 ```
 
 ## Configuration of graphite server
