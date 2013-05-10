@@ -4,9 +4,13 @@
         <div class="span12">
           <h2>{{dashboard}}</h2>
 <ul>
-% for q in queries:
-<li><a href="/index/{{isinstance(q, dict) and q['query'] or q}}">{{isinstance(q, dict) and q['description'] or q}}</a>
-%end
+    % for q in queries:
+        <li>
+           <a href="/index/{{isinstance(q, dict) and q['query'] or q}}">
+               {{isinstance(q, dict) and q['desc'] or 'query: %s' % q}}
+           </a>
+        </li>
+    %end
 </ul>
        </div>
       </div>
