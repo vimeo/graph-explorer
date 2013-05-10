@@ -213,9 +213,10 @@ For apache2 this works:
 
 ## Running
 
+* default, with Paste (included):
 `./graph-explorer.py` and your page is available at `<ip>:8080`
 
-to enable multi-workers with gunicorn:
+* alternatively, if you use gunicorn, you can run it with multi-workers like so:
 `gunicorn -w 4 app:'default_app()' -b 0.0.0.0:8080`
 
 
