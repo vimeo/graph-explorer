@@ -2,7 +2,7 @@
 import os
 import re
 import time
-from bottle import route, template, request, static_file, redirect, response
+from bottle import route, template, request, static_file, redirect, response, default_app
 import config
 import preferences
 import structured_metrics

@@ -215,6 +215,9 @@ For apache2 this works:
 
 `./graph-explorer.py` and your page is available at `<ip>:8080`
 
+to enable multi-workers with gunicorn:
+`gunicorn -w 4 app:'default_app()' -b 0.0.0.0:8080`
+
 
 ## First steps
 
