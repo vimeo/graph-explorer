@@ -7,7 +7,7 @@ A highly interactive dashboard to satisfy varying ad-hoc information needs acros
 
 you can then use expressive queries which leverage this metadata to filter targets and group them into graphs in arbitrary ways.
 Something like SQL but targets for rows and a list of graph definitions as a result set.
-The graphs themselves support annotated events and are also interactive because it uses [timeserieswidget](https://github.com/Dieterbe/timeserieswidget)
+The graphs themselves support annotated events and are also interactive because it uses [timeserieswidget](https://github.com/vimeo/timeserieswidget)
 
 Quick example videos which are dated but give you an idea:
 
@@ -16,7 +16,7 @@ Quick example videos which are dated but give you an idea:
 
 Furthermore, the code is simple and hackable (just a few hundred sLOC), uses simple python files as plugins, and is a breeze to get running (only external dep. is python)
 
-![Screenshot](https://raw.github.com/Dieterbe/graph-explorer/master/screenshot.png)
+![Screenshot](https://raw.github.com/vimeo/graph-explorer/master/screenshot.png)
 
 ## Enhanced Metrics
 
@@ -189,7 +189,7 @@ limit returned targets (to avoid killing you browser and/or graphite server). 0 
 Just get a code checkout and initialize all git submodules, like so:
 
 ```
-git clone --recursive https://github.com/Dieterbe/graph-explorer.git
+git clone --recursive https://github.com/vimeo/graph-explorer.git
 ```
 
 ## Configuration of graph-explorer

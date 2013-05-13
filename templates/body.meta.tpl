@@ -17,11 +17,11 @@
                 <h4>These projects need some work:</h4>
                 <ul>
                     <li>
-                        <a href="https://github.com/Dieterbe/graph-explorer">graph-explorer web application</a>:
+                        <a href="https://github.com/vimeo/graph-explorer">graph-explorer web application</a>:
                         <br/>less then 1000 lines including all html, js, css and python (excluding bundled dependencies)
                     </li>
                     <li>
-                        <a href="https://github.com/Dieterbe/timeserieswidget">timeserieswidget jquery plugin</a>:
+                        <a href="https://github.com/vimeo/timeserieswidget">timeserieswidget jquery plugin</a>:
                         <br/>provides the interactive client-side graphs in less then 500 lines (excluding bundled dependencies)
                     </li>
                     <li><a href="http://www.flotcharts.org/">flot charting library</a> used by timeserieswidget.
