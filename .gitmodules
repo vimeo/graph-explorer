@@ -1,7 +1,7 @@
 [submodule "timeserieswidget"]
 	path = timeserieswidget
-	url = https://github.com/Dieterbe/timeserieswidget.git
-	pushurl = git@github.com:Dieterbe/timeserieswidget.git
+	url = https://github.com/vimeo/timeserieswidget.git
+	pushurl = git@github.com:vimeo/timeserieswidget.git
 [submodule "DataTables"]
 	path = DataTables
 	url = https://github.com/DataTables/DataTables.git
