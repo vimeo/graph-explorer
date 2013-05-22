@@ -40,7 +40,13 @@ class Backend(object):
     def load_metrics(self):
         try:
             f = open(self.config.filename_metrics, 'r')
-            return json.load(f)
+            metrics = json.load(f)
+            # workaround for graphite bug where metrics can have leading dots
+            # has been fixed (https://github.com/graphite-project/graphite-web/pull/293)
+            # but older graphite versions still do it
+            if len(metrics) and metrics[0][0] == '.':
+                metrics = [m.lstrip('.') for m in metrics]
+            return metrics
         except IOError, e:
             raise MetricsError("Can't load metrics file", e)
         except ValueError, e:
