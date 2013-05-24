@@ -144,10 +144,11 @@ class Plugin(object):
     def find_targets(self, metric):
         """
         For given metrics, yield all possible targets according to our pattern
-        yield a tuple of id  (targetstring) and target, being:
+        yield a tuple of id (targetstring) and target, being:
             {
-                'targetstring': '<..>',
-                'names': { for each tag : a name }, # will be shown in legend. if group_by server, servername will be in title, no need to repeat it here
+                'graphite_metric': '<..>',  # the exact graphite metric name
+                'target': '<..>',  # as instructed by plugin. usually graphite metric name with maybe graphite functions around it
+                'tag': { tag_key: tag_value [,...]}
             }
         }
         """
