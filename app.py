@@ -234,7 +234,7 @@ def slash_dashboards(dashboard_name=None):
         try:
             d = __import__('dashboards.%s' % dashboard_name, globals(), locals(), ['queries'])
         except Exception, e:
-            errors['dashboard_%s' % dashboard_name ] = ("Failed to load dashboard '%s'" % dashboard_name, e)
+            errors['dashboard_%s' % dashboard_name] = ("Failed to load dashboard '%s'" % dashboard_name, e)
             body = template('templates/body.dashboards', errors=errors)
             return render_page(body, 'dashboards')
         dashboard = template('templates/body.dashboard', errors=errors, dashboard=dashboard_name, queries=d.queries)
