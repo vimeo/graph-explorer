@@ -218,7 +218,7 @@ def index(query=''):
     if not is_data_latest():
         try:
             load_data()
-        except IOError, EOFError:
+        except (IOError, EOFError):
             # pickle file not complete yet
             pass
 
