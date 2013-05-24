@@ -263,8 +263,13 @@ def meta():
 # any metric matching one of the regexes will be shown
 @route('/inspect/<regexes>')
 def inspect_metric(regexes=''):
-    metrics = backend.yield_metrics(regexes.split(','))
-    targets = s_metrics.list_targets(metrics)
+    targets = {}
+    match_objects = [re.compile(regex) for regex in regexes.split(',')]
+    for k, v in targets_all.items():
+        for m_o in match_objects:
+            match = m_o.search(v['graphite_metric'])
+            if match is not None:
+                targets[k] = v
     args = {'errors': errors,
             'targets': targets,
             }
