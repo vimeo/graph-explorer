@@ -139,6 +139,14 @@ For example, the cpu plugin yields targets with tags:
 
 (a good way to try this out would be to query for `cpu_state` and maybe filter on servername so you only get a few hostnames)
 
+
+### sum by `<tagspec>`
+
+`<tagspec>` is a list like so: `foo[,bar][...]`
+
+causes all the targets on every graph to be summed together by these tags, and shown as one.  if their other tags have the same values.
+
+
 ### from `<word>`
 
 default: '-24hours'.  
@@ -205,7 +213,7 @@ $EDITOR config.py
 
 ## Configuration of graphite server
 
-you'll need a small tweak to allow this app to request data from graphite. (we could use jsonp, but see https://github.com/obfuscurity/tasseo/pull/27)
+you'll need a small tweak to allow this app to request data from graphite.
 For apache2 this works:
 
     Header set Access-Control-Allow-Origin "*"

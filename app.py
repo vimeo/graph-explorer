@@ -71,7 +71,8 @@ def is_data_loaded():
 def parse_query(query_str):
     query = {
         'patterns': [],
-        'group_by': ['target_type=', 'what=', 'server']
+        'group_by': ['target_type=', 'what=', 'server'],
+        'sum_by': []
     }
 
     # for a call like ('foo bar baz quux', 'bar ', 'baz', 'def')
@@ -92,11 +93,14 @@ def parse_query(query_str):
 
     (query_str, group_by_str) = parse_out_value(query_str, 'GROUP BY ', '[^ ]+', None)
     (query_str, extra_group_by_str) = parse_out_value(query_str, 'group by ', '[^ ]+', None)
+    (query_str, sum_by_str) = parse_out_value(query_str, 'sum by ', '[^ ]+', None)
     if group_by_str is not None:
         query['group_by'] = group_by_str.split(',')
     elif extra_group_by_str is not None:
         query['group_by'] = [tag for tag in query['group_by'] if tag.endswith('=')]
         query['group_by'].extend(extra_group_by_str.split(','))
+    if sum_by_str is not None:
+        query['sum_by'] = sum_by_str.split(',')
     for tag in query['group_by']:
         if tag.endswith('='):
             query['patterns'].append(tag)
@@ -326,6 +330,7 @@ def build_graphs_from_targets(targets, query={}):
     # merge default options..
     defaults = {
         'group_by': [],
+        'sum_by': [],
         'from': '-24hours',
         'to': 'now',
         'statement': 'graph',
@@ -336,6 +341,7 @@ def build_graphs_from_targets(targets, query={}):
     if not targets:
         return (graphs, query)
     group_by = query['group_by']
+    sum_by = query['sum_by']
     # for each combination of values of tags from group_by, make 1 graph with
     # all targets that have these values. so for each graph, we have:
     # the "constants": tags in the group_by
@@ -365,8 +371,63 @@ def build_graphs_from_targets(targets, query={}):
             t['color'] = target_data['color']
         graphs[graph_key]['targets'].append(t)
 
-        if i + 1 == query['limit_targets']:
+    # sum targets together if appropriate
+    if len(query['sum_by']):
+        for (graph_key, graph_config) in graphs.items():
+            graph_config['targets_sum_candidates'] = {}
+            graph_config['normal_targets'] = []
+            for target in graph_config['targets']:
+                # targets that can get summed together with other tags, must
+                # have at least 1 'sum_by' tags in the variables list.
+                # targets that can get summed together must have:
+                # * the same 'sum_by' tags
+                # * the same variables (key and val), except those vals that
+                # are being summed by.
+                # so for every group of sum_by tags and variables we build a
+                # list of targets that can be summed together
+                sum_constants = set(query['sum_by']).intersection(set(target['variables'].keys()))
+                if(sum_constants):
+                    sum_constants_str = '_'.join(sorted(sum_constants))
+                    variables_str = '_'.join(['%s_%s' % (k, target['variables'][k]) for k in sorted(target['variables'].keys()) if k not in sum_constants])
+                    sum_id = '%s__%s' % (sum_constants_str, variables_str)
+                    if sum_id not in graphs[graph_key]['targets_sum_candidates']:
+                        graphs[graph_key]['targets_sum_candidates'][sum_id] = []
+                    graphs[graph_key]['targets_sum_candidates'][sum_id].append(target)
+                else:
+                    graph_config['normal_targets'].append(target)
+            graph_config['targets'] = graph_config['normal_targets']
+            for (sum_id, targets) in graphs[graph_key]['targets_sum_candidates'].items():
+                if (len(targets) == 1):
+                    graph_config['targets'].append(targets[0])
+                else:
+                    t = {
+                        'target': 'sumSeries(%s)' % (','.join([t['graphite_metric'] for t in targets])),
+                        'graphite_metric': None,
+                        'variables': targets[0]['variables']
+                    }
+                    for s_b in sum_by:
+                        t['variables'][s_b] = 'multi (%s values)' % len(targets)
+
+                    graph_config['targets'].append(t)
+
+    # remove targets/graphs over the limit
+    targets_used = 0
+    unlimited_graphs = graphs
+    graphs = {}
+    limited_reached = False
+    for (graph_key, graph_config) in unlimited_graphs.items():
+        if limited_reached:
             break
+        graphs[graph_key] = graph_config
+        unlimited_targets = graph_config['targets']
+        graphs[graph_key]['targets'] = []
+        for target in unlimited_targets:
+            targets_used += 1
+            graphs[graph_key]['targets'].append(target)
+            if targets_used == query['limit_targets']:
+                limited_reached = True
+                break
+
     # if in a graph all targets have a tag with the same value, they are
     # effectively constants, so promote them.  this makes the display of the
     # graphs less rendundant and paves the path

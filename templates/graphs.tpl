@@ -14,11 +14,13 @@ count_interval = {{preferences.count_interval}};
 $("#tag_legend").html(list_tags_in_graph_name_order({{!list(tags)}}));
 $("#patterns").html(generate_pattern_display({{!list(query['patterns'])}}));
 $("#group_by").html(generate_pattern_display({{!list(query['group_by'])}}));
+$("#sum_by").html(generate_pattern_display({{!list(query['sum_by'])}}));
 </script>
     Tag legend: <span id="tag_legend"></span><br/>
     <br/>
     Patterns: <span id="patterns"></span><br/>
     Group by: <span id="group_by"></span><br/>
+    Sum by: <span id="sum_by"></span><br/>
     From: {{query['from']}}<br/>
     To: {{query['to']}}<br/>
     Limit: {{query['limit_targets']}}<br/>
