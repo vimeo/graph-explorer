@@ -330,6 +330,25 @@ def build_graphs(graphs, query={}):
         v.update(query)
     return graphs
 
+def graphs_limit_targets(graphs, limit):
+    targets_used = 0
+    unlimited_graphs = graphs
+    graphs = {}
+    limited_reached = False
+    for (graph_key, graph_config) in unlimited_graphs.items():
+        if limited_reached:
+            break
+        graphs[graph_key] = graph_config
+        unlimited_targets = graph_config['targets']
+        graphs[graph_key]['targets'] = []
+        for target in unlimited_targets:
+            targets_used += 1
+            graphs[graph_key]['targets'].append(target)
+            if targets_used == limit:
+                limited_reached = True
+                break
+    return graphs
+
 
 def build_graphs_from_targets(targets, query={}):
     # merge default options..
@@ -416,22 +435,7 @@ def build_graphs_from_targets(targets, query={}):
                     graph_config['targets'].append(t)
 
     # remove targets/graphs over the limit
-    targets_used = 0
-    unlimited_graphs = graphs
-    graphs = {}
-    limited_reached = False
-    for (graph_key, graph_config) in unlimited_graphs.items():
-        if limited_reached:
-            break
-        graphs[graph_key] = graph_config
-        unlimited_targets = graph_config['targets']
-        graphs[graph_key]['targets'] = []
-        for target in unlimited_targets:
-            targets_used += 1
-            graphs[graph_key]['targets'].append(target)
-            if targets_used == query['limit_targets']:
-                limited_reached = True
-                break
+    graphs = graphs_limit_targets(graphs, query['limit_targets'])
 
     # if in a graph all targets have a tag with the same value, they are
     # effectively constants, so promote them.  this makes the display of the
