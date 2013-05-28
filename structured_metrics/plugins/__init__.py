@@ -219,4 +219,56 @@ class Plugin(object):
         s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
         return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
+
+    # experimental shortcut functions to easily define targets.
+    # some of these would be better provided by the plugins themselves
+    @staticmethod
+    def gauge(match):
+        return {
+            'match': match,
+            'target_type': 'gauge'
+        }
+
+    @staticmethod
+    def count(match):
+        return {
+            'match': match,
+            'target_type': 'count'
+        }
+
+    @staticmethod
+    def rate(match):
+        return {
+            'match': match,
+            'target_type': 'rate'
+        }
+
+    @staticmethod
+    def counter(match):
+        return {
+            'match': match,
+            'target_type': 'counter'
+        }
+
+    @staticmethod
+    def statsd_gauge(match):
+        return {
+            'match': '^stats.gauges\.%s' % match,
+            'target_type': 'gauge'
+        }
+
+    @staticmethod
+    def statsd_count(match):
+        return {
+            'match': '^stats_counts\.%s' % match,
+            'target_type': 'count'
+        }
+
+    @staticmethod
+    def statsd_rate(match):
+        return {
+            'match': '^stats\.%s' % match,
+            'target_type': 'rate'
+        }
+
 # vim: ts=4 et sw=4:

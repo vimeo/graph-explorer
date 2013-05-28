@@ -7,30 +7,11 @@ class StatsdPlugin(Plugin):
     assumes that if you use prefixStats, it's of the format statsd.<statsd_server> , adjust as needed.
     '''
     targets = [
-        {
-            'match': 'statsd\.?(?P<server>[^\.]*)\.(?P<wtt>numStats)',
-            'target_type': 'gauge'
-        },
-        {
-            'match': [
-                '^stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>processing_time)$',
-            ],
-            'target_type': 'gauge'
-        },
-        {
-            'match': [
-                '^stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>[^\.]+)$',  # packets_received, bad_lines_seen
-            ],
-            'target_type': 'counter'
-        },
-        {
-            'match': '^stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>graphiteStats\.calculationtime)$',
-            'target_type': 'gauge',
-        },
-        {
-            'match': 'stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>graphiteStats\.flush_[^\.]+)$',  # flush_length, flush_time
-            'target_type': 'gauge'
-        },
+        Plugin.gauge(  '^statsd\.?(?P<server>[^\.]*)\.(?P<wtt>numStats)'),
+        Plugin.gauge(  '^stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>processing_time)$'),
+        Plugin.counter('^stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>[^\.]+)$'),  # packets_received, bad_lines_seen
+        Plugin.gauge(  '^stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>graphiteStats\.calculationtime)$'),
+        Plugin.gauge(  '^stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>graphiteStats\.flush_[^\.]+)$'), # flush_length, flush_time
         {
             'match': 'stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>graphiteStats\.last_[^\.]+)$',  # last_flush, last_exception. unix timestamp
             'targets': [
