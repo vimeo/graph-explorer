@@ -2,7 +2,7 @@
 import os
 import re
 import time
-from bottle import route, template, request, static_file, redirect, response, default_app
+from bottle import route, template, request, static_file, redirect, response, default_app, hook
 import config
 import preferences
 import structured_metrics
@@ -32,6 +32,24 @@ if config.log_file:
 logger.debug('app starting')
 backend = Backend(config)
 s_metrics = structured_metrics.StructuredMetrics()
+
+
+@hook('before_request')
+def assure_files():
+    ignore = ['/timeserieswidget', '/assets']
+    for i in ignore:
+        if request.fullpath.startswith(i):
+            return
+
+    # we could really use an atomic lock on this function, the index page
+    # calls the graphs page -> 2 http requests very close to each other. we
+    # don't want to run this twice if once is fine.
+    if not is_data_latest():
+        try:
+            load_data()
+        except (IOError, EOFError):
+            # pickle file not complete yet
+            pass
 
 
 def load_data():
@@ -215,13 +233,6 @@ def static(path):
 @route('/index/', method='GET')
 @route('/index/<query>', method='GET')
 def index(query=''):
-    if not is_data_latest():
-        try:
-            load_data()
-        except (IOError, EOFError):
-            # pickle file not complete yet
-            pass
-
     from suggested_queries import suggested_queries
     body = template('templates/body.index', errors=errors, query=query, suggested_queries=suggested_queries)
     return render_page(body)
