@@ -138,6 +138,7 @@ For example, the cpu plugin yields targets with tags:
 * `group by core,server` shows a graph for each core on each server.
 
 (a good way to try this out would be to query for `cpu_state` and maybe filter on servername so you only get a few hostnames)
+(no effect in 'list' mode)
 
 
 ### sum by `<tagspec>`
@@ -145,23 +146,27 @@ For example, the cpu plugin yields targets with tags:
 `<tagspec>` is a list like so: `foo[,bar][...]`
 
 causes all the targets on every graph to be summed together by these tags, and shown as one.  if their other tags have the same values.
+(no effect in 'list' mode)
 
 
 ### from `<word>`
 
 default: '-24hours'.  
 accepts anything [graphite accepts](http://graphite.readthedocs.org/en/1.0/url-api.html#from-until) which is a whole lot
+(no effect in 'list' mode)
 
 ### to `<word>`
 
 default: 'now'.  
 accepts anything graphite accepts (see above)
+(no effect in 'list' mode)
 
 
 ### limit `<number>`
 
 default: 500
 limit returned targets (to avoid killing you browser and/or graphite server). 0 means no limit
+(no effect in 'list' mode)
 
 ## Examples
 
