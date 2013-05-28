@@ -426,7 +426,7 @@ def build_graphs_from_targets(targets, query={}):
                 else:
                     t = {
                         'target': 'sumSeries(%s)' % (','.join([t['graphite_metric'] for t in targets])),
-                        'graphite_metric': None,
+                        'graphite_metric': [t['graphite_metric'] for t in targets],
                         'variables': targets[0]['variables']
                     }
                     for s_b in sum_by:
@@ -542,5 +542,6 @@ def graphs(query=''):
     args.update(stats)
     out += template('templates/graphs', args)
     return out
+
 
 # vim: ts=4 et sw=4:

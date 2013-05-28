@@ -92,3 +92,12 @@ function create_colormap(tags) {
     tags.forEach(function(tag){colormap[tag] = (Math.round(crc32(tag)/256)).toString(16);});
     return colormap;
 }
+function get_inspect_url(data, name) {
+    var q;
+    if($.isArray(data['graphite_metric'])) {
+        q = '^' + data['graphite_metric'].join('$|^') + '$';
+    } else {
+        q = '^' + data['graphite_metric'] + '$';
+    }
+    return "<a href='/inspect/" + q +"'>" + name + "</a>";
+}
