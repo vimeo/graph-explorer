@@ -37,9 +37,10 @@
 
         <h1>
           <h1>Structures your metrics</h1>
+          Converts a string based metric like
             <p>
           <pre><code>servers.dfvimeodfs1.diskspace._srv_node_dfs10.byte_used</code></pre>
-            becomes:
+            into a structured, tag-indexed metric:
           <pre><code>{
     server=dfvimeodfs1
     plugin=diskspace
