@@ -15,6 +15,7 @@ Furthermore, the code is simple and hackable (just a few hundred sLOC), uses sim
 
 ## Screencast
 
+explains most of the concepts and tricks in less than 30minutes.
 [vimeo.com/67080202](http://vimeo.com/67080202)
 
 ## Enhanced Metrics
