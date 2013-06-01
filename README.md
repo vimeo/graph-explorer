@@ -9,10 +9,7 @@ you can then use expressive queries which leverage this metadata to filter targe
 Something like SQL but targets for rows and a list of graph definitions as a result set.
 The graphs themselves support annotated events and are also interactive because it uses [timeserieswidget](https://github.com/vimeo/timeserieswidget)
 
-Quick example videos which are dated but give you an idea:
-
-* [diskspace example (1:20)](https://vimeo.com/54906914)
-* [openstack swift example (1:57)](https://vimeo.com/54912886)
+[Screencast](http://vimeo.com/67080202)
 
 Furthermore, the code is simple and hackable (just a few hundred sLOC), uses simple python files as plugins, and is a breeze to get running (only external dep. is python)
 
