@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>Graph-explorer by vimeo</title>
+    <title>Graph-explorer by Vimeo</title>
     <link rel="stylesheet" href="stylesheets/styles.css">
     <link rel="stylesheet" href="stylesheets/pygment_trac.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
@@ -32,15 +32,15 @@
       <section>
         <div id="title">
           <h1>Graph-explorer</h1>
-          <p>A graphite dashboard unlike any other, from <a href="https://github.com/vimeo">vimeo</a></p>
+          <p>A graphite dashboard that's different, from <a href="https://github.com/vimeo">Vimeo</a></p>
         </div>
 
         <h1>
           <h1>Structures your metrics</h1>
-          Converts a string based metric like
+          Converts string based metrics like
             <p>
           <pre><code>servers.dfvimeodfs1.diskspace._srv_node_dfs10.byte_used</code></pre>
-            into a structured, tag-indexed metric:
+            into structured, tag-indexed metrics:
           <pre><code>{
     server=dfvimeodfs1
     plugin=diskspace
@@ -50,8 +50,11 @@
     target_type=gauge
 }</code></pre>
             <h1>Compose graphs on the fly</h1>
+            Filter on any tag, using regexes, equality checks, negation, ...
             <p><img src="https://raw.github.com/vimeo/graph-explorer/gh-pages/screenshot_query.png" alt="Screenshot query"></p>
             <h1>Everything has units</h1>
+            Plugins yield one or more tag-based metrics for every string metric, and they get well-defined units.
+            (for example a metric can be made available as a gauge in bytes, and as a rate in bytes/s)
             <p><img src="https://raw.github.com/vimeo/graph-explorer/gh-pages/screenshot_units.png" alt="Screenshot units"></p>
             <h1>Group metrics into graphs</h1>
             Group by arbitrary tags.  For example: show bytes used for all mountpoints on a graph per server,
@@ -69,6 +72,13 @@
 
             <h1>Screencast</h1>
             <iframe src="http://player.vimeo.com/video/67080202" width="500" height="281" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+
+            <h1>What Graph-Explorer currently doesn't do (well)</h1>
+            <ul>
+                <li>KPI dashboard: currently you can't have a single page render the results of different queries and/or statically defined graphs. working on that</li>
+                <li>Comments on graphs/dashboards.  Want to integrate with something like <a href="https://github.com/talkatv/talkatv">talkatv</a> for that</li>
+                <li>Showing annotated events properly.  It works, but there's some layout/css problems</li>
+            </ul>
       </section>
 
     </div>
