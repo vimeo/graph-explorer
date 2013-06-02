@@ -1,4 +1,5 @@
 <ul>
+    <li>show all contributing targets in aggregated targets</li>
     <li>remove statically configured "suggested queries" (or make it an optional module). instead, track last_use and times_used of each query (after ordering), and show popular queries based on frecency. and/or allow saving queries with manual notes</li>
     <li>define how to generate (multiple) targets for any metric (to render as a count, a rate, etc)</li>
     <li>display tags properly (colored labels) on other pages like debug, inspect</li>
