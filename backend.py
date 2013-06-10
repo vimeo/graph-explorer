@@ -77,17 +77,10 @@ class Backend(object):
         targets_all = s_metrics.list_targets(metrics)
         open(config.targets_all_cache_file, 'w').write(pickle.dumps(targets_all))
 
-        logging.debug("updating graphs")
-        graphs_all = s_metrics.list_graphs(metrics)
-        open(config.graphs_all_cache_file, 'w').write(pickle.dumps(graphs_all))
-
     def load_data(self):
         logging.debug("loading targets")
         targets_all = pickle.loads(open('targets_all.cache').read())
-        logging.debug("loading graphs")
-        graphs_all = pickle.loads(open('graphs_all.cache').read())
-
-        return (targets_all, graphs_all)
+        return targets_all
 
 
 def get_action_on_rules_match(rules, subject):

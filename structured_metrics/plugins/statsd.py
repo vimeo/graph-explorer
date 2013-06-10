@@ -39,29 +39,6 @@ class StatsdPlugin(Plugin):
             ]
         }
     ]
-    # example graph definition. (can be seen by querying for eg.
-    # 'statsd_graph').  not very useful right now. want to explore this
-    # further..
-    graphs = {
-        'statsd_graph_example_nothing_new_here': {
-            'match': '^stats\.statsd',
-            'limit': 1,
-            'graph': {
-                'targets': [
-                    'stats.statsd.packets_received',
-                    {
-                        'name': 'timer packets received per flushinterval',
-                        'target': 'sumSeries(%s)' % ','.join(['stats.timers.%s.count' % infix for infix in ['*', '*.*.*.*.*', '*.*.*.*', '*.*.*', '*.*']])
-                    },
-                    'stats.statsd.bad_lines_seen',
-                    'stats.statsd.graphiteStats.calculationtime',
-                    'derivative(stats.statsd.graphiteStats.last_flush)',
-                    'derivative(stats.statsd.graphiteStats.last_exception)',
-                    'statsd.numStats'
-                ]
-            }
-        }
-    }
 
     def sanitize(self, target):
         if 'wtt' not in target['tags']:

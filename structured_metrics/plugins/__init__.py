@@ -6,7 +6,6 @@ Base Plugin class
 
 
 class Plugin(object):
-    graphs = {}
     target_default = {
         # one or more functions allow you to dynamically configure target properties based on
         # the match object. the target will receive updated fields from the returned dict
@@ -84,17 +83,11 @@ class Plugin(object):
 
     def __init__(self):
         self.targets = self.get_targets()
-        for (id, config) in self.graphs.items():
-            self.graphs[id]['match_object'] = re.compile(config['match'])
 
-    # track how many times targets/graphs have been yielded, for limit setting
+    # track how many times targets have been yielded, for limit setting
     def reset_target_yield_counters(self):
         for (id, target) in enumerate(self.targets):
             self.targets[id]['yielded'] = 0
-
-    def reset_graph_yield_counters(self):
-        for id in self.graphs.keys():
-            self.graphs[id]['yielded'] = 0
 
     def get_target_id(self, target):
         target_key = ['targets']
@@ -135,12 +128,6 @@ class Plugin(object):
     def sanitize(self, target):
         return None
 
-    def generate_graphs(self):
-        """
-        emit one or more graphs in a dict like {'graphname': <graph dict>}
-        """
-        return {}
-
     def find_targets(self, metric):
         """
         For given metrics, yield all possible targets according to our pattern
@@ -177,33 +164,6 @@ class Plugin(object):
                     self.targets[id]['yielded'] += 1
                     yield (self.get_target_id(target), target)
                     continue
-
-    def list_graphs(self, metrics):
-        """
-        For given list of metrics, list all possible graphs according to our pattern
-        The return value is as follows: {
-            'graph-id' : <graph dict, to be merged in with defaults>
-        }
-        """
-        graphs = {}
-        default_graph = {'tags': {'plugin': self.classname_to_tag()}}
-        for metric in metrics:
-            for (id, config) in self.graphs.items():
-                if 'limit' in config and self.graphs[id]['yielded'] == config['limit']:
-                    continue
-                match = config['match_object'].search(metric)
-                if match is not None:
-                    graph = default_graph.copy()
-                    graph.update(config['graph'])
-                    for i, target in enumerate(graph['targets']):
-                        # target is either a string (graphite target),
-                        # or a dict (target config). convert former to the
-                        # latter if needed.
-                        if isinstance(target, basestring):
-                            graph['targets'][i] = {'target': target, 'name': target}
-                    self.graphs[id]['yielded'] += 1
-                    graphs[id] = graph
-        return graphs
 
     def classname_to_tag(self):
         '''

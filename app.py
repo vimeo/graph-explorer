@@ -6,6 +6,7 @@ from bottle import route, template, request, static_file, redirect, response, de
 import config
 import preferences
 import structured_metrics
+from graphs import Graphs
 from backend import Backend, MetricsError, get_action_on_rules_match
 import logging
 
@@ -14,9 +15,9 @@ import logging
 errors = {}
 
 # will contain the latest data
-targets_all = graphs_all = None
+targets_all = None
 last_update = None
-targets_all_cache_file_mtime = graphs_all_cache_file_mtime = None
+targets_all_cache_file_mtime = None
 
 logger = logging.getLogger('app')
 logger.setLevel(logging.DEBUG)
@@ -32,6 +33,9 @@ if config.log_file:
 logger.debug('app starting')
 backend = Backend(config)
 s_metrics = structured_metrics.StructuredMetrics()
+graphs = Graphs()
+graphs.load_plugins()
+graphs_all = graphs.list_graphs()
 
 
 @hook('before_request')
@@ -54,15 +58,12 @@ def assure_files():
 
 def load_data():
     global targets_all
-    global graphs_all
     global last_update
     global targets_all_cache_file_mtime
-    global graphs_all_cache_file_mtime
     logger.debug('load_data() start')
     try:
-        (targets_all, graphs_all) = backend.load_data()
+        targets_all = backend.load_data()
         targets_all_cache_file_mtime = os.path.getmtime(config.targets_all_cache_file)
-        graphs_all_cache_file_mtime = os.path.getmtime(config.graphs_all_cache_file)
         last_update = time.time()
         logger.debug('load_data() end ok')
     except MetricsError, e:
@@ -73,17 +74,15 @@ def load_data():
 
 def is_data_latest():
     global targets_all_cache_file_mtime
-    global graphs_all_cache_file_mtime
-    if targets_all_cache_file_mtime is None or graphs_all_cache_file_mtime is None:
+    if targets_all_cache_file_mtime is None:
         return False
-    if os.path.getmtime(config.targets_all_cache_file) != targets_all_cache_file_mtime \
-        or os.path.getmtime(config.graphs_all_cache_file) != graphs_all_cache_file_mtime:
+    if os.path.getmtime(config.targets_all_cache_file) != targets_all_cache_file_mtime:
         return False
     return True
 
 
 def is_data_loaded():
-    return (targets_all is not None and graphs_all is not None)
+    return (targets_all is not None)
 
 
 def parse_query(query_str):

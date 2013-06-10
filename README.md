@@ -60,11 +60,7 @@ the process of properly setting "what" and "type" tags from a "wt" tag and delet
 
 ## Graphs
 
-* Are built as requested by your query.
-* Plugins can yield graphs directly, they specify targets either as graphite strings or as config dict.  To be revised.  leverage enhanced targets?  Not sure how this will fit in
-  as I'm aiming to make it possible to match metrics in a lightweight way and compose graphs ad-hoc with minimal fuss.  
-  Note that graphs are matched in the same way targets are (based on their id, tags, etc)
-  At this time only one example: in the statsd plugin
+* Are dynamically built as requested by your query.
 
 
 ## Query parsing and execution
@@ -271,8 +267,7 @@ Notice:
   in these functions you can return a dict which'll get merged into your target (or just alter the target directly).
   use this to change tags, the target, etc.
 
-`backend.update_data()` loads your metrics and gets matching targets and graphs by calling `list_targets(metrics)` and `list_graphs(metrics)` on a structured_metrics object.
-* the latter calls `list_graphs` on your plugin objects (this is for the statically defined graphs which you probably don't use).
+`backend.update_data()` loads your metrics and gets matching targets by calling `list_targets(metrics)` on a structured_metrics object.
 * `list_targets` goes over every metric, and for each goes over every plugin (ordered by priority), and
   * calls `plugin_object.find_targets(metric)`, which goes over all target configs in the plugin and tries each out.
   * each target config can have multiple match regexes. each can yield a target. (it gets created, sanitized, and the configure functions are run)
