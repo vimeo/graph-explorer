@@ -22,9 +22,13 @@ if config.log_file:
     logger.addHandler(fhandler)
 
 try:
-    backend = Backend(config)
+    backend = Backend(config, logger)
     s_metrics = structured_metrics.StructuredMetrics()
-    s_metrics.load_plugins()
+    errors = s_metrics.load_plugins()
+    if len(errors) > 0:
+        logger.warn('errors encountered while loading plugins:')
+        for e in errors:
+            print '\t%s' % e
     logger.info("fetching/saving metrics from graphite...")
     backend.download_metrics_json()
     logger.info("generating structured metrics data...")
