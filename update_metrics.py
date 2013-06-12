@@ -22,7 +22,7 @@ if config.log_file:
     logger.addHandler(fhandler)
 
 try:
-    backend = Backend(config)
+    backend = Backend(config, logger)
     s_metrics = structured_metrics.StructuredMetrics()
     errors = s_metrics.load_plugins()
     if len(errors) > 0:

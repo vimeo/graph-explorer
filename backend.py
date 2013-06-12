@@ -26,8 +26,9 @@ class MetricsError(Exception):
 
 class Backend(object):
 
-    def __init__(self, config):
+    def __init__(self, config, logger=logging):
         self.config = config
+        self.logger = logger
 
     def download_metrics_json(self):
         import urllib2
@@ -70,21 +71,21 @@ class Backend(object):
             raise MetricsError("Can't load metrics file", e)
 
     def update_data(self, s_metrics):
-        logging.debug("loading metrics")
+        self.logger.debug("loading metrics")
         metrics = self.load_metrics()
 
-        logging.debug("updating targets")
+        self.logger.debug("updating targets")
         targets_all = s_metrics.list_targets(metrics)
         open(config.targets_all_cache_file, 'w').write(pickle.dumps(targets_all))
 
-        logging.debug("updating graphs")
+        self.logger.debug("updating graphs")
         graphs_all = s_metrics.list_graphs(metrics)
         open(config.graphs_all_cache_file, 'w').write(pickle.dumps(graphs_all))
 
     def load_data(self):
-        logging.debug("loading targets")
+        self.logger.debug("loading targets")
         targets_all = pickle.loads(open('targets_all.cache').read())
-        logging.debug("loading graphs")
+        self.logger.debug("loading graphs")
         graphs_all = pickle.loads(open('graphs_all.cache').read())
 
         return (targets_all, graphs_all)
