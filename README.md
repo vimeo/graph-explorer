@@ -200,6 +200,18 @@ Just get a code checkout and initialize all git submodules, like so:
 ```
 git clone --recursive https://github.com/vimeo/graph-explorer.git
 ```
+This will give you the latest bleeding edge code (master branch), which can be a buggy sometimes.
+You can use a "release" by checking out one of the tags:
+
+* 2013.06.13
+  * moved static graph defs (for those who use em) from structured metrics in to separate graph plugins
+  * add experimental shortcut functions for easier defining targets
+  * add `sum by` support
+  * better support for multiple (gunicorn or other) workers
+  * perf tweak: compute structured metrics in a separate process that builds cache files which the app just reloads
+* 2013.04.19
+  * first stable release
+
 
 ## Configuration of graph-explorer
 
