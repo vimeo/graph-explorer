@@ -23,7 +23,7 @@ if config.log_file:
 
 try:
     backend = Backend(config, logger)
-    s_metrics = structured_metrics.StructuredMetrics()
+    s_metrics = structured_metrics.StructuredMetrics(config)
     errors = s_metrics.load_plugins()
     if len(errors) > 0:
         logger.warn('errors encountered while loading plugins:')

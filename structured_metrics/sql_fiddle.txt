@@ -1,0 +1,70 @@
+http://sqlfiddle.com/#!2/faac7e/45
+
+CREATE TABLE IF NOT EXISTS metrics (metric_id char(255) primary key);
+CREATE TABLE IF NOT EXISTS tags (tag_id integer primary key auto_increment, tag_key char(50), tag_val char(255));
+ALTER TABLE tags ADD CONSTRAINT UNIQUE(tag_key, tag_val); -- we rely on this! ERROR 1062 (23000): Duplicate entry 'e-c' for key 'tag_key'
+CREATE TABLE IF NOT EXISTS metrics_tags (metric_id char(255), tag_id int);
+ALTER TABLE metrics_tags ADD CONSTRAINT metric_id FOREIGN KEY (metric_id) references metrics(metric_id);
+ALTER TABLE metrics_tags ADD CONSTRAINT tag_id FOREIGN KEY (tag_id) references tags(tag_id);
+
+INSERT INTO tags VALUES (1, 'k1', 'v1');
+INSERT INTO tags VALUES (2, 'k2', 'v1');
+INSERT INTO tags VALUES (3, 'k3', 'v1');
+INSERT INTO tags VALUES (4, 'k1', 'v2');
+INSERT INTO tags VALUES (5, 'k2', 'v2');
+INSERT INTO metrics VALUES ('k1=v1.k2=v1'); -- we will want to match this one
+INSERT INTO metrics VALUES ('k1=v1.k2=v1.k3=v1'); -- not this one because it has a tag_k k3 and tag_v v1
+INSERT INTO metrics VALUES ('k1=v1'); -- not this one because it doesn't have any tag_k LIKE '%2'
+INSERT INTO metrics_tags VALUES ('k1=v1.k2=v1', 1);
+INSERT INTO metrics_tags VALUES ('k1=v1.k2=v1', 2);
+INSERT INTO metrics_tags VALUES ('k1=v1.k2=v1.k3=v1', 1);
+INSERT INTO metrics_tags VALUES ('k1=v1.k2=v1.k3=v1', 2);
+INSERT INTO metrics_tags VALUES ('k1=v1.k2=v1.k3=v1', 3);
+INSERT INTO metrics_tags VALUES ('k1=v1', 1);                   
+
+
+-- want to select all metric_id's that have an associated tag record for all following conditions:
+-- tag_k=k1 and tag_v=v1
+-- tag_k LIKE '%2'
+-- not(tag_k = k3 and tag_v = v1)
+
+select distinct
+  metric_id
+from metrics_tags
+WHERE 1
+AND metric_id IN (
+  select mt.metric_id
+  from metrics_tags mt
+  left join tags t
+    on t.tag_id=mt.tag_id
+  where t.tag_key="k1" and t.tag_val="v1"
+)
+AND metric_id IN (
+  select mt.metric_id
+  from metrics_tags mt
+  left join tags t
+    on t.tag_id=mt.tag_id
+  where t.tag_key LIKE "%2"
+)
+AND metric_id NOT IN (
+  select mt.metric_id
+  from metrics_tags mt
+  left join tags t
+    on t.tag_id=mt.tag_id
+  where t.tag_key="k3" and t.tag_val="v1"
+)
+;
+
+SELECT metric_id
+  FROM metrics_tags AS mt
+  JOIN tags AS t
+    ON t.tag_id = mt.tag_id
+ WHERE (t.tag_key = 'k1' AND t.tag_val='v1')
+    OR (t.tag_key LIKE '%2')
+    OR (t.tag_key='k3' and t.tag_val='v1')
+ GROUP BY metric_id
+HAVING SUM(t.tag_key = 'k1' AND t.tag_val='v1') > 0
+   AND SUM(t.tag_key = 'k3' AND t.tag_val='v1') = 0
+   AND SUM(t.tag_key LIKE '%2') > 0
+;
+

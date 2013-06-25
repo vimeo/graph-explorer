@@ -2,4 +2,3 @@
 *.pyo
 *.log
 metrics.json
-*.cache

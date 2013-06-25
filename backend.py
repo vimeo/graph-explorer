@@ -8,10 +8,6 @@ except ImportError:
         raise ImportError("GE requires python2, 2.6 or higher, or 2.5 with simplejson.")
 import os
 import logging
-import pickle
-import md5
-
-import config
 
 
 class MetricsError(Exception):
@@ -63,13 +59,7 @@ class Backend(object):
         metrics = self.load_metrics()
 
         self.logger.debug("updating targets")
-        targets_all = s_metrics.list_targets(metrics)
-        open(config.targets_all_cache_file, 'w').write(pickle.dumps(targets_all))
-
-    def load_data(self):
-        self.logger.debug("loading targets")
-        targets_all = pickle.loads(open('targets_all.cache').read())
-        return targets_all
+        s_metrics.update_targets(metrics)
 
 
 def get_action_on_rules_match(rules, subject):

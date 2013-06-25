@@ -192,6 +192,8 @@ limit returned targets (to avoid killing you browser and/or graphite server). 0 
 ## Dependencies
 
 * python2: either 2.6 or higher, or 2.5 and the additional simplejson module
+* mysql-python (MySQL-python on centos)
+* a working mysql database (that contains the metrics. i.e. can be the same as your carbon-tagger db)
 
 ## Installation
 
@@ -221,7 +223,7 @@ $EDITOR config.py
 # if you want annotated events using [anthracite](https://github.com/Dieterbe/anthracite) set `anthracite_url`
 # run update_metrics.py (protip: use cron), this downloads metrics.json and builds the enhanced metrics (tag datastructures).
 */20 * * * * /path/to/graph-explorer/update_metrics.py &>/dev/null
-(note, if you have a lot of metrics, this can take a while. takes 5minutes on my 80k metrics)
+(note, if you have a lot of metrics, this can take a while. takes 50minutes on my 120k metrics. there's some low hanging optimisation fruit there though)
 ```
 
 ## Configuration of graphite server

@@ -1,23 +1,20 @@
 #!/usr/bin/env python2
-import os
 import re
-import time
-from bottle import route, template, request, static_file, redirect, response, default_app, hook
+from bottle import route, template, request, static_file, redirect, response, default_app
 import config
 import preferences
 import structured_metrics
 from graphs import Graphs
-from backend import Backend, MetricsError, get_action_on_rules_match
+from backend import Backend, get_action_on_rules_match
 import logging
+
 
 # contains all errors as key:(title,msg) items.
 # will be used throughout the runtime to track all encountered errors
 errors = {}
 
 # will contain the latest data
-targets_all = None
 last_update = None
-targets_all_cache_file_mtime = None
 
 logger = logging.getLogger('app')
 logger.setLevel(logging.DEBUG)
@@ -32,57 +29,10 @@ if config.log_file:
 
 logger.debug('app starting')
 backend = Backend(config)
-s_metrics = structured_metrics.StructuredMetrics()
+s_metrics = structured_metrics.StructuredMetrics(config)
 graphs = Graphs()
 graphs.load_plugins()
 graphs_all = graphs.list_graphs()
-
-
-@hook('before_request')
-def assure_files():
-    ignore = ['/timeserieswidget', '/assets']
-    for i in ignore:
-        if request.fullpath.startswith(i):
-            return
-
-    # we could really use an atomic lock on this function, the index page
-    # calls the graphs page -> 2 http requests very close to each other. we
-    # don't want to run this twice if once is fine.
-    if not is_data_latest():
-        try:
-            load_data()
-        except (IOError, EOFError):
-            # pickle file not complete yet
-            pass
-
-
-def load_data():
-    global targets_all
-    global last_update
-    global targets_all_cache_file_mtime
-    logger.debug('load_data() start')
-    try:
-        targets_all = backend.load_data()
-        targets_all_cache_file_mtime = os.path.getmtime(config.targets_all_cache_file)
-        last_update = time.time()
-        logger.debug('load_data() end ok')
-    except MetricsError, e:
-        errors['metrics_file'] = (e.msg, e.underlying_error)
-        logger.error("[%s] %s", e.msg, e.underlying_error)
-        logger.error('load_data() failed')
-
-
-def is_data_latest():
-    global targets_all_cache_file_mtime
-    if targets_all_cache_file_mtime is None:
-        return False
-    if os.path.getmtime(config.targets_all_cache_file) != targets_all_cache_file_mtime:
-        return False
-    return True
-
-
-def is_data_loaded():
-    return (targets_all is not None)
 
 
 def parse_query(query_str):
@@ -179,28 +129,7 @@ def match_pattern(id, data, pattern):
 # if you use tags, make sure data['tags'] is a dict of tags or this'll blow up
 # if graph, ignores patterns that only apply for targets (tag matching on target_type, what)
 def match(objects, query, graph=False):
-    # prepare higher performing query structure
-    # note that if you have twice the exact same "word" (ignoring leading '!'), the last one wins
-    patterns = {}
-    for pattern in query['patterns']:
-        negate = False
-        if pattern.startswith('!'):
-            negate = True
-            pattern = pattern[1:]
-        patterns[pattern] = {'negate': negate}
-        if '=' in pattern:
-            if not graph or pattern not in ('target_type=', 'what='):
-                patterns[pattern]['match_tag_equality'] = pattern.split('=')
-            else:
-                del patterns[pattern]
-        elif ':' in pattern:
-            if not graph or pattern not in ('target_type:', 'what:'):
-                patterns[pattern]['match_tag_regex'] = pattern.split(':')
-            else:
-                del patterns[pattern]
-        else:
-            patterns[pattern]['match_id_regex'] = re.compile(pattern)
-
+    patterns = structured_metrics.parse_patterns(query)
     objects_matching = {}
     for (id, data) in objects.items():
         match_o = True
@@ -269,19 +198,12 @@ def meta():
     return render_page(body, 'meta')
 
 
-# accepts comma separated list of regexes,
-# any metric matching one of the regexes will be shown
-@route('/inspect/<regexes>')
-def inspect_metric(regexes=''):
-    targets = {}
-    match_objects = [re.compile(regex) for regex in regexes.split(',')]
-    for k, v in targets_all.items():
-        for m_o in match_objects:
-            match = m_o.search(v['graphite_metric'])
-            if match is not None:
-                targets[k] = v
+# accepts comma separated list of metric_id's
+@route('/inspect/<metrics>')
+def inspect_metric(metrics=''):
+    metrics = map(s_metrics.load_metric, metrics.split(','))
     args = {'errors': errors,
-            'targets': targets,
+            'metrics': metrics,
             }
     body = template('templates/body.inspect', args)
     return render_page(body, 'inspect')
@@ -293,19 +215,15 @@ def view_debug(query=''):
     if 'metrics_file' in errors:
         body = template('templates/snippet.errors', errors=errors)
         return render_page(body, 'debug')
-    if not is_data_loaded():
-        return "server is waiting until structured metrics dataset is ready. can't continue"
     if query:
         query = parse_query(query)
-        targets_matching = match(targets_all, query)
+        targets_matching = s_metrics.matching(query)
         graphs_matching = match(graphs_all, query, True)
         graphs_targets, graphs_targets_options = build_graphs_from_targets(targets_matching, query)
         targets = targets_matching
         graphs = graphs_matching
     else:
-        graphs_targets, graphs_targets_options = build_graphs_from_targets(targets_all)
-        targets = targets_all
-        graphs = graphs_all
+        return "Not implemented. TODO time to deprecate this?"
 
     args = {'errors': errors,
             'targets': targets,
@@ -320,12 +238,10 @@ def view_debug(query=''):
 @route('/debug/metrics')
 def debug_metrics():
     response.content_type = 'text/plain'
-    if not is_data_loaded():
-        return "server is waiting until structured metrics dataset is ready. can't continue"
     if 'metrics_file' in errors:
         response.status = 500
         return errors
-    return "\n".join([v['graphite_metric'] for v in sorted(targets_all.values())])
+    return "\n".join(sorted(s_metrics.list_metric_ids()))
 
 
 def build_graphs(graphs, query={}):
@@ -399,7 +315,7 @@ def build_graphs_from_targets(targets, query={}):
         t = {
             'variables': variables,
             'graphite_metric': target_data['graphite_metric'],
-            'target': target_data['target']
+            'target': target_data['graphite_metric']
         }
         if 'color' in target_data:
             t['color'] = target_data['color']
@@ -506,17 +422,15 @@ def graphs(query=''):
         query = request.forms.get('query')
     if not query:
         return template('templates/graphs', query=query, errors=errors)
-    if not is_data_loaded():
-        return "server is waiting until structured metrics dataset is ready. can't continue"
     query = parse_query(query)
     tags = set()
-    targets_matching = match(targets_all, query)
+    targets_matching = s_metrics.matching(query)
     for target in targets_matching.values():
         for tag_name in target['tags'].keys():
             tags.add(tag_name)
     graphs_matching = match(graphs_all, query, True)
     graphs_matching = build_graphs(graphs_matching, query)
-    stats = {'len_targets_all': len(targets_all),
+    stats = {'len_targets_all': s_metrics.count_metrics(),
              'len_graphs_all': len(graphs_all),
              'len_targets_matching': len(targets_matching),
              'len_graphs_matching': len(graphs_matching),
