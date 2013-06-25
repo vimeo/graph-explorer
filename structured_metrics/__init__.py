@@ -109,11 +109,26 @@ class StructuredMetrics(object):
                 (plugin_name, plugin_object) = plugin
                 for (k, v) in plugin_object.find_targets(metric):
                     metric_matched = True
+                    tags = v['tags']
+                    if ('what' not in tags or 'target_type' not in tags) and 'unit' not in tags:
+                        print "WARNING: metric", v, "doesn't have the mandatory tags. ignoring it..."
                     if v['graphite_metric'] != v['target']:
                         print "WARNING: deprecated: plugin %s yielded metric with different target then graphite metric for %s" % (plugin_name, v['graphite_metric'])
                         # TODO if we don't yield here, probably the catchall
                         # plugin will just yield it in an inferior way.
                     else:
+                        # old style: what and target_type tags, new style: unit tag
+                        # automatically add new style for all old style metrics
+                        if 'unit' not in tags and 'what' in tags and 'target_type' in tags:
+                            convert = {
+                                'bytes': 'B',
+                                'bits': 'b'
+                            }
+                            unit = convert.get(tags['what'], tags['what'])
+                            if tags['target_type'] is 'rate':
+                                v['tags']['unit'] = '%s/s' % unit
+                            else:
+                                v['tags']['unit'] = unit
                         targets[k] = v
                     if metric_matched:
                         break

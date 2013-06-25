@@ -25,6 +25,7 @@ Graph-explorer's plugins define rules which match metric names, parse them and y
 
 * tags from fields in the metric name (server, service, interface_name, etc) by using named groups in a regex.  (there's some guidelines for tags, see below)
 * target_type (count, rate, gauge, ...)
+* unit (MB, queries/s, ...)
 * plugin (i.e. 'cpu')
 * the graphite target (often just the metric name, but you can use the [graphite functions](http://graphite.readthedocs.org/en/1.0/functions.html) like `derivative`, `scale()` etc.
 
@@ -53,7 +54,7 @@ tag definitions:
 "type": extra info. i.e. if what is errors, this can be 'in'. if what is requests, this can be '404'. sometimes you may want to put multiple words here, and that's ok (but consider creating new tags for those)
 "wt": often a metric path will contain one key that has info on both the "what" and "type", "wt" is commonly used to catch it, so you can sanitize it (see below)
 
-all metrics must have a 'target_type' and a 'what'. because otherwise they are meaningless, also because they are used in the default group_by (TODO: show warnings if not)
+all metrics must have a unit tag. because otherwise they are meaningless, also because they are used in the default group_by
 
 sanitization
 the process of properly setting "what" and "type" tags from a "wt" tag and deleting the "wt" tag again.
@@ -113,8 +114,8 @@ this statement goes in the beginning of the query.
 `<tagspec>` is a list like so: `foo[=][,bar[=][,baz[=][...]]]`
 basically a comma-separated list of tags with optional '=' suffix to denote soft or hard (see below).
 
-by default, grouping is by `target_type=`, `what=` and `server`.
-The tags `target_type` and `what` are strong, meaning a `<tag>=` pattern is added to the query so that only targets are shown that have the tag.
+by default, grouping is by `unit=` and `server`.
+The tags `unit` is strong, meaning a `<tag>=` pattern is added to the query so that only targets are shown that have the tag.
 The tag `server` is soft so that no pattern is added, and targets without this tag will show up too.
 
 You can affect this in two ways:
