@@ -7,12 +7,10 @@ class SwiftPlugin(Plugin):
         {
             'match': '^servers\.(?P<server>[^\.]+)\.openstackswift\.(?P<category>container_metrics)\.(?P<account>[^\.]+)\.(?P<container>[^\.]+)\.(?P<wt>[^\.]+)$',
             'target_type': 'gauge',
-            'configure': lambda self, target: {'target': 'keepLastValue(%s)' % target['target']}
         },
         {
             'match': '^servers\.(?P<server>[^\.]+)\.openstackswift\.(?P<category>dispersion)\.(?P<what>container|object|errors)\.?(?P<wt>[^\.]*)$',
             'target_type': 'gauge',
-            'configure': lambda self, target: {'target': 'keepLastValue(%s)' % target['target']}
         }
     ]
 

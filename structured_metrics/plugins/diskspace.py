@@ -5,15 +5,7 @@ class DiskspacePlugin(Plugin):
     targets = [
         {
             'match': '^servers\.(?P<server>[^\.]+)\.diskspace\.(?P<mountpoint>[^\.]+)\.(?P<wwt>.*)$',
-            'targets': [
-                {
-                    'target_type': 'gauge',
-                },
-                {
-                    'target_type': 'rate',
-                    'configure': lambda self, target: {'target': 'movingAverage(derivative(%s),60)' % target['target']},
-                }
-            ]
+            'target_type': 'gauge',
         }
     ]
 

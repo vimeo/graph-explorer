@@ -6,22 +6,6 @@ class NetworkPlugin(Plugin):
         {
             'match': '^servers\.(?P<server>[^\.]+)\.network\.(?P<device>[^\.]+)\.(?P<wt>.*)$',
             'target_type': 'rate',
-            'targets': [
-                {
-                    'configure': [
-                        lambda self, target: {'target': 'scale(summarize(%s, "10minute"),0.1)' % target['target']},
-                        lambda self, target: self.add_tag(target, 'angle', 'summary-10m')
-                    ]
-                },
-                {
-                },
-                {
-                    'configure': [
-                        lambda self, target: {'target': 'cumulative(%s)' % target['target']},
-                        lambda self, target: self.add_tag(target, 'angle', 'cumul')
-                    ]
-                }
-            ]
         }
     ]
 

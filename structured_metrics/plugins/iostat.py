@@ -9,12 +9,10 @@ class IostatPlugin(Plugin):
         {
             'match': '^servers\.(?P<server>[^\.]+)\.iostat\.(?P<device>[^\.]+)\.(?P<wt>.*)$',
             'target_type': 'gauge',
-            'configure': lambda self, target: {'target': 'scale(summarize(%s, "10minute"),0.1)' % target['target']}
         },
         {
             'match': '^servers\.(?P<server>[^\.]+)\.iostat\.(?P<device>[^\.]+)\.(?P<wt>.*_per_second)$',
             'target_type': 'rate',
-            'configure': lambda self, target: {'target': 'scale(summarize(%s, "10minute"),0.1)' % target['target']}
         }
     ]
 

@@ -14,20 +14,12 @@ class StatsdPlugin(Plugin):
         Plugin.gauge(  '^stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>graphiteStats\.flush_[^\.]+)$'), # flush_length, flush_time
         {
             'match': 'stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>graphiteStats\.last_[^\.]+)$',  # last_flush, last_exception. unix timestamp
-            'targets': [
-                {
-                    'target_type': 'counter'
-                },
-                # this requires:
-                # https://github.com/graphite-project/graphite-web/pull/133
-                # https://github.com/graphite-project/graphite-web/pull/135/
-                # the keepLastValue is a workaround for https://github.com/graphite-project/graphite-web/pull/91
-                {
-                    'target_type': 'gauge',
-                    'configure': lambda self, target: {'target': 'diffSeries(identity("a"),keepLastValue(%s))' % target['target']}
-                }
-            ]
+            'target_type': 'counter'
         },
+        # TODO: a new way to have a metric that denotes "all timer packets
+        # received".  so i guess a way to define "meta" metrics based on a
+        # query (because you may also want to type queries such as "sum(timers
+        # unit=packets received)" yourself in the query interface
         {
             'match': '^stats\.timers',
             'limit': 1,

@@ -32,20 +32,9 @@ class CatchallStatsdPlugin(Plugin):
             'match': '^stats\.timers\.(?P<n1>[^\.]+)\.?(?P<n2>[^\.]*)\.?(?P<n3>[^\.]*)\.?(?P<n4>[^\.]*)\.?(?P<n5>[^\.]*)\.?(?P<n6>[^\.]*)\.?(?P<n7>[^\.]*)\.(?P<upper_limit>[^\.]+)$',
             'no_match': '\.(count|lower|mean|mean_90|std|sum|sum_90|upper|upper_90)$',
             'target_type': 'gauge',
-            'targets': [
-                {
-                    'configure': [
-                        lambda self, target: self.add_tag(target, 'what', 'freq_abs'),
-                        lambda self, target: self.add_tag(target, 'source', 'statsd')
-                    ]
-                },
-                {
-                    'configure': [
-                        lambda self, target: self.add_tag(target, 'what', 'freq_rel'),
-                        lambda self, target: self.add_tag(target, 'source', 'statsd'),
-                        lambda self, target: {'target': 'divideSeries(%s,%s)' % (target['target'],target['target'].replace(target['tags']['upper_limit'],'count'))}
-                    ]
-                }
+            'configure': [
+                lambda self, target: self.add_tag(target, 'what', 'freq_abs'),
+                lambda self, target: self.add_tag(target, 'source', 'statsd')
             ]
 
         },

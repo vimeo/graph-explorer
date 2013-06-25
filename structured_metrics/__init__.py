@@ -69,7 +69,12 @@ class StructuredMetrics(object):
                 (plugin_name, plugin_object) = plugin
                 for (k, v) in plugin_object.find_targets(metric):
                     metric_matched = True
-                    targets[k] = v
-                if metric_matched:
-                    break
+                    if v['graphite_metric'] != v['target']:
+                        print "WARNING: deprecated: plugin %s yielded metric with different target then graphite metric for %s" % (plugin_name, v['graphite_metric'])
+                        # TODO if we don't yield here, probably the catchall
+                        # plugin will just yield it in an inferior way.
+                    else:
+                        targets[k] = v
+                    if metric_matched:
+                        break
         return targets
