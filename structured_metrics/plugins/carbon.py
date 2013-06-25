@@ -1,5 +1,6 @@
 from . import Plugin
 
+
 class CarbonPlugin(Plugin):
     '''
     these definitions are probably not correct and need to be adjusted.
@@ -7,11 +8,11 @@ class CarbonPlugin(Plugin):
     '''
     targets = [
         {
-            'match': 'carbon\.agents\.(?P<agent>[^\.]+)\.(?P<wtt>[^\.]+)',
+            'match': 'carbon\.agents\.(?P<agent>[^\.]+)\.(?P<wtt>[^\.]+)$',
             'target_type': 'gauge'
         },
         {
-            'match': 'carbon\.agents\.(?P<agent>[^\.]+)\.cache\.(?P<wtt>[^\.]+)',
+            'match': 'carbon\.agents\.(?P<agent>[^\.]+)\.cache\.(?P<wtt>[^\.]+)$',
             'target_type': 'gauge'
         },
     ]
@@ -42,8 +43,6 @@ class CarbonPlugin(Plugin):
             target['tags']['what'] = 'datapoints_per_update'
         if target['tags']['wtt'] == 'updateOperations':
             target['tags']['what'] = 'updates'
-        if target['tags']['wtt'] == 'overflow':
-            target['tags']['what'] = 'overflows'
         if target['tags']['wtt'] == 'queries':
             target['tags']['what'] = 'queries'
         if target['tags']['wtt'] == 'queues':
@@ -51,5 +50,8 @@ class CarbonPlugin(Plugin):
         if target['tags']['wtt'] == 'size':
             target['tags']['what'] = 'bytes'
             target['tags']['type'] = 'cache_size'
+        if target['tags']['wtt'] == 'overflow':
+            target['tags']['what'] = 'events'
+            target['tags']['type'] = 'overflow'
         del target['tags']['wtt']
 # vim: ts=4 et sw=4:
