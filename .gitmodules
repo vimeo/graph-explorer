@@ -8,3 +8,9 @@
 [submodule "DataTablesPlugins"]
 	path = DataTablesPlugins
 	url = https://github.com/DataTables/Plugins.git
+[submodule "structured_metrics/rawes"]
+	path = structured_metrics/rawes
+	url = git://github.com/humangeo/rawes.git
+[submodule "structured_metrics/requests"]
+	path = structured_metrics/requests
+	url = git://github.com/kennethreitz/requests.git
