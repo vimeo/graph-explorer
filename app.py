@@ -255,7 +255,7 @@ def slash_dashboards(dashboard_name=None):
 
 
 def render_page(body, page='index'):
-    return str(template('templates/page', body=body, page=page, last_update=last_update))
+    return unicode(template('templates/page', body=body, page=page, last_update=last_update))
 
 
 @route('/index', method='POST')
