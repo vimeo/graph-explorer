@@ -34,7 +34,7 @@
         % end
         <!-- approximation of get_inspect_url(data, name) that works as long as list mode doesn't support sum by (or other kind of N metrics in 1 target) -->
         % for target_id in targets_list.iterkeys():
-            <a href="/inspect/^{{targets_list[target_id]['graphite_metric']}}$">{{target_id}}</a></br>
+            <a href="/inspect/{{targets_list[target_id]['graphite_metric']}}">{{target_id}}</a></br>
         % end
     % end
 % else:

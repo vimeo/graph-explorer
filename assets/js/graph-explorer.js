@@ -95,9 +95,9 @@ function create_colormap(tags) {
 function get_inspect_url(data, name) {
     var q;
     if($.isArray(data['graphite_metric'])) {
-        q = '^' + data['graphite_metric'].join('$|^') + '$';
+        q = data['graphite_metric'].join(',');
     } else {
-        q = '^' + data['graphite_metric'] + '$';
+        q = data['graphite_metric'];
     }
     return "<a href='/inspect/" + q +"'>" + name + "</a>";
 }

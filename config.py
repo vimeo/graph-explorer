@@ -8,4 +8,5 @@ mysql_user = "carbon_tagger"
 mysql_passwd = "carbon_tagger_pw"
 mysql_host = "graphite_machine
 mysql_db= "carbon_tagger"
-
+es_host = "es_host"
+es_port = 9200

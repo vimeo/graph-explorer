@@ -1,8 +1,51 @@
 import os
 import re
+import sys
 from inspect import isclass
 import sre_constants
 import MySQLdb
+try:
+    import json
+except ImportError:
+    try:
+        import simplejson as json
+    except ImportError:
+        raise ImportError("GE requires python2, 2.6 or higher, or 2.5 with simplejson.")
+sys.path.append("%s/structured_metrics/%s" % (os.getcwd(), 'requests'))
+sys.path.append("%s/structured_metrics/%s" % (os.getcwd(), 'rawes'))
+
+import rawes
+import requests
+
+
+query_all = {
+    "query_string": {
+        "query": "*"
+    }
+}
+def es_query(query, k, v):
+    return {
+        'query' : {
+            query: {
+                k: v
+            }
+        }
+    }
+def es_regexp(k, v):
+    return {
+        'regexp': {
+            k: v
+        }
+    }
+def hit_to_metric(hit):
+    tags = {}
+    for tag in hit['_source']['tags']:
+        (k, v) = tag.split('=')
+        tags[str(k)] = str(v)
+    return {
+        'id': hit['_id'],
+        'tags': tags
+    }
 
 
 class PluginError(Exception):
@@ -57,7 +100,7 @@ class StructuredMetrics(object):
     def __init__(self, config):
         self.plugins = []
         self.db = DB(config)
-        self.get_all_metrics()
+        self.es = rawes.Elastic("%s:%s" % (config.es_host, config.es_port))
 
     def load_plugins(self):
         '''
@@ -134,7 +177,36 @@ class StructuredMetrics(object):
                         break
         return targets
 
+
     def update_targets(self, metrics):
+        # using >1 threads/workers/connections would make this faster
+
+        bulk_size = 1000
+        bulk_list = []
+        targets = self.list_targets(metrics)
+
+        # too slow:
+        #for target in targets.values():
+        #    self.es.put('graphite_metrics/metric/%s' % target['graphite_metric'], data={
+        #        'tags': ['%s=%s' % tuple(tag) for tag in target['tags'].items()]
+        #    })
+
+        def flush(bulk_list):
+            print 'flushing..'
+            if not len(bulk_list):
+                return
+            body = '\n'.join(map(json.dumps, bulk_list))+'\n'
+            self.es.post('graphite_metrics/metric/_bulk', data=body)
+
+        for target in targets.values():
+            bulk_list.append({'index': {'_id': target['graphite_metric']}})
+            bulk_list.append({'tags': ['%s=%s' % tuple(tag) for tag in target['tags'].items()]})
+            if len(bulk_list) >= bulk_size:
+                flush(bulk_list)
+                bulk_list = []
+        flush(bulk_list)
+
+    def update_targets_mysql(self, metrics):
         targets = self.list_targets(metrics)
         for target in targets.values():
             tag_ids = []
@@ -155,7 +227,7 @@ class StructuredMetrics(object):
             for tag_id in tag_ids:
                 self.db.execute("INSERT INTO metrics_tags (metric_id, tag_id) VALUES(%s, %s)", (target['graphite_metric'], tag_id))
 
-    def load_metric(self, metric_id):
+    def load_metric_mysql(self, metric_id):
         self.db.execute("SELECT tags.tag_key, tags.tag_val FROM tags, metrics_tags WHERE metrics_tags.metric_id = %s AND metrics_tags.tag_id == tags.tag_id", metric_id)
         rows = self.db.fetchall()
         if rows:
@@ -165,6 +237,10 @@ class StructuredMetrics(object):
             return m
         else:
             return None
+
+    def load_metric(self, metric_id):
+        hit = self.get(metric_id)
+        return hit_to_metric(hit)
 
     def get_all_metrics(self):
         # option 0: bypass querying mysql itself by gathering ALL metrics from
@@ -304,11 +380,71 @@ class StructuredMetrics(object):
         print "params:", params
         return (sql_query, params)
 
+    def build_es_query(self, query):
+        conditions = []
+        for (k, data) in query.items():
+            negate = data['negate']
+            print k, data
+            if 'match_tag_equality' in data:
+                data = data['match_tag_equality']
+                if data[0] and data[1]:
+                    condition = es_query('match', 'tags', "%s=%s" % tuple(data))
+                elif data[0]:
+                    condition = es_regexp('tags', "%s=.*" % data[0]) # i think a '^' prefix is implied here
+                elif data[1]:
+                    condition = es_regexp('tags', ".*=%s$" % data[0])
+            elif 'match_tag_regex' in data:
+                data = data['match_tag_regex']
+                if data[0] and data[1]:
+                    condition = es_regexp('tags', '%s=.*%s.*' % tuple(data)) # i think a '^' prefix is implied here
+                elif data[0]:
+                    condition = es_regexp('tags', '.*%s.*=.*' % data[0])
+                elif data[1]:
+                    condition = es_regexp('tags', '.*=.*%s.*' % data[1])
+            elif 'match_id_regex' in data:
+                # here 'id' is to be interpreted loosely, as in the old
+                # (python-native datastructures) approach where we used
+                # Plugin.get_target_id to have an id that contains the graphite
+                # metric, but also the tags etc. so if the user types just a
+                # word, we want the metrics to be returned where the id or tags
+                # are matched
+                condition = {
+                    "or": [
+                        es_regexp('_id', '.*%s.*' % k),
+                        es_regexp('tags', '.*%s.*' % k)
+                    ]
+                }
+            if negate:
+                condition = { "not": condition }
+            conditions.append(condition)
+        es_query = {
+            "filtered": {
+                "query": { "match_all" : { }},
+                "filter": {
+                    "and": conditions
+                }
+            }
+        }
+        return es_query
+
+    def get_metrics(self, query=None):
+        try:
+            if query is None:
+                query = query_all
+            return self.es.get('graphite_metrics/metric/_search?size=1000', data={
+                "query": query,
+            })
+        except requests.exceptions.ConnectionError as e:
+            sys.stderr.write("Could not connect to ElasticSearch: %s" % e)
+
+    def get(self, metric_id):
+        return self.es.get('graphite_metrics/metric/%s' % metric_id)
+
+
     def matching(self, query):
         # this is very inefficient :(
         # future optimisation: query['limit_targets'] can be applied if no
         # sum_by or kind of later aggregation
-        # TODO make sure all tag conditions are proper (what:, what=, etc)
         """
         query looks like so:
         {'patterns': ['target_type=', 'what=', '!tag_k=not_equals_thistag_v', 'tag_k:match_this_val', 'arbitrary', 'words']
@@ -324,9 +460,13 @@ class StructuredMetrics(object):
         }
         """
         query = parse_patterns(query)
-        (sql_query, params) = self.build_sql_query1(query)
-        self.db.execute(sql_query, params)
-        return self.build_metrics(self.db.fetchall())
+        es_query = self.build_es_query(query)
+        metrics = self.get_metrics(es_query)
+        results = {}
+        for hit in metrics['hits']['hits']:
+            metric = hit_to_metric(hit)
+            results[metric['id']] = metric
+        return results
 
     def build_metrics(self, rows):
         results = {}

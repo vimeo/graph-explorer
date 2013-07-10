@@ -87,7 +87,7 @@ the Graphite Query Language is a language designed to:
   * `:<val>`      : a tag with value matching regex `<val>` must exist
   * `<key>:`      : a tag with key matching regex `<key>` must exist
   * `<key>:<val>` : a tag with key `<key>` must exist and its value must match the regex `<val>`
-* any other pattern is treated as a regular expression, which must match the target name.
+* any other pattern is treated as a regular expression and gets matched on the metric as well as tags.
 * matching targets are collected, grouped into graphs and rendered
 
 note:
@@ -195,6 +195,8 @@ limit returned targets (to avoid killing you browser and/or graphite server). 0 
 * python2: either 2.6 or higher, or 2.5 and the additional simplejson module
 * mysql-python (MySQL-python on centos)
 * a working mysql database (that contains the metrics. i.e. can be the same as your carbon-tagger db)
+* an elasticsearch (see https://github.com/vimeo/carbon-tagger#installation, run the ./recreate_index.sh script)
+* pytz for rawes(elasticsearch) (TODO: we can probably avoid this)
 
 ## Installation
 
@@ -224,7 +226,7 @@ $EDITOR config.py
 # if you want annotated events using [anthracite](https://github.com/Dieterbe/anthracite) set `anthracite_url`
 # run update_metrics.py (protip: use cron), this downloads metrics.json and builds the enhanced metrics (tag datastructures).
 */20 * * * * /path/to/graph-explorer/update_metrics.py &>/dev/null
-(note, if you have a lot of metrics, this can take a while. takes 50minutes on my 120k metrics. there's some low hanging optimisation fruit there though)
+(note, if you have a lot of metrics, this can take a while. takes 10minutes on my 150k metrics. there's some low hanging optimisation fruit there though)
 ```
 
 ## Configuration of graphite server

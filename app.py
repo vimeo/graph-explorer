@@ -256,6 +256,7 @@ def build_graphs(graphs, query={}):
         v.update(query)
     return graphs
 
+
 def graphs_limit_targets(graphs, limit):
     targets_used = 0
     unlimited_graphs = graphs
@@ -314,8 +315,8 @@ def build_graphs_from_targets(targets, query={}):
         # set all options needed for timeserieswidget/flot:
         t = {
             'variables': variables,
-            'graphite_metric': target_data['graphite_metric'],
-            'target': target_data['graphite_metric']
+            'graphite_metric': target_data['id'],
+            'target': target_data['id']
         }
         if 'color' in target_data:
             t['color'] = target_data['color']
