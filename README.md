@@ -194,8 +194,6 @@ limit returned targets (to avoid killing you browser and/or graphite server). 0 
 ## Dependencies
 
 * python2: either 2.6 or higher, or 2.5 and the additional simplejson module
-* mysql-python (MySQL-python on centos)
-* a working mysql database (that contains the metrics. i.e. can be the same as your carbon-tagger db)
 * an elasticsearch (see https://github.com/vimeo/carbon-tagger#installation, run the ./recreate_index.sh script)
 * pytz for rawes(elasticsearch) (TODO: we can probably avoid this)
 
