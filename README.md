@@ -55,7 +55,7 @@ tag definitions:
 "type": extra info. i.e. if what is errors, this can be 'in'. if what is requests, this can be '404'. sometimes you may want to put multiple words here, and that's ok (but consider creating new tags for those)
 "wt": often a metric path will contain one key that has info on both the "what" and "type", "wt" is commonly used to catch it, so you can sanitize it (see below)
 
-all metrics must have a unit tag. because otherwise they are meaningless, also because they are used in the default group_by
+all metrics must have a unit tag. because otherwise they are meaningless, also because they are used in the default group_by (TODO: show warnings if not)
 
 sanitization
 the process of properly setting "what" and "type" tags from a "wt" tag and deleting the "wt" tag again.
