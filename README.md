@@ -44,6 +44,7 @@ Try to use standardized nomenclature in target types and tags.  Do pretty much w
 * count: a number per a given interval (such as a statsd flushInterval)
 * gauge: values at each point in time
 * counter: a number that keeps increasing over time (but might wrap/reset at some points) (no statsd counterpart) (you'll probably also want to yield this as a rate with `derivative()`)
+* timestamp: value represents a unix timestamp. so basically a gauge or counter but we know we can also render the "age" at each point.
 * timing: TBD
 
 other words you might use are `pct` (percent), `http_method`, `device`, etc.  Also, keep everything in lowercase, that just keeps things easy when matching.
