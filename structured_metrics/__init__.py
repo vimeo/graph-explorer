@@ -21,20 +21,26 @@ query_all = {
         "query": "*"
     }
 }
+
+
 def es_query(query, k, v):
     return {
-        'query' : {
+        'query': {
             query: {
                 k: v
             }
         }
     }
+
+
 def es_regexp(k, v):
     return {
         'regexp': {
             k: v
         }
     }
+
+
 def hit_to_metric(hit):
     tags = {}
     for tag in hit['_source']['tags']:
@@ -138,7 +144,6 @@ class StructuredMetrics(object):
                         break
         return targets
 
-
     def update_targets(self, metrics):
         # using >1 threads/workers/connections would make this faster
 
@@ -155,7 +160,7 @@ class StructuredMetrics(object):
         def flush(bulk_list):
             if not len(bulk_list):
                 return
-            body = '\n'.join(map(json.dumps, bulk_list))+'\n'
+            body = '\n'.join(map(json.dumps, bulk_list)) + '\n'
             self.es.post('graphite_metrics/metric/_bulk', data=body)
 
         for target in targets.values():
@@ -169,7 +174,6 @@ class StructuredMetrics(object):
     def load_metric(self, metric_id):
         hit = self.get(metric_id)
         return hit_to_metric(hit)
-
 
     def count_metrics(self):
         # TODO
@@ -185,13 +189,13 @@ class StructuredMetrics(object):
                 if data[0] and data[1]:
                     condition = es_query('match', 'tags', "%s=%s" % tuple(data))
                 elif data[0]:
-                    condition = es_regexp('tags', "%s=.*" % data[0]) # i think a '^' prefix is implied here
+                    condition = es_regexp('tags', "%s=.*" % data[0])  # i think a '^' prefix is implied here
                 elif data[1]:
                     condition = es_regexp('tags', ".*=%s$" % data[0])
             elif 'match_tag_regex' in data:
                 data = data['match_tag_regex']
                 if data[0] and data[1]:
-                    condition = es_regexp('tags', '%s=.*%s.*' % tuple(data)) # i think a '^' prefix is implied here
+                    condition = es_regexp('tags', '%s=.*%s.*' % tuple(data))  # i think a '^' prefix is implied here
                 elif data[0]:
                     condition = es_regexp('tags', '.*%s.*=.*' % data[0])
                 elif data[1]:
@@ -210,17 +214,17 @@ class StructuredMetrics(object):
                     ]
                 }
             if negate:
-                condition = { "not": condition }
+                condition = {"not": condition}
             conditions.append(condition)
-        es_query = {
+        final_es_query = {
             "filtered": {
-                "query": { "match_all" : { }},
+                "query": {"match_all": {}},
                 "filter": {
                     "and": conditions
                 }
             }
         }
-        return es_query
+        return final_es_query
 
     def get_metrics(self, query=None):
         try:
