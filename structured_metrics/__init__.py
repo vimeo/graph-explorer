@@ -1,5 +1,4 @@
 import os
-import re
 import sys
 from inspect import isclass
 import sre_constants
@@ -236,26 +235,10 @@ class StructuredMetrics(object):
     def get(self, metric_id):
         return self.es.get('graphite_metrics/metric/%s' % metric_id)
 
-
-    def matching(self, query):
+    def matching(self, patterns):
         # future optimisation: query['limit_targets'] can be applied if no
         # sum_by or kind of later aggregation
-        """
-        query looks like so:
-        {'patterns': ['target_type=', 'what=', '!tag_k=not_equals_thistag_v', 'tag_k:match_this_val', 'arbitrary', 'words']
-        }
-        after parsing:
-        {
-        'tag_k=not_equals_thistag_v': {'negate': True, 'match_tag_equality': ['tag_k', 'not_equals_thistag_v']},
-        'target_type=':               {'negate': False, 'match_tag_equality': ['target_type', '']},
-        'what=':                      {'negate': False, 'match_tag_equality': ['what', '']},
-        'tag_k:match_this_val':       {'negate': False, 'match_tag_regex': ['tag_k', 'match_this_val']},
-        'words':                      {'negate': False, 'match_id_regex': <_sre.SRE_Pattern object at 0x2612cb0>},
-        'arbitrary':                  {'negate': False, 'match_id_regex': <_sre.SRE_Pattern object at 0x7f6cc000bd90>}
-        }
-        """
-        query = parse_patterns(query)
-        es_query = self.build_es_query(query)
+        es_query = self.build_es_query(patterns)
         metrics = self.get_metrics(es_query)
         results = {}
         for hit in metrics['hits']['hits']:
@@ -276,28 +259,3 @@ class StructuredMetrics(object):
                     }
                 }
         return results
-
-
-def parse_patterns(query, graph=False):
-    # prepare higher performing query structure
-    # note that if you have twice the exact same "word" (ignoring leading '!'), the last one wins
-    patterns = {}
-    for pattern in query['patterns']:
-        negate = False
-        if pattern.startswith('!'):
-            negate = True
-            pattern = pattern[1:]
-        patterns[pattern] = {'negate': negate}
-        if '=' in pattern:
-            if not graph or pattern not in ('target_type=', 'what='):
-                patterns[pattern]['match_tag_equality'] = pattern.split('=')
-            else:
-                del patterns[pattern]
-        elif ':' in pattern:
-            if not graph or pattern not in ('target_type:', 'what:'):
-                patterns[pattern]['match_tag_regex'] = pattern.split(':')
-            else:
-                del patterns[pattern]
-        else:
-            patterns[pattern]['match_id_regex'] = re.compile(pattern)
-    return patterns

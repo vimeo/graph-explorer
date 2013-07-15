@@ -1,11 +1,12 @@
 #!/usr/bin/env python2
-import re
 from bottle import route, template, request, static_file, redirect, response, default_app
 import config
 import preferences
 import structured_metrics
 from graphs import Graphs
 from backend import Backend, get_action_on_rules_match
+from simple_match import match
+from query import parse_query, parse_patterns
 import logging
 
 
@@ -33,124 +34,6 @@ s_metrics = structured_metrics.StructuredMetrics(config)
 graphs = Graphs()
 graphs.load_plugins()
 graphs_all = graphs.list_graphs()
-
-
-def parse_query(query_str):
-    avg_over_match = '^([0-9]*)([sMhdwm])$'
-    query = {
-        'patterns': [],
-        'group_by': ['target_type=', 'what=', 'server'],
-        'sum_by': [],
-        'avg_over': None
-    }
-
-    # for a call like ('foo bar baz quux', 'bar ', 'baz', 'def')
-    # returns ('foo quux', 'baz') or the original query and the default val if no match
-    def parse_out_value(query_str, predicate_match, value_match, value_default):
-        match = re.search('(%s%s)' % (predicate_match, value_match), query_str)
-        value = value_default
-        if match and match.groups() > 0:
-            value = match.groups(1)[0].replace(predicate_match, '')
-            query_str = query_str[:match.start(1)] + query_str[match.end(1):]
-        return (query_str, value)
-
-    (query_str, query['statement']) = parse_out_value(query_str, '^', '(graph|list) ', 'graph')
-    query['statement'] = query['statement'].rstrip()
-
-    (query_str, query['to']) = parse_out_value(query_str, 'to ', '[^ ]+', 'now')
-    (query_str, query['from']) = parse_out_value(query_str, 'from ', '[^ ]+', '-24hours')
-
-    (query_str, group_by_str) = parse_out_value(query_str, 'GROUP BY ', '[^ ]+', None)
-    (query_str, extra_group_by_str) = parse_out_value(query_str, 'group by ', '[^ ]+', None)
-    (query_str, sum_by_str) = parse_out_value(query_str, 'sum by ', '[^ ]+', None)
-    (query_str, avg_over_str) = parse_out_value(query_str, 'avg over ', '[^ ]+', None)
-    if group_by_str is not None:
-        query['group_by'] = group_by_str.split(',')
-    elif extra_group_by_str is not None:
-        query['group_by'] = [tag for tag in query['group_by'] if tag.endswith('=')]
-        query['group_by'].extend(extra_group_by_str.split(','))
-    if sum_by_str is not None:
-        query['sum_by'] = sum_by_str.split(',')
-    if avg_over_str is not None:
-        # avg_over_str should be something like 'h', '1m', etc
-        avg_over = re.match(avg_over_match, avg_over_str)
-        if avg_over is not None:  # if None, that's an invalid request. ignore it. TODO error to user
-            avg_over = avg_over.groups()
-            query['avg_over'] = (int(avg_over[0]), avg_over[1])
-    for tag in query['group_by']:
-        if tag.endswith('='):
-            query['patterns'].append(tag)
-
-    (query_str, query['limit_targets']) = parse_out_value(query_str, 'limit ', '[^ ]+', 500)
-
-    # split query_str into multiple patterns which are all matched independently
-    # this allows you write patterns in any order, and also makes it easy to use negations
-    query['patterns'] += query_str.split()
-    return query
-
-
-# id, data -> an key:object from the dict of objects
-# pattern: a pattern structure from match()
-def match_pattern(id, data, pattern):
-    if 'match_tag_equality' in pattern:
-        t_key = pattern['match_tag_equality'][0]
-        t_val = pattern['match_tag_equality'][1]
-        if len(t_key) is 0 and len(t_val) is 0:
-            # this pattern is pointless.
-            match_pattern = True
-        if len(t_key) > 0 and len(t_val) is 0:
-            match_pattern = (t_key in data['tags'])
-        if len(t_key) is 0 and len(t_val) > 0:
-            match_pattern = False
-            for v in data['tags'].values():
-                if t_val is v:
-                    match_pattern = True
-                    break
-        if len(t_key) > 0 and len(t_val) > 0:
-            match_pattern = (t_key in data['tags'] and data['tags'][t_key] == t_val)
-    elif 'match_tag_regex' in pattern:
-        t_key = pattern['match_tag_regex'][0]
-        t_val = pattern['match_tag_regex'][1]
-        if len(t_key) is 0 and len(t_val) is 0:
-            # this pattern is pointless.
-            match_pattern = True
-        if len(t_key) > 0 and len(t_val) is 0:
-            match_pattern = False
-            for k in data['tags'].iterkeys():
-                if re.search(t_key, k) is not None:
-                    match_pattern = True
-                    break
-        if len(t_key) is 0 and len(t_val) > 0:
-            match_pattern = False
-            for v in data['tags'].values():
-                if re.search(t_val, v) is not None:
-                    match_pattern = True
-                    break
-        if len(t_key) > 0 and len(t_val) > 0:
-            match_pattern = (t_key in data['tags'] and re.search(t_val, data['tags'][t_key]) is not None)
-    else:
-        match_pattern = (pattern['match_id_regex'].search(id) is not None)
-    return match_pattern
-
-
-# objects is expected to be a dict with elements like id: data
-# id's are matched, and the return value is a dict in the same format
-# if you use tags, make sure data['tags'] is a dict of tags or this'll blow up
-# if graph, ignores patterns that only apply for targets (tag matching on target_type, what)
-def match(objects, query, graph=False):
-    patterns = structured_metrics.parse_patterns(query)
-    objects_matching = {}
-    for (id, data) in objects.items():
-        match_o = True
-        for pattern in patterns.values():
-            match_p = match_pattern(id, data, pattern)
-            if match_p and pattern['negate']:
-                match_o = False
-            elif not match_p and not pattern['negate']:
-                match_o = False
-        if match_o:
-            objects_matching[id] = data
-    return objects_matching
 
 
 @route('<path:re:/assets/.*>')
@@ -226,8 +109,9 @@ def view_debug(query=''):
         return render_page(body, 'debug')
     if query:
         query = parse_query(query)
-        targets_matching = s_metrics.matching(query)
-        graphs_matching = match(graphs_all, query, True)
+        patterns = parse_patterns(query)
+        targets_matching = s_metrics.matching(patterns)
+        graphs_matching = match(graphs_all, patterns, True)
         graphs_targets, graphs_targets_options = build_graphs_from_targets(targets_matching, query)
         targets = targets_matching
         graphs = graphs_matching
@@ -463,12 +347,13 @@ def graphs(query=''):
     if not query:
         return template('templates/graphs', query=query, errors=errors)
     query = parse_query(query)
+    patterns = parse_patterns(query)
     tags = set()
-    targets_matching = s_metrics.matching(query)
+    targets_matching = s_metrics.matching(patterns)
     for target in targets_matching.values():
         for tag_name in target['tags'].keys():
             tags.add(tag_name)
-    graphs_matching = match(graphs_all, query, True)
+    graphs_matching = match(graphs_all, patterns, True)
     graphs_matching = build_graphs(graphs_matching, query)
     stats = {'len_targets_all': s_metrics.count_metrics(),
              'len_graphs_all': len(graphs_all),
