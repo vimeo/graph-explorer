@@ -362,7 +362,7 @@ def build_graphs_from_targets(targets, query={}):
         graphs[graph_key]['targets'].append(t)
 
     # sum targets together if appropriate
-    if len(query['sum_by']):
+    if len(sum_by):
         for (graph_key, graph_config) in graphs.items():
             graph_config['targets_sum_candidates'] = {}
             graph_config['normal_targets'] = []
@@ -375,7 +375,7 @@ def build_graphs_from_targets(targets, query={}):
                 # are being summed by.
                 # so for every group of sum_by tags and variables we build a
                 # list of targets that can be summed together
-                sum_constants = set(query['sum_by']).intersection(set(target['variables'].keys()))
+                sum_constants = set(sum_by).intersection(set(target['variables'].keys()))
                 if(sum_constants):
                     sum_constants_str = '_'.join(sorted(sum_constants))
                     variables_str = '_'.join(['%s_%s' % (k, target['variables'][k]) for k in sorted(target['variables'].keys()) if k not in sum_constants])
