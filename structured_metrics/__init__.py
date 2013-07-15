@@ -154,7 +154,6 @@ class StructuredMetrics(object):
         #    })
 
         def flush(bulk_list):
-            print 'flushing..'
             if not len(bulk_list):
                 return
             body = '\n'.join(map(json.dumps, bulk_list))+'\n'
@@ -239,7 +238,6 @@ class StructuredMetrics(object):
 
 
     def matching(self, query):
-        # this is very inefficient :(
         # future optimisation: query['limit_targets'] can be applied if no
         # sum_by or kind of later aggregation
         """
