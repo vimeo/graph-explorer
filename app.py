@@ -36,10 +36,12 @@ graphs_all = graphs.list_graphs()
 
 
 def parse_query(query_str):
+    avg_over_match = '^([0-9]*)([sMhdwm])$'
     query = {
         'patterns': [],
         'group_by': ['target_type=', 'what=', 'server'],
-        'sum_by': []
+        'sum_by': [],
+        'avg_over': None
     }
 
     # for a call like ('foo bar baz quux', 'bar ', 'baz', 'def')
@@ -61,6 +63,7 @@ def parse_query(query_str):
     (query_str, group_by_str) = parse_out_value(query_str, 'GROUP BY ', '[^ ]+', None)
     (query_str, extra_group_by_str) = parse_out_value(query_str, 'group by ', '[^ ]+', None)
     (query_str, sum_by_str) = parse_out_value(query_str, 'sum by ', '[^ ]+', None)
+    (query_str, avg_over_str) = parse_out_value(query_str, 'avg over ', '[^ ]+', None)
     if group_by_str is not None:
         query['group_by'] = group_by_str.split(',')
     elif extra_group_by_str is not None:
@@ -68,6 +71,12 @@ def parse_query(query_str):
         query['group_by'].extend(extra_group_by_str.split(','))
     if sum_by_str is not None:
         query['sum_by'] = sum_by_str.split(',')
+    if avg_over_str is not None:
+        # avg_over_str should be something like 'h', '1m', etc
+        avg_over = re.match(avg_over_match, avg_over_str)
+        if avg_over is not None:  # if None, that's an invalid request. ignore it. TODO error to user
+            avg_over = avg_over.groups()
+            query['avg_over'] = (int(avg_over[0]), avg_over[1])
     for tag in query['group_by']:
         if tag.endswith('='):
             query['patterns'].append(tag)
@@ -282,6 +291,7 @@ def build_graphs_from_targets(targets, query={}):
     defaults = {
         'group_by': [],
         'sum_by': [],
+        'avg_over': None,
         'from': '-24hours',
         'to': 'now',
         'statement': 'graph',
@@ -293,6 +303,32 @@ def build_graphs_from_targets(targets, query={}):
         return (graphs, query)
     group_by = query['group_by']
     sum_by = query['sum_by']
+    avg_over = query['avg_over']
+    target_modifiers = []
+    # avg over spec: [s]econd, [M]inute, [h]our, [d]ay, [w]eek,
+    # [m]onth
+    # only month-minute have the same acronym, so we uppercase minute just like
+    # http://strftime.org/
+    # i'm gonna assume you never use second and your datapoints are stored with
+    # minutely resolution. later on we can use config options for this (or
+    # better: somehow query graphite about it)
+    # note, the day/week/month numbers are not technically accurate, but
+    # since we're doing movingAvg that's ok
+    averaging = {
+        'M': 1,
+        'h': 60,
+        'd': 60 * 24,
+        'w': 60 * 24 * 7,
+        'm': 60 * 24 * 30
+    }
+    if avg_over is not None:
+        avg_over_amount = avg_over[0]
+        avg_over_unit = avg_over[1]
+        if avg_over_unit in averaging.keys():
+            multiplier = averaging[avg_over_unit]
+            target_modifier = ['movingAverage', str(avg_over_amount * multiplier)]
+            target_modifiers.append(target_modifier)
+
     # for each combination of values of tags from group_by, make 1 graph with
     # all targets that have these values. so for each graph, we have:
     # the "constants": tags in the group_by
@@ -312,11 +348,14 @@ def build_graphs_from_targets(targets, query={}):
             graph = {'from': query['from'], 'until': query['to']}
             graph.update({'constants': constants, 'targets': []})
             graphs[graph_key] = graph
+        target = target_data['id']
+        for target_modifier in target_modifiers:
+            target = "%s(%s,%s)" % (target_modifier[0], target, ','.join(target_modifier[1:]))
         # set all options needed for timeserieswidget/flot:
         t = {
             'variables': variables,
             'graphite_metric': target_data['id'],
-            'target': target_data['id']
+            'target': target
         }
         if 'color' in target_data:
             t['color'] = target_data['color']

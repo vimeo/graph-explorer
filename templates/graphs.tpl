@@ -21,6 +21,10 @@
             Patterns: <span id="patterns"></span><br/>
             Group by: <span id="group_by"></span><br/>
             Sum by: <span id="sum_by"></span><br/>
+            % if query['avg_over']:
+            % avg_over_display = {'s': 'seconds', 'M': 'minutes', 'h': 'hours', 'd': 'days', 'w': 'weeks', 'm': 'months'}
+                Avg over: {{query['avg_over'][0]}} {{avg_over_display[query['avg_over'][1]]}}<br/>
+            % end
             From: {{query['from']}}<br/>
             To: {{query['to']}}<br/>
             Limit: {{query['limit_targets']}}<br/>

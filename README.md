@@ -166,6 +166,26 @@ default: 500
 limit returned targets (to avoid killing you browser and/or graphite server). 0 means no limit
 (no effect in 'list' mode)
 
+### avg over `<timespec>`
+
+instead of showing the metric directly, show the moving average.  
+timespec looks like `[amount]unit`
+
+* amount is a number, and defaults to 1
+* unit is a single character, one of:
+ * [s]econd
+ * [M]inute
+ * [h]our
+ * [d]ay
+ * [w]eek
+ * [m]onth
+
+example: `avg over 30M` to show the moving average over 30 minutes.
+
+note: the points up until the first datapoint where a full period is covered, are empty.
+so by default `avg over 1d` shows nothing, so you need something like `avg over 1d from -2days`.
+
+
 ## Examples
 
 * `cpu`: all cpu graphs (for all machines)
