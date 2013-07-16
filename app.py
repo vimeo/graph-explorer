@@ -51,7 +51,7 @@ def static(path):
 @route('/', method='GET')
 @route('/index', method='GET')
 @route('/index/', method='GET')
-@route('/index/<query>', method='GET')
+@route('/index/<query:path>', method='GET')
 def index(query=''):
     from suggested_queries import suggested_queries
     body = template('templates/body.index', errors=errors, query=query, suggested_queries=suggested_queries)
@@ -77,11 +77,6 @@ def slash_dashboards(dashboard_name=None):
 
 def render_page(body, page='index'):
     return unicode(template('templates/page', body=body, page=page, last_update=last_update))
-
-
-@route('/index', method='POST')
-def index_post():
-    redirect('/index/%s' % request.forms.query)
 
 
 @route('/meta')
