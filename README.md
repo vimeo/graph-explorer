@@ -9,7 +9,7 @@ you can then use expressive queries which leverage this metadata to filter targe
 Something like SQL but targets for rows and a list of graph definitions as a result set.
 The graphs themselves support annotated events and are also interactive because it uses [timeserieswidget](https://github.com/vimeo/timeserieswidget)
 
-Furthermore, the code is simple and hackable (just a few hundred sLOC), uses simple python files as plugins, and is a breeze to get running (only external dep. is python)
+Furthermore, the code is simple and hackable (just a few hundred sLOC), uses simple python files as plugins, and is a breeze to get running
 
 ![Screenshot](https://raw.github.com/vimeo/graph-explorer/master/screenshot.png)
 
@@ -230,7 +230,7 @@ You can use a "release" by checking out one of the tags:
 * 2013.06.13
 * 2013.04.19
 
-[release documentation page](https://github.com/vimeo/graph-explorer/releases)
+or of course, download a release from the [release page](https://github.com/vimeo/graph-explorer/releases)
 
 ## Configuration of graph-explorer
 
