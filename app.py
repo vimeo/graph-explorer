@@ -6,7 +6,7 @@ import structured_metrics
 from graphs import Graphs
 from backend import Backend, get_action_on_rules_match
 from simple_match import match
-from query import parse_query, parse_patterns
+from query import parse_query, normalize_query, parse_patterns
 import logging
 
 
@@ -165,7 +165,7 @@ def graphs_limit_targets(graphs, limit):
     return graphs
 
 
-def build_graphs_from_targets(targets, query={}):
+def build_graphs_from_targets(targets, query={}, target_modifiers = []):
     # merge default options..
     defaults = {
         'group_by': [],
@@ -342,6 +342,7 @@ def graphs(query=''):
     if not query:
         return template('templates/graphs', query=query, errors=errors)
     query = parse_query(query)
+    (query, target_modifiers) = normalize_query(query)
     patterns = parse_patterns(query)
     tags = set()
     targets_matching = s_metrics.matching(patterns)
@@ -361,7 +362,7 @@ def graphs(query=''):
     # the code to handle different statements, and the view
     # templates could be a bit prettier, but for now it'll do.
     if query['statement'] == 'graph':
-        graphs_targets_matching = build_graphs_from_targets(targets_matching, query)[0]
+        graphs_targets_matching = build_graphs_from_targets(targets_matching, query, target_modifiers)[0]
         stats['len_graphs_targets_matching'] = len(graphs_targets_matching)
         graphs_matching.update(graphs_targets_matching)
         stats['len_graphs_matching_all'] = len(graphs_matching)

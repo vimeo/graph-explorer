@@ -191,6 +191,15 @@ example: `avg over 30M` to show the moving average over 30 minutes.
 note: the points up until the first datapoint where a full period is covered, are empty.
 so by default `avg over 1d` shows nothing, so you need something like `avg over 1d from -2days`.
 
+### Inline unit conversion
+
+when you specify something like `unit=B/M` or `unit=B/h` it will automatically show the requested metric per the new
+time interval, by rescaling B/s metrics appropriately.  Currently only supported for metrics that are per second.
+Only looks at the divisor, not the dividend, and doesn't take prefixes into account. None of that is needed
+because no-one ever uses 'ks' (kiloseconds) and the graphs automatically display appropriate prefixes (i.e. no need
+to type 'TB/d' for a 'B/s' metric, just make it 'B/d', if it's in the terabyte range the graph will automatically show the
+appropriate prefixes).  It follows that this only needs to be done for rates. For metrics that are not expressed per a time, this is
+not needed as the automatic prefixes on the graph suffice.
 
 ## Examples
 

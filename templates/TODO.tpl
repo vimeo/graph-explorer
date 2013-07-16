@@ -22,7 +22,6 @@ but enforcing that might be a bit too much (and cause us to write to many simila
 because they only depend on how the regex was defined, if user wants to match on tag, key must obviously always exist.)</li>
     <li>histograms will be better (see http://localhost:8080/index/bin_%20group%20by%20type) after: 1) don't display empty tags in title 2) fix target colors</li>
     <li>filestat: display percentage as assigned/max ? same idea for disk used and others. maybe a new generic target type thing</li>
-    <li>query-driven unit conversion ('in B', 'in Mbps', 'in GiB', etc)</li>
     <li>auto adjust height of graphs based on #targets. with many targets, the legends start to overlap</li>
     <li>a way to distribute this including deps directly for easy and reliable install</li>
     <li>filter by expression (graphite function(s) or simplified). example: "where movingAverage(10h) &gt; 100" </li>
