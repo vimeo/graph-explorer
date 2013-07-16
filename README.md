@@ -60,6 +60,12 @@ all metrics must have a unit tag. because otherwise they are meaningless, also b
 sanitization
 the process of properly setting "what" and "type" tags from a "wt" tag and deleting the "wt" tag again.
 
+
+## What to put in your tags
+
+in principle, whatever you want.
+However, for units and unit prefixes you should honor [this standard](https://github.com/vimeo/graph-explorer/wiki/Units-&-Prefixes), especially if you depend on any rescaling etc GE does.
+
 ## Graphs
 
 * Are dynamically built as requested by your query.
