@@ -12,7 +12,7 @@ class CatchallPlugin(Plugin):
 
     targets = [
         {
-            'match': '^(?P<n1>[^\.]+)\.?(?P<n2>[^\.]*)\.?(?P<n3>[^\.]*)\.?(?P<n4>[^\.]*)\.?(?P<n5>[^\.]*)\.?(?P<n6>[^\.]*)\.?(?P<n7>[^\.]*)$',
+            'match': '^(?P<n1>[^\.=]+)\.?(?P<n2>[^\.=]*)\.?(?P<n3>[^\.=]*)\.?(?P<n4>[^\.=]*)\.?(?P<n5>[^\.=]*)\.?(?P<n6>[^\.=]*)\.?(?P<n7>[^\.=]*)$',
             'target_type': 'unknown',
             'configure': [
                 lambda self, target: self.add_tag(target, 'what', 'unknown'),
