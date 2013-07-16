@@ -183,11 +183,6 @@ def build_graphs_from_targets(targets, query={}, target_modifiers = []):
     group_by = query['group_by']
     sum_by = query['sum_by']
     avg_over = query['avg_over']
-    target_modifiers = []
-    # avg over spec: [s]econd, [M]inute, [h]our, [d]ay, [w]eek,
-    # [m]onth
-    # only month-minute have the same acronym, so we uppercase minute just like
-    # http://strftime.org/
     # i'm gonna assume you never use second and your datapoints are stored with
     # minutely resolution. later on we can use config options for this (or
     # better: somehow query graphite about it)
@@ -198,7 +193,7 @@ def build_graphs_from_targets(targets, query={}, target_modifiers = []):
         'h': 60,
         'd': 60 * 24,
         'w': 60 * 24 * 7,
-        'm': 60 * 24 * 30
+        'mo': 60 * 24 * 30
     }
     if avg_over is not None:
         avg_over_amount = avg_over[0]

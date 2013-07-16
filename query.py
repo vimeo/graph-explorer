@@ -2,7 +2,7 @@ import re
 
 
 def parse_query(query_str):
-    avg_over_match = '^([0-9]*)([sMhdwm])$'
+    avg_over_match = '^([0-9]*)(s|M|h|d|w|mo)$'
     query = {
         'patterns': [],
         'group_by': ['target_type=', 'what=', 'server'],
@@ -38,7 +38,7 @@ def parse_query(query_str):
     if sum_by_str is not None:
         query['sum_by'] = sum_by_str.split(',')
     if avg_over_str is not None:
-        # avg_over_str should be something like 'h', '1m', etc
+        # avg_over_str should be something like 'h', '10M', etc
         avg_over = re.match(avg_over_match, avg_over_str)
         if avg_over is not None:  # if None, that's an invalid request. ignore it. TODO error to user
             avg_over = avg_over.groups()

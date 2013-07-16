@@ -178,13 +178,7 @@ instead of showing the metric directly, show the moving average.
 timespec looks like `[amount]unit`
 
 * amount is a number, and defaults to 1
-* unit is a single character, one of:
- * [s]econd
- * [M]inute
- * [h]our
- * [d]ay
- * [w]eek
- * [m]onth
+* unit is one of the [recognized time units](https://github.com/vimeo/graph-explorer/wiki/Units-&-Prefixes)
 
 example: `avg over 30M` to show the moving average over 30 minutes.
 
