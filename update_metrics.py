@@ -7,7 +7,7 @@ import config
 from backend import Backend
 import structured_metrics
 
-os.chdir(os.path.dirname(__file__))
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 logger = logging.getLogger('update_metrics')
 logger.setLevel(logging.DEBUG)
