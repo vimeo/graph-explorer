@@ -44,7 +44,7 @@ class CollectdPlugin(Plugin):
         'counter': ('1', 'rate')
     }
     targets = [{
-        'match': '^collectd\.(?P<server>.+?)\.(?P<plugin>.+?)(?:-(?P<plugin_instance>.+?))?\.(?P<type>.+?)(?:-(?P<type_instance>.+?))?\.(?P<value>.+)$',
+        'match': '^collectd\.(?P<server>.+?)\.(?P<collectd_plugin>.+?)(?:-(?P<collectd_plugin_instance>.+?))?\.(?P<type>.+?)(?:-(?P<type_instance>.+?))?\.(?P<value>.+)$',
         'target_type': 'unknown',
         'configure': [
             lambda self, target: self.add_tag(target, 'source', 'collectd'),

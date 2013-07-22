@@ -98,8 +98,8 @@ class Plugin(object):
         return ' '.join(target_key)
 
     def __create_target(self, match, target_config):
-        tags = {'target_type': target_config['target_type'], 'plugin': self.classname_to_tag()}
-        tags.update(match.groupdict())
+        tags = match.groupdict()
+        tags.update({'target_type': target_config['target_type'], 'plugin': self.classname_to_tag()})
         target = {
             'config': target_config,
             'tags': tags,
