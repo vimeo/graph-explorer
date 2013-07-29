@@ -352,7 +352,7 @@ def build_graphs_from_targets(targets, query={}):
                     graph_config['targets'].append(targets[0])
                 else:
                     t = {
-                        'target': 'sumSeries(%s)' % (','.join([t['graphite_metric'] for t in targets])),
+                        'target': 'sumSeries(%s)' % (','.join([t['target'] for t in targets])),
                         'graphite_metric': [t['graphite_metric'] for t in targets],
                         'variables': targets[0]['variables']
                     }
