@@ -216,7 +216,7 @@ class StructuredMetrics(object):
             if negate:
                 condition = {"not": condition}
             conditions.append(condition)
-        final_es_query = {
+        return {
             "filtered": {
                 "query": {"match_all": {}},
                 "filter": {
@@ -224,7 +224,6 @@ class StructuredMetrics(object):
                 }
             }
         }
-        return final_es_query
 
     def get_metrics(self, query=None):
         try:
