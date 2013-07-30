@@ -35,6 +35,7 @@
                 <h4>Projects that provide metrics for which the plugins are designed</h4>
                 <ul>
                     <li><a href="https://github.com/BrightcoveOS/Diamond">diamond monitoring agent</a></li>
+                    <li><a href="http://collectd.org/">collectd monitoring agent</a></li>
                     <li><a href="http://docs.openstack.org/developer/swift/admin_guide.html#reporting-metrics-to-statsd">openstack swift</a></li>
                 </ul>
             </div>

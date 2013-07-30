@@ -18,6 +18,6 @@ and a `rate` with applies the `derivative` function, averaged out versions, view
 
 This way you can make your metrics clearly defined, avoid the organisation problem, have much more freedom for searching/querying, and show arbitrary metadata in the graphing phase.
 
-`structured_metrics` comes with a bunch of plugins (for the diamond monitoring agent, statsd, openstack swift),
+`structured_metrics` comes with a bunch of plugins (for the diamond and collectd monitoring agents, statsd, openstack swift),
 including fallback plugins that just assign node tags like n1, n2, n3, etc so you always have all your metrics available from the start.
 
