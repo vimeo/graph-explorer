@@ -317,5 +317,5 @@ Notice:
 
 ## Getting in touch
 
-* irc: #monitoringlove on freenode (I'm there, Dieterbe)
-* or use github issues for bugs, feature requests, questions, feedback
+* irc: #graph-explorer on freenode
+* github issues for bugs, feature requests, questions, feedback
