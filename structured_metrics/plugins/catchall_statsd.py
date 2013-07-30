@@ -40,7 +40,7 @@ class CatchallStatsdPlugin(Plugin):
         },
         {
             # TODO: for some reason the 'count' at the end makes this regex quite slow
-            # you can see this in StructuredMetrics.list_targets if you print
+            # you can see this in StructuredMetrics.list_metrics if you print
             # something for every metric. timers will be very slowly. if you
             # make it (?P<type>[^\.]+) it becomes fast again, but we need to
             # match on only the ones ending on count :(

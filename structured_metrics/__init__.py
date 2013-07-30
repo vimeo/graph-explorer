@@ -108,17 +108,17 @@ class StructuredMetrics(object):
         self.plugins = sorted(self.plugins, key=lambda t: t[1].priority, reverse=True)
         return errors
 
-    def list_targets(self, metrics):
+    def list_metrics(self, metrics):
         for plugin in self.plugins:
             (plugin_name, plugin_object) = plugin
             plugin_object.reset_target_yield_counters()
         targets = {}
         for metric in metrics:
-            metric_matched = False
             for (i, plugin) in enumerate(self.plugins):
                 (plugin_name, plugin_object) = plugin
-                for (k, v) in plugin_object.find_targets(metric):
-                    metric_matched = True
+                proto2_metric = plugin_object.upgrade_metric(metric)
+                if proto2_metric is not None:
+                    (k, v) = proto2_metric
                     tags = v['tags']
                     if ('what' not in tags or 'target_type' not in tags) and 'unit' not in tags:
                         print "WARNING: metric", v, "doesn't have the mandatory tags. ignoring it..."
@@ -140,8 +140,7 @@ class StructuredMetrics(object):
                             else:
                                 v['tags']['unit'] = unit
                         targets[k] = v
-                if metric_matched:
-                    break
+                        break
         return targets
 
     def update_targets(self, metrics):
@@ -149,7 +148,7 @@ class StructuredMetrics(object):
 
         bulk_size = 1000
         bulk_list = []
-        targets = self.list_targets(metrics)
+        targets = self.list_metrics(metrics)
 
         # too slow:
         #for target in targets.values():

@@ -307,12 +307,12 @@ Notice:
   in these functions you can return a dict which'll get merged into your target (or just alter the target directly).
   use this to change tags, the target, etc.
 
-`backend.update_data()` loads your metrics and gets matching targets by calling `list_targets(metrics)` on a structured_metrics object.
-* `list_targets` goes over every metric, and for each goes over every plugin (ordered by priority), and
-  * calls `plugin_object.find_targets(metric)`, which goes over all target configs in the plugin and tries each out.
-  * each target config can have multiple match regexes. each can yield a target. (it gets created, sanitized, and the configure functions are run)
+`backend.update_data()` loads your metrics and gets matching targets by calling `list_metrics(metrics)` on a structured_metrics object.
+* `list_metrics` goes over every metric, and for each goes over every plugin (ordered by priority), and
+  * calls `plugin_object.upgrade_metric(metric)`, which goes over all target configs in the plugin and tries each out.
+  * each target config can have multiple match regexes. first one wins. (it gets created, sanitized, and the configure functions are run)
   * each target config for which none of the no_match regexes matches, or the limit is reached, doesn't get yielded.
-  * first plugin that yields one or more targets wins for this metric (no other plugins are tried for that metric). that's why catchall plugins have lowest priority.
+  * first plugin that yields a proto2 metric wins for this metric (no other plugins are tried for that metric). that's why catchall plugins have lowest priority.
 
 
 ## Getting in touch
