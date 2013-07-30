@@ -228,7 +228,7 @@ def build_graphs_from_targets(targets, query={}, target_modifiers = []):
         # set all options needed for timeserieswidget/flot:
         t = {
             'variables': variables,
-            'graphite_metric': target_data['id'],
+            'id': target_data['id'],  # timeserieswidget doesn't care about this
             'target': target
         }
         if 'color' in target_data:
@@ -266,7 +266,7 @@ def build_graphs_from_targets(targets, query={}, target_modifiers = []):
                 else:
                     t = {
                         'target': 'sumSeries(%s)' % (','.join([t['target'] for t in targets])),
-                        'graphite_metric': [t['graphite_metric'] for t in targets],
+                        'id': [t['id'] for t in targets],
                         'variables': targets[0]['variables']
                     }
                     for s_b in sum_by:

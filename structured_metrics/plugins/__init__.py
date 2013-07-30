@@ -101,10 +101,9 @@ class Plugin(object):
         tags = match.groupdict()
         tags.update({'target_type': target_config['target_type'], 'plugin': self.classname_to_tag()})
         target = {
+            'id': match.string,  # graphite metric
             'config': target_config,
             'tags': tags,
-            'graphite_metric': match.string,  # keep reference to graphite metric
-            'target': match.string  # most sensible default, can be changed of course..
         }
         return target
 
@@ -133,9 +132,8 @@ class Plugin(object):
         For given proto1 metric, try to upgrade it to proto2 if we can match it to a config
         yield a tuple of id and proto2 metric, being:
             {
-                'graphite_metric': '<..>',  # the exact graphite metric name
-                'target': '<..>',  # as instructed by plugin. usually graphite metric name with maybe graphite functions around it
-                'tag': { tag_key: tag_value [,...]}
+                'id': '<..>',  # the exact graphite metric id
+                'tags': { tag_key: tag_value [,...]}
             }
         }
         """

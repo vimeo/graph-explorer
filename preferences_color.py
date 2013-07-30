@@ -57,7 +57,7 @@ def apply_colors(graph):
             'constants': {'what': 'ms', 'target_type': 'gauge'},
             'targets': [
                 {
-                    'graphite_metric': u'carbon.agents.dfvimeographite2-a.avgUpdateTime',
+                    'id': u'carbon.agents.dfvimeographite2-a.avgUpdateTime',
                     'variables': {'agent': u'dfvimeographite2-a'},
                     'target': u'carbon.agents.dfvimeographite2-a.avgUpdateTime'
                 },

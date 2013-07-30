@@ -122,10 +122,6 @@ class StructuredMetrics(object):
                     tags = v['tags']
                     if ('what' not in tags or 'target_type' not in tags) and 'unit' not in tags:
                         print "WARNING: metric", v, "doesn't have the mandatory tags. ignoring it..."
-                    if v['graphite_metric'] != v['target']:
-                        print "WARNING: deprecated: plugin %s yielded metric with different target then graphite metric for %s" % (plugin_name, v['graphite_metric'])
-                        # TODO if we don't yield here, probably the catchall
-                        # plugin will just yield it in an inferior way.
                     else:
                         # old style: what and target_type tags, new style: unit tag
                         # automatically add new style for all old style metrics
@@ -150,12 +146,6 @@ class StructuredMetrics(object):
         bulk_list = []
         targets = self.list_metrics(metrics)
 
-        # too slow:
-        #for target in targets.values():
-        #    self.es.put('graphite_metrics/metric/%s' % target['graphite_metric'], data={
-        #        'tags': ['%s=%s' % tuple(tag) for tag in target['tags'].items()]
-        #    })
-
         def flush(bulk_list):
             if not len(bulk_list):
                 return
@@ -163,7 +153,7 @@ class StructuredMetrics(object):
             self.es.post('graphite_metrics/metric/_bulk', data=body)
 
         for target in targets.values():
-            bulk_list.append({'index': {'_id': target['graphite_metric']}})
+            bulk_list.append({'index': {'_id': target['id']}})
             bulk_list.append({'tags': ['%s=%s' % tuple(tag) for tag in target['tags'].items()]})
             if len(bulk_list) >= bulk_size:
                 flush(bulk_list)

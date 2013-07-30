@@ -94,10 +94,10 @@ function create_colormap(tags) {
 }
 function get_inspect_url(data, name) {
     var q;
-    if($.isArray(data['graphite_metric'])) {
-        q = data['graphite_metric'].join(',');
+    if($.isArray(data['id'])) {
+        q = data['id'].join(',');
     } else {
-        q = data['graphite_metric'];
+        q = data['id'];
     }
     return "<a href='/inspect/" + q +"'>" + name + "</a>";
 }
