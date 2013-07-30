@@ -1,11 +1,10 @@
 #!/usr/bin/env python2
 import os
 import sys
-import urllib2
 import logging
 
 import config
-from backend import Backend, MetricsError
+from backend import Backend
 import structured_metrics
 
 os.chdir(os.path.dirname(__file__))
