@@ -140,8 +140,8 @@ class StructuredMetrics(object):
                             else:
                                 v['tags']['unit'] = unit
                         targets[k] = v
-                    if metric_matched:
-                        break
+                if metric_matched:
+                    break
         return targets
 
     def update_targets(self, metrics):
