@@ -237,17 +237,3 @@ class StructuredMetrics(object):
             metric = hit_to_metric(hit)
             results[metric['id']] = metric
         return results
-
-    def build_metrics(self, rows):
-        results = {}
-        for (metric_id, tag_key, tag_val) in rows:
-            try:
-                results[metric_id]['tags'][tag_key] = tag_val
-            except KeyError:
-                results[metric_id] = {
-                    'graphite_metric': metric_id,
-                    'tags': {
-                        tag_key: tag_val
-                    }
-                }
-        return results
