@@ -44,15 +44,24 @@
             <span class="icon-bar"></span>
           </a>
           <a class="brand" href="/index">Graph explorer</a>
-          <div class="nav-collapse">
-            <ul class="nav">
-	% for (key, title) in [('index', 'Home'), ('debug', 'Debug'), ('meta', 'Meta'), ('dashboards', 'Dashboards')]:
+          <div class="nav-collapse" id="main-menu">
+            <ul class="nav" id="main-menu-left">
+	% for (key, title) in [('index', 'Home'), ('debug', 'Debug'), ('meta', 'Meta')]:
 		% if page == key:
               <li class="active"><a href="/{{key}}">{{title}}</a></li>
 		% else:
               <li><a href="/{{key}}">{{title}}</a></li>
 		% end
 	% end
+            % from dashboards import list_dashboards
+          <li class="dropdown" id="preview-menu">
+            <a class="dropdown-toggle" data-toggle="dropdown" href="#">Dashboards <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+                % for dashboard in list_dashboards():
+                  <li><a target="_blank" href="/dashboard/{{dashboard}}">{{dashboard}}</a></li>
+                % end
+            </ul>
+          </li>
             </ul>
           </div><!--/.nav-collapse -->
             <ul class="nav pull-right">

@@ -316,6 +316,11 @@ Notice:
   * first plugin that yields a proto2 metric wins for this metric (no other plugins are tried for that metric). that's why catchall plugins have lowest priority.
 
 
+## Writing your own dashboards
+
+Dashboards are simple html template files that display the results for one or more queries.  Just look at the existing files, create a new one,
+and it will automatically be listed (after a graph-explorer restart)
+
 ## Getting in touch
 
 * irc: #graph-explorer on freenode

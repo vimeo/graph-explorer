@@ -58,21 +58,10 @@ def index(query=''):
     return render_page(body)
 
 
-@route('/dashboards')
-@route('/dashboards/<dashboard_name>')
-def slash_dashboards(dashboard_name=None):
-    if dashboard_name:
-        try:
-            d = __import__('dashboards.%s' % dashboard_name, globals(), locals(), ['queries'])
-        except Exception, e:
-            errors['dashboard_%s' % dashboard_name] = ("Failed to load dashboard '%s'" % dashboard_name, e)
-            body = template('templates/body.dashboards', errors=errors)
-            return render_page(body, 'dashboards')
-        dashboard = template('templates/body.dashboard', errors=errors, dashboard=dashboard_name, queries=d.queries)
-        return render_page(dashboard)
-    else:
-        dashboard = template('templates/body.dashboards', errors=errors)
-        return render_page(dashboard)
+@route('/dashboard/<dashboard_name>')
+def slash_dashboard(dashboard_name=None):
+    dashboard = template('templates/dashboards/%s' % dashboard_name, errors=errors)
+    return render_page(dashboard)
 
 
 def render_page(body, page='index'):
@@ -336,6 +325,22 @@ def graphs(query=''):
         query = request.forms.get('query')
     if not query:
         return template('templates/graphs', query=query, errors=errors)
+
+    return render_graphs(query)
+
+
+@route('/graphs_minimal/<query>', method='GET')
+def graphs_minimal(query=''):
+    '''
+    like graphs(), but without extra decoration, so can be used on dashboards
+    TODO dashboard should show any errors
+    '''
+    if not query:
+        return template('templates/graphs', query=query, errors=errors)
+    return render_graphs(query, minimal=True)
+
+
+def render_graphs(query, minimal=False):
     query = parse_query(query)
     (query, target_modifiers) = normalize_query(query)
     patterns = parse_patterns(query)
@@ -380,7 +385,10 @@ def graphs(query=''):
             'preferences': preferences
             }
     args.update(stats)
-    out += template('templates/graphs', args)
+    if minimal:
+        out += template('templates/graphs_minimal', args)
+    else:
+        out += template('templates/graphs', args)
     return out
 
 
