@@ -57,5 +57,7 @@
 		var graph_flot_{{graph_id}} = $.extend({}, defaults, graph_data);
 		$("#chart_flot_{{graph_id}}").graphiteFlot(graph_flot_{{graph_id}}, function(err) { console.log(err); });
 		//$("#chart_flot_{{graph_id}}").graphiteHighcharts(graph_flot_{{graph_id}}, function(err) { console.log(err); });
+        // TODO: error callback should actually show the errors in the html, something like:
+        // function(err) { $("#chart_flot_{{graph_id}}").append('<span class="label label-important">' + err + '</span>'); }
 	});
         </script>
