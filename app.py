@@ -154,7 +154,7 @@ def graphs_limit_targets(graphs, limit):
     return graphs
 
 
-def build_graphs_from_targets(targets, query={}, target_modifiers = []):
+def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
     # merge default options..
     defaults = {
         'group_by': [],
