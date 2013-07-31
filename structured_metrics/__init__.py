@@ -165,8 +165,8 @@ class StructuredMetrics(object):
         return hit_to_metric(hit)
 
     def count_metrics(self):
-        # TODO
-        return 0
+        ret = self.es.post('graphite_metrics/metric/_count')
+        return ret['count']
 
     def build_es_query(self, query):
         conditions = []
