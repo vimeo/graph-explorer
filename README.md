@@ -223,7 +223,7 @@ not needed as the automatic prefixes on the graph suffice.
 ## Dependencies
 
 * python2: either 2.6 or higher, or 2.5 and the additional simplejson module
-* an elasticsearch (see https://github.com/vimeo/carbon-tagger#installation, run the ./recreate_index.sh script)
+* install elasticsearch and run it (super easy, see http://www.elasticsearch.org/guide/reference/setup/installation/, just set a unique cluster name)
 * pytz for rawes(elasticsearch) (TODO: we can probably avoid this)
 
 ## Installation

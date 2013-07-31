@@ -152,6 +152,23 @@ class StructuredMetrics(object):
             body = '\n'.join(map(json.dumps, bulk_list)) + '\n'
             self.es.post('graphite_metrics/metric/_bulk', data=body)
 
+        # make sure index exists with the correct settings
+        body = {
+            "settings" : {
+                "number_of_shards" : 1
+            },
+            "mappings" : {
+                "metric" : {
+                    "_source" : { "enabled" : True },
+                    "_id": {"index": "not_analyzed", "store" : "yes"},
+                    "properties" : {
+                        "tags" : {"type" : "string", "index" : "not_analyzed" }
+                    }
+                }
+            }
+        }
+        self.es.post('graphite_metrics', data=body)
+
         for target in targets.values():
             bulk_list.append({'index': {'_id': target['id']}})
             bulk_list.append({'tags': ['%s=%s' % tuple(tag) for tag in target['tags'].items()]})
