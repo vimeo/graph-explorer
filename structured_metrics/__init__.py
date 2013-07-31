@@ -13,6 +13,7 @@ sys.path.append("%s/%s" % (os.path.dirname(os.path.realpath(__file__)), 'request
 sys.path.append("%s/%s" % (os.path.dirname(os.path.realpath(__file__)), 'rawes'))
 
 import rawes
+from rawes.elastic_exception import ElasticException
 import requests
 
 
@@ -154,20 +155,26 @@ class StructuredMetrics(object):
 
         # make sure index exists with the correct settings
         body = {
-            "settings" : {
-                "number_of_shards" : 1
+            "settings": {
+                "number_of_shards": 1
             },
-            "mappings" : {
-                "metric" : {
-                    "_source" : { "enabled" : True },
-                    "_id": {"index": "not_analyzed", "store" : "yes"},
-                    "properties" : {
-                        "tags" : {"type" : "string", "index" : "not_analyzed" }
+            "mappings": {
+                "metric": {
+                    "_source": {"enabled": True},
+                    "_id": {"index": "not_analyzed", "store": "yes"},
+                    "properties": {
+                        "tags": {"type": "string", "index": "not_analyzed"}
                     }
                 }
             }
         }
-        self.es.post('graphite_metrics', data=body)
+        try:
+            self.es.post('graphite_metrics', data=body)
+        except ElasticException as e:
+            if e.result['error'] == 'IndexAlreadyExistsException[[graphite_metrics] Already exists]':
+                pass
+            else:
+                raise
 
         for target in targets.values():
             bulk_list.append({'index': {'_id': target['id']}})
@@ -189,7 +196,6 @@ class StructuredMetrics(object):
         conditions = []
         for (k, data) in query.items():
             negate = data['negate']
-            print k, data
             if 'match_tag_equality' in data:
                 data = data['match_tag_equality']
                 if data[0] and data[1]:
