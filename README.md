@@ -249,7 +249,8 @@ $EDITOR config.py
 # if you want annotated events using [anthracite](https://github.com/Dieterbe/anthracite) set `anthracite_url`
 # run update_metrics.py (protip: use cron), this downloads metrics.json and builds the enhanced metrics (tag datastructures).
 */20 * * * * /path/to/graph-explorer/update_metrics.py &>/dev/null
-(note, if you have a lot of metrics, this can take a while. takes 10minutes on my 150k metrics. there's some low hanging optimisation fruit there though)
+(note, if you have hundreds of thousands of metrics or more, this can take a few minutes. there's some low hanging optimisation fruit there though,
+see http://<es_host>:<es_port>/graphite_metrics/_count to see the current count)
 ```
 
 ## Configuration of graphite server
