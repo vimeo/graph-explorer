@@ -121,7 +121,7 @@ def graphs_limit_targets(graphs, limit):
 def graphite_func_aggregate(targets, query, aggfunc):
     t = {
         'target': '%s(%s)' % (aggfunc, ','.join([t['target'] for t in targets])),
-        'graphite_metric': [t['graphite_metric'] for t in targets],
+        'graphite_metric': [t['target'] for t in targets],
         'variables': targets[0]['variables']
     }
     for s_b in query:
