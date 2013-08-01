@@ -58,7 +58,7 @@
             <a class="dropdown-toggle" data-toggle="dropdown" href="#">Dashboards <b class="caret"></b></a>
             <ul class="dropdown-menu">
                 % for dashboard in list_dashboards():
-                  <li><a target="_blank" href="/dashboard/{{dashboard}}">{{dashboard}}</a></li>
+                  <li><a href="/dashboard/{{dashboard}}">{{dashboard}}</a></li>
                 % end
             </ul>
           </li>
