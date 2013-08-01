@@ -46,7 +46,7 @@
           <a class="brand" href="/index">Graph explorer</a>
           <div class="nav-collapse" id="main-menu">
             <ul class="nav" id="main-menu-left">
-	% for (key, title) in [('index', 'Home'), ('debug', 'Debug'), ('meta', 'Meta')]:
+	% for (key, title) in [('index', 'Home'), ('meta', 'Meta')]:
 		% if page == key:
               <li class="active"><a href="/{{key}}">{{title}}</a></li>
 		% else:

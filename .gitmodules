@@ -2,12 +2,6 @@
 	path = timeserieswidget
 	url = https://github.com/vimeo/timeserieswidget.git
 	pushurl = git@github.com:vimeo/timeserieswidget.git
-[submodule "DataTables"]
-	path = DataTables
-	url = https://github.com/DataTables/DataTables.git
-[submodule "DataTablesPlugins"]
-	path = DataTablesPlugins
-	url = https://github.com/DataTables/Plugins.git
 [submodule "structured_metrics/rawes"]
 	path = structured_metrics/rawes
 	url = git://github.com/humangeo/rawes.git

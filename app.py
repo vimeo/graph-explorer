@@ -85,42 +85,6 @@ def inspect_metric(metrics=''):
     return render_page(body, 'inspect')
 
 
-@route('/debug')
-@route('/debug/<query>')
-def view_debug(query=''):
-    if 'metrics_file' in errors:
-        body = template('templates/snippet.errors', errors=errors)
-        return render_page(body, 'debug')
-    if query:
-        query = parse_query(query)
-        patterns = parse_patterns(query)
-        targets_matching = s_metrics.matching(patterns)
-        graphs_matching = match(graphs_all, patterns, True)
-        graphs_targets, graphs_targets_options = build_graphs_from_targets(targets_matching, query)
-        targets = targets_matching
-        graphs = graphs_matching
-    else:
-        return "Not implemented. TODO time to deprecate this?"
-
-    args = {'errors': errors,
-            'targets': targets,
-            'graphs': graphs,
-            'graphs_targets': graphs_targets,
-            'graphs_targets_options': graphs_targets_options
-            }
-    body = template('templates/body.debug', args)
-    return render_page(body, 'debug')
-
-
-@route('/debug/metrics')
-def debug_metrics():
-    response.content_type = 'text/plain'
-    if 'metrics_file' in errors:
-        response.status = 500
-        return errors
-    return "\n".join(sorted(s_metrics.list_metric_ids()))
-
-
 def build_graphs(graphs, query={}):
     defaults = {
         'from': '-24hours',

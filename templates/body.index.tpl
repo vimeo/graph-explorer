@@ -6,7 +6,7 @@
           <p>available data? e.g. <a href="/index/list network">list network</a>, <a href="/index/list statsd">list statsd</a>, <a href="/index/list catchall">list catchall</a>
             <br/>leave away the 'list' to create graphs. start with generic terms that will match something, a hostname or something you know is in the metric name.
             <br/>Graph titles, vtitles and legends contain tags by which you can further narrow down or group by.
-            <br/>inspect targets (click them) or browse the <a href='/debug'>debug page</a> to explore more</p>
+            <br/>inspect targets (click them)</p>
         </div>
       <div class="well sidebar-nav">
         <ul class="nav nav-list">
