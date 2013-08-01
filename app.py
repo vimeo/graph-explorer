@@ -176,8 +176,6 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
             graph.update({'constants': constants, 'targets': []})
             graphs[graph_key] = graph
         target = target_data['id']
-        for target_modifier in target_modifiers:
-            target = "%s(%s,%s)" % (target_modifier[0], target, ','.join(target_modifier[1:]))
         # set all options needed for timeserieswidget/flot:
         t = {
             'variables': variables,
@@ -230,6 +228,13 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
     # remove targets/graphs over the limit
     graphs = graphs_limit_targets(graphs, query['limit_targets'])
 
+    # Apply target modifiers (like movingAverage, summarize, ...)
+    for (graph_key, graph_config) in graphs.items():
+        for target in graph_config['targets']:
+            for target_modifier in target_modifiers:
+                target['target'] = "%s(%s,%s)" % (target_modifier[0],
+                                                  target['target'],
+                                                  ','.join(target_modifier[1:]))
     # if in a graph all targets have a tag with the same value, they are
     # effectively constants, so promote them.  this makes the display of the
     # graphs less rendundant and paves the path
