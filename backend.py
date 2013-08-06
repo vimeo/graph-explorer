@@ -58,6 +58,9 @@ class Backend(object):
         self.logger.debug("loading metrics")
         metrics = self.load_metrics()
 
+        self.logger.debug("removing outdated targets")
+        s_metrics.remove_metrics_not_in(metrics)
+
         self.logger.debug("updating targets")
         s_metrics.update_targets(metrics)
 

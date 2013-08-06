@@ -140,6 +140,26 @@ class StructuredMetrics(object):
                         break
         return targets
 
+
+    def es_bulk(self, bulk_list):
+        if not len(bulk_list):
+            return
+        body = '\n'.join(map(json.dumps, bulk_list)) + '\n'
+        self.es.post('graphite_metrics/metric/_bulk', data=body)
+
+    def remove_metrics_not_in(self, metrics):
+        bulk_size = 1000
+        bulk_list = []
+        index = set(metrics)
+        for es_metrics in self.get_all_metrics():
+            for hit in es_metrics['hits']['hits']:
+                if hit['_id'] not in index:
+                    bulk_list.append({'delete': {'_id': hit['_id']}})
+                    if len(bulk_list) >= bulk_size:
+                        self.es_bulk(bulk_list)
+                        bulk_list = []
+        self.es_bulk(bulk_list)
+
     def update_targets(self, metrics):
         # using >1 threads/workers/connections would make this faster
 
@@ -147,11 +167,6 @@ class StructuredMetrics(object):
         bulk_list = []
         targets = self.list_metrics(metrics)
 
-        def flush(bulk_list):
-            if not len(bulk_list):
-                return
-            body = '\n'.join(map(json.dumps, bulk_list)) + '\n'
-            self.es.post('graphite_metrics/metric/_bulk', data=body)
 
         # make sure index exists with the correct settings
         body = {
@@ -180,9 +195,10 @@ class StructuredMetrics(object):
             bulk_list.append({'index': {'_id': target['id']}})
             bulk_list.append({'tags': ['%s=%s' % tuple(tag) for tag in target['tags'].items()]})
             if len(bulk_list) >= bulk_size:
-                flush(bulk_list)
+                self.es_bulk(bulk_list)
                 bulk_list = []
-        flush(bulk_list)
+        self.es_bulk(bulk_list)
+
 
     def load_metric(self, metric_id):
         hit = self.get(metric_id)
@@ -237,13 +253,29 @@ class StructuredMetrics(object):
             }
         }
 
-    def get_metrics(self, query=None):
+    def get_metrics(self, query=None, size=1000):
         try:
             if query is None:
                 query = query_all
-            return self.es.get('graphite_metrics/metric/_search?size=1000', data={
+            return self.es.get('graphite_metrics/metric/_search?size=%s' % size, data={
                 "query": query,
             })
+        except requests.exceptions.ConnectionError as e:
+            sys.stderr.write("Could not connect to ElasticSearch: %s" % e)
+
+    def get_all_metrics(self, query=None, size=200):
+        try:
+            if query is None:
+                query = query_all
+            d = self.es.get('graphite_metrics/metric/_search?search_type=scan&scroll=10m&size=%s' % size, data={
+                "query": query,
+            })
+            scroll_id = d['_scroll_id']
+            d = None
+            while (d is None or len(d['hits']['hits'])):
+                d = self.es.get('_search/scroll?scroll=10m', data=scroll_id)
+                yield d
+                scroll_id = d['_scroll_id']
         except requests.exceptions.ConnectionError as e:
             sys.stderr.write("Could not connect to ElasticSearch: %s" % e)
 
