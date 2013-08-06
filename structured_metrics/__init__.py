@@ -2,6 +2,7 @@ import os
 import sys
 from inspect import isclass
 import sre_constants
+import logging
 try:
     import json
 except ImportError:
@@ -66,9 +67,10 @@ class PluginError(Exception):
 
 class StructuredMetrics(object):
 
-    def __init__(self, config):
+    def __init__(self, config, logger=logging):
         self.plugins = []
         self.es = rawes.Elastic("%s:%s" % (config.es_host, config.es_port))
+        self.logger = logger
 
     def load_plugins(self):
         '''
@@ -122,7 +124,7 @@ class StructuredMetrics(object):
                     (k, v) = proto2_metric
                     tags = v['tags']
                     if ('what' not in tags or 'target_type' not in tags) and 'unit' not in tags:
-                        print "WARNING: metric", v, "doesn't have the mandatory tags. ignoring it..."
+                        self.logger.warn("metric '%s' doesn't have the mandatory tags. ignoring it...", v)
                     else:
                         # old style: what and target_type tags, new style: unit tag
                         # automatically add new style for all old style metrics
@@ -150,21 +152,25 @@ class StructuredMetrics(object):
     def remove_metrics_not_in(self, metrics):
         bulk_size = 1000
         bulk_list = []
+        affected = 0
         index = set(metrics)
         for es_metrics in self.get_all_metrics():
             for hit in es_metrics['hits']['hits']:
                 if hit['_id'] not in index:
                     bulk_list.append({'delete': {'_id': hit['_id']}})
+                    affected += 1
                     if len(bulk_list) >= bulk_size:
                         self.es_bulk(bulk_list)
                         bulk_list = []
         self.es_bulk(bulk_list)
+        self.logger.debug("removed %d metrics from elasticsearch", affected)
 
     def update_targets(self, metrics):
         # using >1 threads/workers/connections would make this faster
 
         bulk_size = 1000
         bulk_list = []
+        affected = 0
         targets = self.list_metrics(metrics)
 
 
@@ -194,10 +200,12 @@ class StructuredMetrics(object):
         for target in targets.values():
             bulk_list.append({'index': {'_id': target['id']}})
             bulk_list.append({'tags': ['%s=%s' % tuple(tag) for tag in target['tags'].items()]})
+            affected += 1
             if len(bulk_list) >= bulk_size:
                 self.es_bulk(bulk_list)
                 bulk_list = []
         self.es_bulk(bulk_list)
+        self.logger.debug("indexed %d metrics", affected)
 
 
     def load_metric(self, metric_id):
