@@ -251,6 +251,8 @@ $EDITOR config.py
 */20 * * * * /path/to/graph-explorer/update_metrics.py &>/dev/null
 (note, if you have hundreds of thousands of metrics or more, this can take a few minutes. there's some low hanging optimisation fruit there though,
 see http://<es_host>:<es_port>/graphite_metrics/_count to see the current count)
+
+Also have a look at preferences.py, this is where you can configure timezone, targets colors, a few graph options, etc.
 ```
 
 ## Configuration of graphite server
