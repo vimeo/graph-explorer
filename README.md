@@ -261,7 +261,7 @@ you'll need a small tweak to allow this app to request data from graphite.
 For apache2 this works:
 
     Header set Access-Control-Allow-Origin "*"
-    Header set Access-Control-Allow-Methods "GET, OPTIONS"
+    Header set Access-Control-Allow-Methods "GET, OPTIONS, POST"
     Header set Access-Control-Allow-Headers "origin, authorization, accept"
 
 ## Running
