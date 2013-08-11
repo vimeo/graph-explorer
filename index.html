@@ -66,7 +66,10 @@
             Choose one or more tags to combine targets by, and represent them as one metric.
             For example: show for each server - on one graph - the sum of bytes used across all matching filesystems on that server.
             <p><a href="https://raw.github.com/vimeo/graph-explorer/gh-pages/screenshot_sum_by.png"><img src="https://raw.github.com/vimeo/graph-explorer/gh-pages/screenshot_sum_by.png" alt="Screenshot sum by"></a></p>
-            <!-- <h1>Correlate with events</h1> -->
+            <h1>Correlate with events</h1>
+            Integrates with <a href="https://github.com/Dieterbe/anthracite/">anthracite</a> for displaying annotated events.
+            (Note: old screenshot, buggy positioning.  Would love some help here)
+            <p><img src="https://raw.github.com/Dieterbe/anthracite/master/screenshots/flot-annotated-event.png"></p>
             <h1>Interactive graphs</h1>
             realtime zooming, inspect datapoints, switch display mode, etc.
             <p><a href="https://raw.github.com/vimeo/graph-explorer/gh-pages/screenshot_zooming.png"><img src="https://raw.github.com/vimeo/graph-explorer/gh-pages/screenshot_zooming.png" alt="Screenshot zooming"></a></p>
@@ -80,7 +83,7 @@
             <ul>
                 <li>KPI dashboard: currently you can't have a single page render the results of different queries and/or statically defined graphs. working on that</li>
                 <li>Comments on graphs/dashboards.  Want to integrate with something like <a href="https://github.com/talkatv/talkatv">talkatv</a> for that</li>
-                <li>Showing annotated events properly.  It works, but there's some layout/css problems</li>
+                <li>Better displaying of annotated events.  Leverage anthracite event search/filtering</li>
             </ul>
       </section>
 
