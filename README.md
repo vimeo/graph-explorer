@@ -243,17 +243,9 @@ or of course, download a release from the [release page](https://github.com/vime
 
 ## Configuration of graph-explorer
 
-```
-# inside the graph-explorer directory
-$EDITOR config.py
-# if you want annotated events using [anthracite](https://github.com/Dieterbe/anthracite) set `anthracite_url`
-# run update_metrics.py (protip: use cron), this downloads metrics.json and builds the enhanced metrics (tag datastructures).
-*/20 * * * * /path/to/graph-explorer/update_metrics.py &>/dev/null
-(note, if you have hundreds of thousands of metrics or more, this can take a few minutes. there's some low hanging optimisation fruit there though,
-see http://<es_host>:<es_port>/graphite_metrics/_count to see the current count)
-
-Also have a look at preferences.py, this is where you can configure timezone, targets colors, a few graph options, etc.
-```
+* edit config.py for basic config options.  If you want annotated events using [anthracite](https://github.com/Dieterbe/anthracite) set `anthracite_url`
+* have a look at preferences.py, this is where you can configure timezone, targets colors, a few graph options, etc.
+* [populate an elasticsearch database with structured metrics](https://github.com/vimeo/graph-explorer/wiki/Structured-Metrics)
 
 ## Configuration of graphite server
 
