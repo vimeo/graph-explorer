@@ -118,14 +118,14 @@ def graphs_limit_targets(graphs, limit):
     return graphs
 
 
-def graphite_func_aggregate(targets, query, aggfunc):
+def graphite_func_aggregate(targets, agg_by_tags, aggfunc):
     t = {
         'target': '%s(%s)' % (aggfunc, ','.join([t['target'] for t in targets])),
         'graphite_metric': [t['target'] for t in targets],
         'variables': targets[0]['variables']
     }
-    for s_b in query:
-        t['variables'][s_b] = '%s (%s values)' % (aggfunc, len(targets))
+    for agg_by_tag in agg_by_tags:
+        t['variables'][agg_by_tag] = '%s (%s values)' % (aggfunc, len(targets))
     return t
 
 
@@ -147,6 +147,7 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
         return (graphs, query)
     group_by = query['group_by']
     sum_by = query['sum_by']
+    avg_by = query['avg_by']
     avg_over = query['avg_over']
     # i'm gonna assume you never use second and your datapoints are stored with
     # minutely resolution. later on we can use config options for this (or
@@ -168,7 +169,6 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
             target_modifier = ['movingAverage', str(avg_over_amount * multiplier)]
             target_modifiers.append(target_modifier)
 
-    avg_by = query['avg_by']
     # for each combination of values of tags from group_by, make 1 graph with
     # all targets that have these values. so for each graph, we have:
     # the "constants": tags in the group_by
@@ -199,23 +199,32 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
             t['color'] = target_data['color']
         graphs[graph_key]['targets'].append(t)
 
-    # sum targets together if appropriate
+    # ok so now we have a graphs dictionary with a graph for every approriate
+    # combination of group_by tags, and each graphs contains all targets that
+    # should be shown on it.  but the user may have asked to aggregate certain
+    # targets together, by summing and/or averaging across different values of
+    # (a) certain tag(s). let's process the aggregations now.
     if (sum_by or avg_by):
         for (graph_key, graph_config) in graphs.items():
             graph_config['targets_sum_candidates'] = {}
             graph_config['targets_avg_candidates'] = {}
             graph_config['normal_targets'] = []
-            all_targets = graph_config['targets'][:]  # Get a copy
+            all_targets = graph_config['targets'][:]  # Get a copy.
 
             for target in all_targets:
                 # targets that can get summed together with other tags, must
                 # have at least 1 'sum_by' tags in the variables list.
                 # targets that can get summed together must have:
-                # * the same 'sum_by' tags
+                # * the same 'sum_by' tag keys (not values, because we
+                # aggregate across different values for these tags)
                 # * the same variables (key and val), except those vals that
                 # are being summed by.
                 # so for every group of sum_by tags and variables we build a
                 # list of targets that can be summed together
+
+                # of course it only makes sense to sum by tags that the target
+                # actually has, and that are not already constants (meaning
+                # every target in the graph has the same value)
                 variables = target['variables'].keys()
                 sum_constants = set(sum_by).intersection(set(variables))
                 if sum_constants:
@@ -237,9 +246,11 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
                         graphite_func_aggregate(targets, sum_by, "sumSeries"))
 
             for target in all_targets:
-                # Now, if we combine average and sum, we must process average
-                # based on sum targets.
-                # If we don't find any avg target match, just add plain sum targets.
+                # Now that any summing is done, we look at aggregating by
+                # averaging because avg(foo+bar+baz) is more efficient
+                # than avg(foo)+avg(bar)+avg(baz)
+                # It's pretty similar than what happened above and aggregates
+                # targets (whether those are sums or regular ones)
                 variables = target['variables'].keys()
                 avg_constants = set(avg_by).intersection(set(variables))
                 if avg_constants:
@@ -274,8 +285,8 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
                                                   ','.join(target_modifier[1:]))
     # if in a graph all targets have a tag with the same value, they are
     # effectively constants, so promote them.  this makes the display of the
-    # graphs less rendundant and paves the path
-    # for later configuration on a per-graph basis.
+    # graphs less rendundant and makes it easier to do config/preferences
+    # on a per-graph basis.
     for (graph_key, graph_config) in graphs.items():
         # get all variable tags throughout all targets in this graph
         tags_seen = set()
