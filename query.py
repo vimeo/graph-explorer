@@ -41,6 +41,9 @@ def parse_query(query_str):
         query['sum_by'] = sum_by_str.split(',')
     if avg_by_str is not None:
         query['avg_by'] = avg_by_str.split(',')
+    if len(query['group_by']) + len(query['sum_by']) + len(query['avg_by']) != len(set(query['group_by'] + query['sum_by'] + query['avg_by'])):
+        raise Exception("'group by' (%s), 'sum by (%s)' and 'avg by (%s)' cannot list the same tag keys" %
+                        (', '.join(query['group_by']), ', '.join(query['sum_by']), ', '.join(query['avg_by'])))
     if avg_over_str is not None:
         # avg_over_str should be something like 'h', '10M', etc
         avg_over = re.match(avg_over_match, avg_over_str)
