@@ -7,6 +7,7 @@ def parse_query(query_str):
         'patterns': [],
         'group_by': ['target_type=', 'what=', 'server'],
         'sum_by': [],
+        'avg_by': [],
         'avg_over': None
     }
 
@@ -29,6 +30,7 @@ def parse_query(query_str):
     (query_str, group_by_str) = parse_out_value(query_str, 'GROUP BY ', '[^ ]+', None)
     (query_str, extra_group_by_str) = parse_out_value(query_str, 'group by ', '[^ ]+', None)
     (query_str, sum_by_str) = parse_out_value(query_str, 'sum by ', '[^ ]+', None)
+    (query_str, avg_by_str) = parse_out_value(query_str, 'avg by ', '[^ ]+', None)
     (query_str, avg_over_str) = parse_out_value(query_str, 'avg over ', '[^ ]+', None)
     if group_by_str is not None:
         query['group_by'] = group_by_str.split(',')
@@ -37,6 +39,8 @@ def parse_query(query_str):
         query['group_by'].extend(extra_group_by_str.split(','))
     if sum_by_str is not None:
         query['sum_by'] = sum_by_str.split(',')
+    if avg_by_str is not None:
+        query['avg_by'] = avg_by_str.split(',')
     if avg_over_str is not None:
         # avg_over_str should be something like 'h', '10M', etc
         avg_over = re.match(avg_over_match, avg_over_str)

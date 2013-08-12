@@ -118,12 +118,24 @@ def graphs_limit_targets(graphs, limit):
     return graphs
 
 
+def graphite_func_aggregate(targets, query, aggfunc):
+    t = {
+        'target': '%s(%s)' % (aggfunc, ','.join([t['target'] for t in targets])),
+        'graphite_metric': [t['target'] for t in targets],
+        'variables': targets[0]['variables']
+    }
+    for s_b in query:
+        t['variables'][s_b] = '%s (%s values)' % (aggfunc, len(targets))
+    return t
+
+
 def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
     # merge default options..
     defaults = {
         'group_by': [],
         'sum_by': [],
         'avg_over': None,
+        'avg_by': [],
         'from': '-24hours',
         'to': 'now',
         'statement': 'graph',
@@ -156,6 +168,7 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
             target_modifier = ['movingAverage', str(avg_over_amount * multiplier)]
             target_modifiers.append(target_modifier)
 
+    avg_by = query['avg_by']
     # for each combination of values of tags from group_by, make 1 graph with
     # all targets that have these values. so for each graph, we have:
     # the "constants": tags in the group_by
@@ -187,11 +200,14 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
         graphs[graph_key]['targets'].append(t)
 
     # sum targets together if appropriate
-    if len(sum_by):
+    if (sum_by or avg_by):
         for (graph_key, graph_config) in graphs.items():
             graph_config['targets_sum_candidates'] = {}
+            graph_config['targets_avg_candidates'] = {}
             graph_config['normal_targets'] = []
-            for target in graph_config['targets']:
+            all_targets = graph_config['targets'][:]  # Get a copy
+
+            for target in all_targets:
                 # targets that can get summed together with other tags, must
                 # have at least 1 'sum_by' tags in the variables list.
                 # targets that can get summed together must have:
@@ -200,30 +216,51 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
                 # are being summed by.
                 # so for every group of sum_by tags and variables we build a
                 # list of targets that can be summed together
-                sum_constants = set(sum_by).intersection(set(target['variables'].keys()))
-                if(sum_constants):
+                variables = target['variables'].keys()
+                sum_constants = set(sum_by).intersection(set(variables))
+                if sum_constants:
                     sum_constants_str = '_'.join(sorted(sum_constants))
-                    variables_str = '_'.join(['%s_%s' % (k, target['variables'][k]) for k in sorted(target['variables'].keys()) if k not in sum_constants])
+                    variables_str = '_'.join(
+                        ['%s_%s' % (k, target['variables'][k]) \
+                            for k in sorted(variables) \
+                            if k not in sum_constants])
                     sum_id = '%s__%s' % (sum_constants_str, variables_str)
-                    if sum_id not in graphs[graph_key]['targets_sum_candidates']:
+                    if sum_id not in graph_config['targets_sum_candidates']:
                         graphs[graph_key]['targets_sum_candidates'][sum_id] = []
-                    graphs[graph_key]['targets_sum_candidates'][sum_id].append(target)
-                else:
-                    graph_config['normal_targets'].append(target)
-            graph_config['targets'] = graph_config['normal_targets']
-            for (sum_id, targets) in graphs[graph_key]['targets_sum_candidates'].items():
-                if (len(targets) == 1):
-                    graph_config['targets'].append(targets[0])
-                else:
-                    t = {
-                        'target': 'sumSeries(%s)' % (','.join([t['target'] for t in targets])),
-                        'id': [t['id'] for t in targets],
-                        'variables': targets[0]['variables']
-                    }
-                    for s_b in sum_by:
-                        t['variables'][s_b] = 'multi (%s values)' % len(targets)
+                    graph_config['targets_sum_candidates'][sum_id].append(target)
 
-                    graph_config['targets'].append(t)
+            for (sum_id, targets) in graph_config['targets_sum_candidates'].items():
+                if len(targets) > 1:
+                    for t in targets:
+                        all_targets.remove(t)
+                    all_targets.append(
+                        graphite_func_aggregate(targets, sum_by, "sumSeries"))
+
+            for target in all_targets:
+                # Now, if we combine average and sum, we must process average
+                # based on sum targets.
+                # If we don't find any avg target match, just add plain sum targets.
+                variables = target['variables'].keys()
+                avg_constants = set(avg_by).intersection(set(variables))
+                if avg_constants:
+                    avg_constants_str = '_'.join(sorted(avg_constants))
+                    variables_str = '_'.join(
+                        ['%s_%s' % (k, target['variables'][k]) \
+                            for k in sorted(variables) \
+                            if k not in avg_constants])
+                    avg_id = '%s__%s' % (avg_constants_str, variables_str)
+                    if avg_id not in graph_config['targets_avg_candidates']:
+                        graph_config['targets_avg_candidates'][avg_id] = []
+                    graph_config['targets_avg_candidates'][avg_id].append(target)
+
+            for (avg_id, targets) in graph_config['targets_avg_candidates'].items():
+                if len(targets) > 1:
+                    for t in targets:
+                        all_targets.remove(t)
+                    all_targets.append(
+                        graphite_func_aggregate(targets, avg_by, "averageSeries"))
+
+            graph_config["targets"] = all_targets
 
     # remove targets/graphs over the limit
     graphs = graphs_limit_targets(graphs, query['limit_targets'])
