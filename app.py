@@ -8,6 +8,7 @@ from backend import Backend, get_action_on_rules_match
 from simple_match import match
 from query import parse_query, normalize_query, parse_patterns
 import logging
+import re
 
 
 # contains all errors as key:(title,msg) items.
@@ -259,6 +260,11 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
                         ['%s_%s' % (k, target['variables'][k])
                             for k in sorted(variables)
                             if k not in avg_constants])
+                    # some values can be like 'sumSeries (8 values)' due to an
+                    # earlier aggregation. if now targets have a different amount of
+                    # values matched, that doesn't matter and they should still
+                    # be aggregated together if the rest of the conditions are met
+                    variables_str = re.sub('\([0-9]+ values\)', '(Xvalues)', variables_str)
                     avg_id = '%s__%s' % (avg_constants_str, variables_str)
                     if avg_id not in graph_config['targets_avg_candidates']:
                         graph_config['targets_avg_candidates'][avg_id] = []
