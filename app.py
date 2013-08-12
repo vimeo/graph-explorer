@@ -230,8 +230,8 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
                 if sum_constants:
                     sum_constants_str = '_'.join(sorted(sum_constants))
                     variables_str = '_'.join(
-                        ['%s_%s' % (k, target['variables'][k]) \
-                            for k in sorted(variables) \
+                        ['%s_%s' % (k, target['variables'][k])
+                            for k in sorted(variables)
                             if k not in sum_constants])
                     sum_id = '%s__%s' % (sum_constants_str, variables_str)
                     if sum_id not in graph_config['targets_sum_candidates']:
@@ -256,8 +256,8 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
                 if avg_constants:
                     avg_constants_str = '_'.join(sorted(avg_constants))
                     variables_str = '_'.join(
-                        ['%s_%s' % (k, target['variables'][k]) \
-                            for k in sorted(variables) \
+                        ['%s_%s' % (k, target['variables'][k])
+                            for k in sorted(variables)
                             if k not in avg_constants])
                     avg_id = '%s__%s' % (avg_constants_str, variables_str)
                     if avg_id not in graph_config['targets_avg_candidates']:
