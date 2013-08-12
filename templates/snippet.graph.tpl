@@ -1,4 +1,4 @@
-%graph_id = graph_key.replace('.','').replace('-','_').replace(' ','_') # disallowed in var names
+%graph_id = ''.join(e for e in graph_key if e.isalnum())
 <h2 id="h2_{{graph_id}}"></h2>
 %try: import json
 %except ImportError: import simplejson as json
