@@ -19,53 +19,11 @@ It also has a dashboards feature which are pages that show N queries along with 
 explains most of the concepts and tricks in less than 30minutes.
 [vimeo.com/67080202](http://vimeo.com/67080202)
 
-## Enhanced Metrics
+## Structured Metrics
 
 In graphite, a metric has a name and a corresponding time series of values.
-Graph-explorer's plugins define rules which match metric names, parse them and yield a target with associated metadata:
-
-* tags from fields in the metric name (server, service, interface_name, etc) by using named groups in a regex.  (there's some guidelines for tags, see below)
-* target_type (count, rate, gauge, ...)
-* unit (MB, queries/s, ...)
-* plugin (i.e. 'cpu')
-* the graphite target (often just the metric name, but you can use the [graphite functions](http://graphite.readthedocs.org/en/1.0/functions.html) like `derivative`, `scale()` etc.
-
-all metadata is made available as a tag, and an id is generated from all tag keys and values, to provide easy matching.
-
-the configuration also provide settings:
-
-* `configure` function or list of functions to further enhance the target dynamically (given the match object and the target along with its config), in addition to the default
-  defined function which can also be overridden.
-
-Note that it is trivial to yield multiple targets from the same metric.  I.e. you can have a metric available as rate, counter, average, etc by applying different functions.
-
-Try to use standardized nomenclature in target types and tags.  Do pretty much what statsd does:
-
-* rate: a number per second
-* count: a number per a given interval (such as a statsd flushInterval)
-* gauge: values at each point in time
-* counter: a number that keeps increasing over time (but might wrap/reset at some points) (no statsd counterpart) (you'll probably also want to yield this as a rate with `derivative()`)
-* timestamp: value represents a unix timestamp. so basically a gauge or counter but we know we can also render the "age" at each point.
-* timing: TBD
-
-other words you might use are `pct` (percent), `http_method`, `device`, etc.  Also, keep everything in lowercase, that just keeps things easy when matching.
-Some exceptions for things that are accepted to be upper case are http methods (GET, PUT,etc)
-
-tag definitions:
-"what": the intrinsic thing that we're graphing (not *how* we graph it). i.e. errors, requests, cpu_state (used in vtitle, grouping into graphs)
-"type": extra info. i.e. if what is errors, this can be 'in'. if what is requests, this can be '404'. sometimes you may want to put multiple words here, and that's ok (but consider creating new tags for those)
-"wt": often a metric path will contain one key that has info on both the "what" and "type", "wt" is commonly used to catch it, so you can sanitize it (see below)
-
-all metrics must have a unit tag. because otherwise they are meaningless, also because they are used in the default group_by (TODO: show warnings if not)
-
-sanitization
-the process of properly setting "what" and "type" tags from a "wt" tag and deleting the "wt" tag again.
-
-
-## What to put in your tags
-
-in principle, whatever you want.
-However, for units and unit prefixes you should honor [this standard](https://github.com/vimeo/graph-explorer/wiki/Units-&-Prefixes), especially if you depend on any rescaling etc GE does.
+Graph-explorer's metrics are structured: they contain key-value tags that describe all their attributes, the unit, the metric type, etc.
+You can [generate the tag database] by using plugins that parse metrics using regular expressions, or by tagging them as they flow into graphite.
 
 
 ## Query parsing and execution
