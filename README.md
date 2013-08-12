@@ -1,17 +1,18 @@
 # Graph explorer
 
-A highly interactive dashboard to satisfy varying ad-hoc information needs across a multitude of metrics by using plugins which
+A highly interactive dashboard to satisfy varying ad-hoc information needs across a multitude of metrics in a very powerful way:  
 
-* add metadata to individual graphite metrics, (tags such as as server, service, type, ...)
-* define how to generate (multiple) targets for any metric (to render as a count, a rate, etc)
+* The core of graph-explorer is a database containing your metrics extended with tags
+(key-value pairs that represent server, service, type, unit, ...)
+* You can use expressive queries which leverage this metadata to filter targets, group them into graphs, process and aggregate them on the fly.
+Something like SQL but metrics for rows and a list of graph definitions as a result set.  All graphs are built dynamically.
 
-you can then use expressive queries which leverage this metadata to filter targets and group them into graphs in arbitrary ways.
-Something like SQL but targets for rows and a list of graph definitions as a result set.
 The graphs themselves support annotated events and are also interactive because it uses [timeserieswidget](https://github.com/vimeo/timeserieswidget)
-
-Furthermore, the code is simple and hackable (just a few hundred sLOC), uses simple python files as plugins, and is a breeze to get running
+Furthermore, the code is simple and hackable (just a few hundred sLOC) python code and is a breeze to get running
 
 ![Screenshot](https://raw.github.com/vimeo/graph-explorer/master/screenshot.png)
+
+It also has a dashboards feature which are pages that show N queries along with their results (0-N graphs each).
 
 ## Screencast
 
@@ -65,10 +66,6 @@ the process of properly setting "what" and "type" tags from a "wt" tag and delet
 
 in principle, whatever you want.
 However, for units and unit prefixes you should honor [this standard](https://github.com/vimeo/graph-explorer/wiki/Units-&-Prefixes), especially if you depend on any rescaling etc GE does.
-
-## Graphs
-
-* Are dynamically built as requested by your query.
 
 
 ## Query parsing and execution
