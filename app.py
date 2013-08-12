@@ -121,7 +121,7 @@ def graphs_limit_targets(graphs, limit):
 def graphite_func_aggregate(targets, agg_by_tags, aggfunc):
     t = {
         'target': '%s(%s)' % (aggfunc, ','.join([t['target'] for t in targets])),
-        'graphite_metric': [t['target'] for t in targets],
+        'id': [t['id'] for t in targets],
         'variables': targets[0]['variables']
     }
     for agg_by_tag in agg_by_tags:
