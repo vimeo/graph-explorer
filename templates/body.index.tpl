@@ -10,7 +10,7 @@
         </div>
       <div class="well sidebar-nav">
         <ul class="nav nav-list">
-          <li class="nav-header">Query <span class="badge badge-info"><strong><a href="https://github.com/vimeo/graph-explorer#query-parsing-and-execution">?</a></strong></span></li>
+          <li class="nav-header">Query <span class="badge badge-info"><strong><a href="https://github.com/vimeo/graph-explorer/wiki/GEQL">?</a></strong></span></li>
           <li><form action="/index" method="get" onsubmit="location.href='/index/' + encodeURIComponent(this.query.value); return false;">
           %# http://stackoverflow.com/questions/1370021/enter-key-on-a-form-with-a-single-input-field-will-automatically-submit-with-ge
           %# http://www.carehart.org/blog/client/index.cfm/2007/5/21/enter_on_submit_fails_with_two_input_text_fields
