@@ -14,12 +14,14 @@
         $("#tag_legend").html(list_tags_in_graph_name_order({{!list(tags)}}));
         $("#patterns").html(generate_pattern_display({{!list(query['patterns'])}}));
         $("#group_by").html(generate_pattern_display({{!list(query['group_by'])}}));
+        $("#avg_by").html(generate_pattern_display({{!list(query['avg_by'])}}));
         $("#sum_by").html(generate_pattern_display({{!list(query['sum_by'])}}));
         </script>
             Tag legend: <span id="tag_legend"></span><br/>
             <br/>
             Patterns: <span id="patterns"></span><br/>
             Group by: <span id="group_by"></span><br/>
+            Avg by: <span id="avg_by"></span><br/>
             Sum by: <span id="sum_by"></span><br/>
             % if query['avg_over']:
             % avg_over_display = {'s': 'seconds', 'M': 'minutes', 'h': 'hours', 'd': 'days', 'w': 'weeks', 'mo': 'months'}
