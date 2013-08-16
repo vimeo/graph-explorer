@@ -149,32 +149,7 @@ class StructuredMetrics(object):
         body = '\n'.join(map(json.dumps, bulk_list)) + '\n'
         self.es.post('graphite_metrics/metric/_bulk', data=body)
 
-    def remove_metrics_not_in(self, metrics):
-        bulk_size = 1000
-        bulk_list = []
-        affected = 0
-        index = set(metrics)
-        for es_metrics in self.get_all_metrics():
-            for hit in es_metrics['hits']['hits']:
-                if hit['_id'] not in index:
-                    bulk_list.append({'delete': {'_id': hit['_id']}})
-                    affected += 1
-                    if len(bulk_list) >= bulk_size:
-                        self.es_bulk(bulk_list)
-                        bulk_list = []
-        self.es_bulk(bulk_list)
-        self.logger.debug("removed %d metrics from elasticsearch", affected)
-
-    def update_targets(self, metrics):
-        # using >1 threads/workers/connections would make this faster
-
-        bulk_size = 1000
-        bulk_list = []
-        affected = 0
-        targets = self.list_metrics(metrics)
-
-
-        # make sure index exists with the correct settings
+    def assure_index(self):
         body = {
             "settings": {
                 "number_of_shards": 1
@@ -197,6 +172,32 @@ class StructuredMetrics(object):
             else:
                 raise
 
+    def remove_metrics_not_in(self, metrics):
+        bulk_size = 1000
+        bulk_list = []
+        affected = 0
+        self.assure_index()
+        index = set(metrics)
+        for es_metrics in self.get_all_metrics():
+            for hit in es_metrics['hits']['hits']:
+                if hit['_id'] not in index:
+                    bulk_list.append({'delete': {'_id': hit['_id']}})
+                    affected += 1
+                    if len(bulk_list) >= bulk_size:
+                        self.es_bulk(bulk_list)
+                        bulk_list = []
+        self.es_bulk(bulk_list)
+        self.logger.debug("removed %d metrics from elasticsearch", affected)
+
+    def update_targets(self, metrics):
+        # using >1 threads/workers/connections would make this faster
+        bulk_size = 1000
+        bulk_list = []
+        affected = 0
+        targets = self.list_metrics(metrics)
+
+        self.assure_index()
+
         for target in targets.values():
             bulk_list.append({'index': {'_id': target['id']}})
             bulk_list.append({'tags': ['%s=%s' % tuple(tag) for tag in target['tags'].items()]})
@@ -213,6 +214,7 @@ class StructuredMetrics(object):
         return hit_to_metric(hit)
 
     def count_metrics(self):
+        self.assure_index()
         ret = self.es.post('graphite_metrics/metric/_count')
         return ret['count']
 
@@ -262,6 +264,7 @@ class StructuredMetrics(object):
         }
 
     def get_metrics(self, query=None, size=1000):
+        self.assure_index()
         try:
             if query is None:
                 query = query_all
@@ -272,6 +275,7 @@ class StructuredMetrics(object):
             sys.stderr.write("Could not connect to ElasticSearch: %s" % e)
 
     def get_all_metrics(self, query=None, size=200):
+        self.assure_index()
         try:
             if query is None:
                 query = query_all
@@ -288,9 +292,11 @@ class StructuredMetrics(object):
             sys.stderr.write("Could not connect to ElasticSearch: %s" % e)
 
     def get(self, metric_id):
+        self.assure_index()
         return self.es.get('graphite_metrics/metric/%s' % metric_id)
 
     def matching(self, patterns):
+        self.assure_index()
         # future optimisation: query['limit_targets'] can be applied if no
         # sum_by or kind of later aggregation
         es_query = self.build_es_query(patterns)
