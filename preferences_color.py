@@ -97,19 +97,13 @@ def apply_colors(graph):
         'update_time': colors['turq'][0]
     }
 
-    # object_server, object_auditor, proxy_server [...?]
-    color_assign_swift = [
-        ({'m': 'GET',       'w': ('lower',    'timeouts', 'xfer')}, colors['blue'][0]),
-        ({'m': 'GET',       'w': ('upper_90', 'errors')},           colors['blue'][1]),
-        ({'m': 'HEAD',      'w': ('lower',    'timeouts', 'xfer')}, colors['yellow'][0]),
-        ({'m': 'HEAD',      'w': ('upper_90', 'errors')},           colors['yellow'][1]),
-        ({'m': 'PUT',       'w': ('lower',    'timeouts', 'xfer')}, colors['green'][0]),
-        ({'m': 'PUT',       'w': ('upper_90', 'errors')},           colors['green'][1]),
-        ({'m': 'REPLICATE', 'w': ('lower',    'timeouts', 'xfer')}, colors['brown'][0]),
-        ({'m': 'REPLICATE', 'w': ('upper_90', 'errors')},           colors['brown'][1]),
-        ({'m': 'DELETE',    'w': ('lower',    'timeouts', 'xfer')}, colors['red'][0]),
-        ({'m': 'DELETE',    'w': ('upper_90', 'errors')},           colors['red'][1]),
-        ({'w': 'async_pendings'},                                   colors['turq'][0])
+    # http stuff, for swift and others
+    color_assign_http = [
+        ({'http_method': 'GET'},       colors['blue']),
+        ({'http_method': 'HEAD'},      colors['yellow']),
+        ({'http_method': 'PUT'},       colors['green']),
+        ({'http_method': 'REPLICATE'}, colors['brown']),
+        ({'http_method': 'DELETE'},    colors['red']),
     ]
 
     for (i, target) in enumerate(graph['targets']):
@@ -133,18 +127,21 @@ def apply_colors(graph):
                 graph['targets'][i]['color'] = color_assign_load[t]
 
         # swift
-        # technically the use of the get [unique] tag values is not correct
-        # here. a better approach would be just doing the matching and seeing
-        # if we gave anything the same color, and then deal with that.  because
-        # with multiple tags, one of which can have multiple values, etc,
-        # things become a bit more complicated.  we basically want to know "is
-        # there any other target in the graph that matches the same
-        # conditions?"
-        m = get_unique_tag_value(graph, target, 'http_method')
         w = get_tag_value(graph, target, 'what')
+        if w == 'async_pendings':
+            graph['targets'][i]['color'] = colors['turq'][0]
+
+        # http.
+        # note this doesn't prevent targets possibly having the same color
+        m = get_tag_value(graph, target, 'http_method')
         if m is not None:
-            t = {'m': m, 'w': w}
-            for color in backend.get_action_on_rules_match(color_assign_swift, t):
+            t = {'http_method': m}
+            for color in backend.get_action_on_rules_match(color_assign_http, t):
+                # in some cases we want the color extra strong:
+                if w in ('upper_90', 'errors'):
+                    color = color[1]
+                else:
+                    color = color[0]
                 graph['targets'][i]['color'] = color
 
     return graph
