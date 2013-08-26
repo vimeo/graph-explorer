@@ -335,7 +335,7 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
 
 
 @route('/graphs/', method='POST')
-@route('/graphs/<query>', method='GET')  # used for manually testing
+@route('/graphs/<query:path>', method='GET')  # used for manually testing
 def graphs(query=''):
     '''
     get all relevant graphs matching query,
@@ -352,7 +352,7 @@ def graphs(query=''):
     return render_graphs(query)
 
 
-@route('/graphs_minimal/<query>', method='GET')
+@route('/graphs_minimal/<query:path>', method='GET')
 def graphs_minimal(query=''):
     '''
     like graphs(), but without extra decoration, so can be used on dashboards
