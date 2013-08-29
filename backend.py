@@ -9,7 +9,6 @@ except ImportError:
 import os
 import logging
 
-
 class MetricsError(Exception):
     def __init__(self, msg, underlying_error):
         self.msg = str(msg)
@@ -18,16 +17,33 @@ class MetricsError(Exception):
     def __str__(self):
         return "%s (%s)" % (self.msg, self.underlying_error)
 
-
 class Backend(object):
-
     def __init__(self, config, logger=logging):
         self.config = config
         self.logger = logger
 
     def download_metrics_json(self):
         import urllib2
-        response = urllib2.urlopen("%s/metrics/index.json" % self.config.graphite_url)
+        if (self.config.graphite_username != None and self.config.graphite_password != None):
+            # set up the graphite url
+            url = self.config.graphite_url + "/metrics/index.json"
+            #user/pass from the config file
+            username = self.config.graphite_username
+            password = self.config.graphite_password
+            # create the password manager 
+            passmanager = urllib2.HTTPPasswordMgrWithDefaultRealm()
+            # add the credentials to the password manager
+            passmanager.add_password(None, url, username, password)
+            # add the authentication handler    
+            authhandler = urllib2.HTTPBasicAuthHandler(passmanager)
+            opener = urllib2.build_opener(authhandler)
+            # install the authentication handler, all url_open commands will now use it
+            urllib2.install_opener(opener)
+            # finnally get our data
+            response = urllib2.urlopen(url)
+        else:
+            response = urllib2.urlopen("%s/metrics/index.json" % self.config.graphite_url)
+       
         m = open('%s.tmp' % self.config.filename_metrics, 'w')
         m.write(response.read())
         m.close()
@@ -63,7 +79,6 @@ class Backend(object):
 
         self.logger.debug("updating targets")
         s_metrics.update_targets(metrics)
-
 
 def get_action_on_rules_match(rules, subject):
     '''
