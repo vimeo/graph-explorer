@@ -8,4 +8,4 @@ def list_dashboards():
             continue
         dashboards.append(f[:-4])
     os.chdir(wd)
-    return dashboards
+    return sorted(dashboards)
