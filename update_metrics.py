@@ -35,4 +35,6 @@ try:
     logger.info("success!")
 except Exception, e:
     logger.error("sorry, something went wrong: %s", e)
+    from traceback import print_exc
+    print_exc()
     sys.exit(2)
