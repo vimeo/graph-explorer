@@ -1,4 +1,5 @@
-% key = "%s_%s" % (dash, ''.join(e for e in title if e.isalnum()))
+% key = "%s_%s" % (dash, ''.join(e if e.isalnum() else str(ord(e)) for e in title))
+
 
 <h3>
     {{title}}
