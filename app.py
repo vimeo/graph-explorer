@@ -332,6 +332,22 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
                 graphs[graph_key].update(graph_option)
             else:
                 graphs[graph_key] = graph_option(graphs[graph_key])
+
+    # now that some constants are promoted, we can give the graph more
+    # unique keys based on all (original + promoted) constants. this is in
+    # line with the meaning of the graph ("all targets with those constant
+    # tags"), but more importantly: this fixes cases where some graphs
+    # would otherwise have the same key, even though they have a different
+    # set of constants, this can manifest itself on dashboard pages where
+    # graphs for different queries are shown.
+    new_graphs = {}
+    for (graph_key, graph_config) in graphs.items():
+        better_graph_key_1 = '__'.join('%s_%s' % i for i in graph_config['constants'].items())
+        better_graph_key_2 = '__'.join('%s_%s' % i for i in graph_config['promoted_constants'].items())
+        better_graph_key = '%s___%s' % (better_graph_key_1, better_graph_key_2)
+        new_graphs[better_graph_key] = graph_config
+    graphs = new_graphs
+
     return (graphs, query)
 
 
