@@ -81,6 +81,7 @@ def inspect_metric(metrics=''):
     metrics = map(s_metrics.load_metric, metrics.split(','))
     args = {'errors': errors,
             'metrics': metrics,
+            'config': config
             }
     body = template('templates/body.inspect', args)
     return render_page(body, 'inspect')

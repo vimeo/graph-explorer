@@ -5,7 +5,9 @@
           <h2>Targets</h2>
 % print metrics
 % for metric in metrics:
-            Key:{{metric['id']}}</br>
+            Key:{{metric['id']}}<br/>
+            <a href="{{config.graphite_url}}/render/?target={{metric['id']}}"><i class="icon-picture"></i></a>
+            <br/>
             <table class="table">
                 <tr><td>tags</td>
                 <td><ul>
