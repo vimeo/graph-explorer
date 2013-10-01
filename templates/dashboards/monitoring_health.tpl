@@ -15,7 +15,7 @@
                         %include templates/snippet.graphs.minimal dash="monitoring_health", title="Statsd server udp stats", query="plugin=udp server:statsd group by type"
                     </div>
                     <div class="tab-pane" id="tab2">
-                        %include templates/snippet.graphs.minimal dash="monitoring_health", title="Carbon metrics", query="/plugin=carbon"
+                        %include templates/snippet.graphs.minimal dash="monitoring_health", title="Carbon metrics", query="plugin=carbon"
                     </div>
                 </div>
             </div>
