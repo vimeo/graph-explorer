@@ -101,3 +101,13 @@ function get_inspect_url(data, name) {
     }
     return "<a href='/inspect/" + q +"'>" + name + "</a>";
 }
+
+function update_dash_entry(key) {
+    var entry_input = document.getElementById('query_' + key);
+
+    var entry_fs_link = document.getElementById('link_fullscreen_' + key);
+    entry_fs_link.href = '/index/' + encodeURIComponent(entry_input.value);
+
+    $("#viewport_" + key).load("/graphs_minimal/" + encodeURIComponent(entry_input.value));
+}
+

@@ -1,3 +1,4 @@
+%include templates/snippet.apply_all
 <div class="container-fluid">
     %include templates/snippet.errors errors=errors
     <div class="row">

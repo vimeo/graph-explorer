@@ -1,16 +1,10 @@
 % key = "%s_%s" % (dash, ''.join(e if e.isalnum() else str(ord(e)) for e in title))
 
-
-<h3>
-    {{title}}
-    <a href="this_needs_javascript_to_work" id="{{key}}_link_fullscreen"><i class="icon-fullscreen"></i></a>
-</h3>
-<script language="javascript">
-var a = document.getElementById('{{key}}_link_fullscreen');
-a.href = '/index/' + encodeURIComponent("{{query}}");
-</script>
-
-<div class="well" id="{{key}}"></div>
+<form style="display: inline;" action="javascript:void(0);">
+ <input style="display: inline;" type="text" class="query_input input-xxlarge" id="query_{{key}}" data-orig-value="{{query}}" value="{{query}}">
+</form>
+&nbsp; &nbsp; <a href="this_needs_javascript_to_work" id="link_fullscreen_{{key}}"><i class="icon-fullscreen"></i></a>
+<div class="well" id="viewport_{{key}}"></div>
 <script lang="javascript">
-    $("#{{key}}").load("/graphs_minimal/" + encodeURIComponent("{{query}}"));
+    update_dash_entry("{{key}}");
 </script>
