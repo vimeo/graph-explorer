@@ -333,6 +333,15 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
             else:
                 graphs[graph_key] = graph_option(graphs[graph_key])
 
+        # but, the query may override some preferences:
+        override = {}
+        if query['statement'] == 'lines':
+            override['state'] = 'lines'
+        if query['statement'] == 'stack':
+            override['state'] = 'stacked'
+
+        graphs[graph_key].update(override)
+
     # now that some constants are promoted, we can give the graph more
     # unique keys based on all (original + promoted) constants. this is in
     # line with the meaning of the graph ("all targets with those constant
@@ -410,7 +419,7 @@ def render_graphs(query, minimal=False):
     targets_list = {}
     # the code to handle different statements, and the view
     # templates could be a bit prettier, but for now it'll do.
-    if query['statement'] == 'graph':
+    if query['statement'] in ('graph', 'lines', 'stack'):
         graphs_targets_matching = build_graphs_from_targets(targets_matching, query, target_modifiers)[0]
         stats['len_graphs_targets_matching'] = len(graphs_targets_matching)
         graphs_matching.update(graphs_targets_matching)
