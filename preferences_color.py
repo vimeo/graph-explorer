@@ -1,5 +1,5 @@
 import backend
-from colors import colors
+from colors import colors, color_variant
 
 
 # convenience functions
