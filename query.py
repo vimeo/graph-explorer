@@ -8,7 +8,9 @@ def parse_query(query_str):
         'group_by': ['target_type=', 'what=', 'server'],
         'sum_by': [],
         'avg_by': [],
-        'avg_over': None
+        'avg_over': None,
+        'min': None,
+        'max': None
     }
 
     # for a call like ('foo bar baz quux', 'bar ', 'baz', 'def')
@@ -32,6 +34,8 @@ def parse_query(query_str):
     (query_str, sum_by_str) = parse_out_value(query_str, 'sum by ', '[^ ]+', None)
     (query_str, avg_by_str) = parse_out_value(query_str, 'avg by ', '[^ ]+', None)
     (query_str, avg_over_str) = parse_out_value(query_str, 'avg over ', '[^ ]+', None)
+    (query_str, min_str) = parse_out_value(query_str, 'min ', '[^ ]+', None)
+    (query_str, max_str) = parse_out_value(query_str, 'max ', '[^ ]+', None)
     if group_by_str is not None:
         query['group_by'] = group_by_str.split(',')
     elif extra_group_by_str is not None:
@@ -41,6 +45,11 @@ def parse_query(query_str):
         query['sum_by'] = sum_by_str.split(',')
     if avg_by_str is not None:
         query['avg_by'] = avg_by_str.split(',')
+    if min_str is not None:
+        query['min'] = int(min_str)
+    if max_str is not None:
+        query['max'] = int(max_str)
+
     if len(query['group_by']) + len(query['sum_by']) + len(query['avg_by']) != len(set(query['group_by'] + query['sum_by'] + query['avg_by'])):
         raise Exception("'group by' (%s), 'sum by (%s)' and 'avg by (%s)' cannot list the same tag keys" %
                         (', '.join(query['group_by']), ', '.join(query['sum_by']), ', '.join(query['avg_by'])))

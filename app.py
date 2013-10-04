@@ -339,6 +339,12 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
             override['state'] = 'lines'
         if query['statement'] == 'stack':
             override['state'] = 'stacked'
+        if query['min'] is not None:
+            override['yaxis'] = override.get('yaxis', {})
+            override['yaxis'].update({'min': query['min']})
+        if query['max'] is not None:
+            override['yaxis'] = override.get('yaxis', {})
+            override['yaxis'].update({'max': query['max']})
 
         graphs[graph_key].update(override)
 
