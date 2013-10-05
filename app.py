@@ -396,18 +396,24 @@ def graphs_minimal(query=''):
 
 
 def render_graphs(query, minimal=False):
+    if "query_parse" in errors:
+        del errors["query_parse"]
     try:
-        if "query_parse" in errors:
-            del errors["query_parse"]
         query = parse_query(query)
     except Exception, e:
         errors["query_parse"] = ("Couldn't parse query", e)
     if errors:
         body = template('templates/snippet.errors', errors=errors)
-        return render_page(body, 'debug')
+        return render_page(body)
 
     (query, target_modifiers) = normalize_query(query)
-    patterns = parse_patterns(query)
+    try:
+        patterns = parse_patterns(query)
+    except Exception, e:
+        errors["query_parse"] = ("Couldn't parse query patterns", e)
+    if errors:
+        body = template('templates/snippet.errors', errors=errors)
+        return render_page(body)
     tags = set()
     targets_matching = s_metrics.matching(patterns)
     for target in targets_matching.values():
