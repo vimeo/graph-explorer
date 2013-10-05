@@ -1,8 +1,6 @@
 # Note:
-# * example queries will only work if you have corresponding metrics, of course
 # * these demonstrate some id matching, tag matching, etc. there's usually
 #    multiple ways to achieve the same result.
-# * these examples are a bit specific to vimeo things (e.g. dfvimeo* hostnames)
 # * tags here do not necessarily correspond to tags in targets. they are for
 #   informative purposes only.  although we could (automatically) display the
 #   tags from the query (and make keys implicit in the color of the label or
@@ -15,67 +13,31 @@
 #   hostnames)
 queries = [
     {
-        'query': 'swift_object_server rate',
-        'desc': 'events rates',
-        'tags': ['swift', 'dfs']
+        'query': 'diskspace unit=B used _var',
+        'desc': '/var usage'
     },
     {
-        'query': 'diskspace gauge what=bytes used mountpoint:_srv server:dfvimeodfs',
-        'desc': '/srv/* usage',
-        'tags': ['disk', 'dfs']
+        'query': 'diskspace unit=B used _var avg by server',
+        'desc': '/var usage, average of all servers'
     },
     {
-        'query': 'diskspace gauge what=bytes used _var dfvimeodfs',
-        'desc': '/var usage',
-        'tags': ['disk', 'dfs']
+        'query': 'diskspace unit=B/s used _var',
+        'desc': 'change in /var usage'
     },
     {
-        'query': 'diskspace rate !giga bytes used _var dfvimeodfs',
-        'desc': 'change in /var usage',
-        'tags': ['disk', 'dfs']
+        'query': 'iostat rate (read|write) byte',
+        'desc': 'read/write B/s'  # TODO: a better way to paraphrase these. some kind of aggregation?
     },
     {
-        'query': 'proxy_server timer (lower|upper_90)',
-        'desc': 'http request timings',
-        'tags': ['swift', 'dfsproxy']
+        'query': 'stack plugin=load group by type !05 !15 avg over 30M',
+        'desc': 'compare load across machines'  # no 5,15 minutely avg, we already have 1 minutely
     },
     {
-        'query': 'object_server timer (lower|upper_90)',
-        'desc': 'http request timings',
-        'tags': ['swift', 'dfs']
-    },
-    {
-        'query': 'container_metrics group by what',
-        'desc': 'container metrics',
-        'tags': ['swift']
-    },
-    {
-        'query': 'category:dispersion group by type',  # this means errors aren't shown, cause they won't have a type.
-        'desc': 'dispersion (highlevel health)',
-        'tags': ['swift']
-    },
-    {
-        'query': 'iostat rate (read|write) byte dfvimeodfs',
-        'desc': 'read/write B/s',  # TODO: a better way to paraphrase these. some kind of aggregation?
-        'tags': ['disk', 'dfs', 'dfsproxy']
-    },
-    {
-        'query': 'plugin=load group by type !05 !15',
-        'desc': 'compare load across machines',  # no 5,15 minutely avg, we already have 1 minutely
-        'tags': ['load', '*']
-    },
-    {
-        'query': 'bond. (rx|tx) bit group by type server:dfs',
-        'desc': 'storage network traffic',
-        'tags': ['swift', 'dfs', 'dfsproxy']
-    },
-    {
-        'query': 'network bits',
-        'desc': 'traffic in bit on all interfaces',
-        'tags': ['network', '*']
-    },
+        'query': 'device=eth0 (rx|tx) bit avg by type sum by server avg over 1h',
+        'desc': 'network traffic'
+    }
 ]
 suggested_queries = {
-    'notes': 'swift means the app.<br/>dfs means the object servers, dfsproxy the proxy servers',
+    'notes': 'example queries which may or may not work depending on whether you have the metrics',
     'queries': queries
 }

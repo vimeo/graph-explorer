@@ -4,6 +4,13 @@
     <div class="row">
         <div class="span12">
             <h2>Monitoring health</h2>
+            This dashboard is an experiment in using tabs.  It has known bugs:
+            <ul>
+                <li>tabs only display after going to the carbon tab</li>
+                <li>vertical labels are a bit off</li>
+                <li>"apply to all" doesn't work</li>
+            </ul>
+            For an elegant simple dashboard example that just works, check "graphite-machine-example"
             <div class="tabbable">
                 <ul class="nav nav-tabs">
                     <li class="active"><a href="#tab1" data-toggle="tab">Statsd</a></li>

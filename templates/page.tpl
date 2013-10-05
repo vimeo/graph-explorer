@@ -46,7 +46,7 @@
           <a class="brand" href="/index">Graph explorer</a>
           <div class="nav-collapse" id="main-menu">
             <ul class="nav" id="main-menu-left">
-	% for (key, title) in [('index', 'Home'), ('meta', 'Meta')]:
+	% for (key, title) in [('index', 'Home')]:
 		% if page == key:
               <li class="active"><a href="/{{key}}">{{title}}</a></li>
 		% else:
@@ -62,6 +62,7 @@
                 % end
             </ul>
           </li>
+            <li><a target="_blank" href="https://github.com/vimeo/graph-explorer/wiki">Help</a></li>
             </ul>
           </div><!--/.nav-collapse -->
             <ul class="nav pull-right">

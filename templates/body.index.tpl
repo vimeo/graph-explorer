@@ -1,12 +1,14 @@
+%import urllib
 <div class="container-fluid">
   <div class="row-fluid">
     <div class="span3">
       <div class="well sidebar-nav">
-          <div class="nav-header">Getting started</div>
-          <p>available data? e.g. <a href="/index/list network">list network</a>, <a href="/index/list statsd">list statsd</a>, <a href="/index/list catchall">list catchall</a>
-            <br/>leave away the 'list' to create graphs. start with generic terms that will match something, a hostname or something you know is in the metric name.
-            <br/>Graph titles, vtitles and legends contain tags by which you can further narrow down or group by.
-            <br/>inspect targets (click them)</p>
+          <div class="nav-header">Help!</div>
+            <ul class="nav nav-list">
+                <li><a target="_blank" href="https://github.com/vimeo/graph-explorer/wiki#getting-started">Getting started</a></li>
+                <li><a target="_blank" href="https://github.com/vimeo/graph-explorer/wiki/Tutorial">Tutorial</a></li>
+                <li><a target="_blank" href="https://github.com/vimeo/graph-explorer/wiki/GEQL">GEQL reference</a></li>
+            </ul>
         </div>
       <div class="well sidebar-nav">
         <ul class="nav nav-list">
@@ -23,10 +25,7 @@
             {{!suggested_queries['notes']}}
             % for query in suggested_queries['queries']:
             <li>
-               <a href="/index/{{query['query']}}">{{query['desc']}}
-               % for tag in query['tags']:
-                <span class="label">{{tag}}</span>
-               % end
+               <a href="/index/{{urllib.quote(query['query'], "")}}">{{query['desc']}}
             </a>
             </li>
             % end
