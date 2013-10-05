@@ -1,22 +1,21 @@
   <div class="container-fluid">
 %include templates/snippet.errors errors=errors
      <div class="row">
-        <div class="span12">
           <h2>Targets</h2>
-% print metrics
 % for metric in metrics:
-            Key:{{metric['id']}}<br/>
-            <a href="{{config.graphite_url}}/render/?target={{metric['id']}}"><i class="icon-picture"></i></a>
-            <br/>
-            <table class="table">
-                <tr><td>tags</td>
-                <td><ul>
+        <div class="span12 well">
+        <dl class="dl-horizontal span6">
+            <dt>ID</dt><dd>{{metric['id']}}</dd>
+            <dt>png</dt><dd><a href="{{config.graphite_url}}/render/?target={{metric['id']}}"><i class="icon-picture"></i></a></dd>
+            <dt>tags</dt><dd>
+            <dl class="dl-horizontal span6" style="margin-top: 0px;">
                 % for (tag_k,tag_v) in metric['tags'].items():
-                    <li>{{tag_k}}:{{tag_v}}</li>
+                    <dt>{{tag_k}}</dt><dd>{{tag_v}}</dd>
                 %end
-                </ul></td></tr>
-            </table>
-%end
+            </dl>
+        </dd>
+        </dl>
        </div>
+%end
       </div>
     </div> <!-- /container -->
