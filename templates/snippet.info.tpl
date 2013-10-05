@@ -1,5 +1,3 @@
-<div class="span4">
-    <div class="alert alert-info">
-        {{msg}}
-    </div>
+<div class="alert alert-info span4">
+    {{msg}}
 </div>

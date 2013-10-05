@@ -1,9 +1,7 @@
 %include templates/snippet.errors errors=errors
 % if 'query' in globals():
     % if not query:
-        <div class="row">
         % include templates/snippet.info msg='Empty query.  Nothing to display.'
-        </div>
     % end
 
     % if query and not errors:
@@ -44,7 +42,5 @@
         % end
     % end
 % else:
-    <div class="row">
     % include templates/snippet.info msg='No query processed.  Nothing to display.'
-    </div>
 % end

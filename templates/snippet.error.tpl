@@ -1,6 +1,4 @@
-<div class="span4">
-    <div class="alert alert-error">
-        <strong>{{title}}</strong>
-        <br/>{{msg}}
-    </div>
+<div class="alert alert-error span4">
+    <strong>{{title}}</strong>
+    <br/>{{msg}}
 </div>
