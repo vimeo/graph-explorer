@@ -110,4 +110,10 @@ function update_dash_entry(key) {
 
     $("#viewport_" + key).load("/graphs_minimal/" + encodeURIComponent(entry_input.value));
 }
+function update_graphs(query, graphs) {
+    var query = $(query)[0].value;
+    $.post('/graphs/', {query:query}, function(data) {
+        $(graphs).html(data);
+    });
+}
 

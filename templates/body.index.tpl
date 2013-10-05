@@ -30,21 +30,15 @@
             </li>
             % end
         </ul>
-        <script type="text/javascript">
-          function update_graphs() {
-            var query = $('#query')[0].value;
-            $.post('/graphs/', {query:query}, function(data) {
-              $('#graphs').html(data);
-            });
-          }
-          $(document).ready(function() {
-            update_graphs();
-          });
-        </script>
       </div><!--/.well -->
     </div><!--/span-->
     <div class="span9" id="graphs"></div>
     </div><!--/span-->
   </div><!--/row-->
 </div><!--/.fluid-container-->
+<script type="text/javascript">
+  $(document).ready(function() {
+    update_graphs('#query', '#graphs');
+  });
+</script>
 %# vim: ts=2 et sw=2:
