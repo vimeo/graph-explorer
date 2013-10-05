@@ -36,11 +36,14 @@ def parse_query(query_str):
     (query_str, avg_over_str) = parse_out_value(query_str, 'avg over ', '[^ ]+', None)
     (query_str, min_str) = parse_out_value(query_str, 'min ', '[^ ]+', None)
     (query_str, max_str) = parse_out_value(query_str, 'max ', '[^ ]+', None)
+    explicit_group_by = []
     if group_by_str is not None:
-        query['group_by'] = group_by_str.split(',')
+        explicit_group_by = group_by_str.split(',')
+        query['group_by'] = explicit_group_by
     elif extra_group_by_str is not None:
+        explicit_group_by = extra_group_by_str.split(',')
         query['group_by'] = [tag for tag in query['group_by'] if tag.endswith('=')]
-        query['group_by'].extend(extra_group_by_str.split(','))
+        query['group_by'].extend(explicit_group_by)
     if sum_by_str is not None:
         query['sum_by'] = sum_by_str.split(',')
     if avg_by_str is not None:
@@ -49,6 +52,14 @@ def parse_query(query_str):
         query['min'] = int(min_str)
     if max_str is not None:
         query['max'] = int(max_str)
+
+    # if you specified a tag in avg_by or sum_by that is included in the
+    # default group_by (and you didn't explicitly ask to group by that tag), we
+    # remove it from group by, so that the avg/sum can work properly.
+    for tag in query['sum_by'] + query['avg_by']:
+        for tag_check in (tag, "%s=" % tag):
+            if tag_check in query['group_by'] and tag_check not in explicit_group_by:
+                query['group_by'].remove(tag_check)
 
     if len(query['group_by']) + len(query['sum_by']) + len(query['avg_by']) != len(set(query['group_by'] + query['sum_by'] + query['avg_by'])):
         raise Exception("'group by' (%s), 'sum by (%s)' and 'avg by (%s)' cannot list the same tag keys" %
