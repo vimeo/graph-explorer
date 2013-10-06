@@ -1,4 +1,5 @@
 import re
+import convert
 
 
 def parse_query(query_str):
@@ -49,9 +50,9 @@ def parse_query(query_str):
     if avg_by_str is not None:
         query['avg_by'] = avg_by_str.split(',')
     if min_str is not None:
-        query['min'] = int(min_str)
+        query['min'] = convert.parse_str(min_str)
     if max_str is not None:
-        query['max'] = int(max_str)
+        query['max'] = convert.parse_str(max_str)
 
     # if you specified a tag in avg_by or sum_by that is included in the
     # default group_by (and you didn't explicitly ask to group by that tag), we
