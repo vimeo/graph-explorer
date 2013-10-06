@@ -56,13 +56,13 @@
             (for example a metric can be made available as a gauge in bytes, and as a rate in bytes/s)
             <p><img src="https://raw.github.com/vimeo/graph-explorer/gh-pages/screenshot_units.png" alt="Screenshot units"></p>
             <h1>Group metrics into graphs</h1>
-            Group by arbitrary tags.  For example: show bytes used for all mountpoints on a graph per server,
-            or a graph per mountpoint, listing how full that mountpoint is on different servers?
+            Group by arbitrary tag keys.  For example: "group by server" show bytes used for all mountpoints on per-server graphs
+            whereas "group by mountpoint" creates graphs per mountpoint, each showing the bytes used on each server by that mountpoint.
             <p><a href="https://raw.github.com/vimeo/graph-explorer/gh-pages/screenshot_group_by.gif"><img src="https://raw.github.com/vimeo/graph-explorer/gh-pages/screenshot_group_by.gif" alt="Screenshot group by"></a></p>
             <h1>Online aggregation</h1>
-            Choose one or more tags to combine targets by, and represent them as one metric.
-            For example: show for each server - on one graph - the sum of bytes used across all matching filesystems on that server.
-            <p><a href="https://raw.github.com/vimeo/graph-explorer/gh-pages/screenshot_sum_by.png"><img src="https://raw.github.com/vimeo/graph-explorer/gh-pages/screenshot_sum_by.png" alt="Screenshot sum by"></a></p>
+            Choose one or more tag keys to combine targets by, and represent them as one metric.
+            For example: show network traffic per interface, averaged across all servers and summed by type (rx and tx).
+            <p><a href="https://raw.github.com/vimeo/graph-explorer/gh-pages/screenshot_aggregation.png"><img src="https://raw.github.com/vimeo/graph-explorer/gh-pages/screenshot_aggregation.png" alt="Screenshot aggregation"></a></p>
             <h1>Correlate with events</h1>
             Integrates with <a href="https://github.com/Dieterbe/anthracite/">anthracite</a> for displaying annotated events.
             (Note: old screenshot, buggy positioning.  Would love some help here)
