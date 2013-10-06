@@ -6,6 +6,7 @@
         <ul class="nav nav-list">
           <li class="nav-header">Help!</li>
           <li><a target="_blank" href="https://github.com/vimeo/graph-explorer/wiki#getting-started">Getting started</a></li>
+          <li><a target="_blank" href="https://github.com/vimeo/graph-explorer/wiki/the-Query-interface">UI explained</a></li>
           <li><a target="_blank" href="https://github.com/vimeo/graph-explorer/wiki/Tutorial">Tutorial</a></li>
           <li><a target="_blank" href="https://github.com/vimeo/graph-explorer/wiki/GEQL">GEQL reference</a></li>
           <!-- some day... <li class="nav-header">Options</li>
