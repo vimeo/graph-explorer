@@ -168,7 +168,7 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
         avg_over_unit = avg_over[1]
         if avg_over_unit in averaging.keys():
             multiplier = averaging[avg_over_unit]
-            target_modifier = ['movingAverage', str(avg_over_amount * multiplier)]
+            target_modifier = {'target': ['movingAverage', str(avg_over_amount * multiplier)]}
             target_modifiers.append(target_modifier)
 
     # for each combination of values of tags from group_by, make 1 graph with
@@ -287,9 +287,15 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
     for (graph_key, graph_config) in graphs.items():
         for target in graph_config['targets']:
             for target_modifier in target_modifiers:
-                target['target'] = "%s(%s,%s)" % (target_modifier[0],
+                target['target'] = "%s(%s,%s)" % (target_modifier['target'][0],
                                                   target['target'],
-                                                  ','.join(target_modifier[1:]))
+                                                  ','.join(target_modifier['target'][1:]))
+                if 'tags' in target_modifier:
+                    for (new_k, new_v) in target_modifier['tags'].items():
+                        if new_k in graph_config['constants']:
+                            graph_config['constants'][new_k] = new_v
+                        else:
+                            target['variables'][new_k] = new_v
     # if in a graph all targets have a tag with the same value, they are
     # effectively constants, so promote them.  this makes the display of the
     # graphs less rendundant and makes it easier to do config/preferences

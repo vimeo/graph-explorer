@@ -84,31 +84,22 @@ def parse_query(query_str):
 
 def normalize_query(query):
     unit_conversions = {
-        '/M': [
-            ['scale', '60']
-        ],
-        '/h': [
-            ['scale', '3600']
-        ],
-        '/d': [
-            ['scale', str(3600 * 24)]
-        ],
-        '/w': [
-            ['scale', str(3600 * 24 * 7)]
-        ],
-        '/mo': [
-            ['scale', str(3600 * 24 * 30)]
-        ]
+        '/M': ['scale', '60'],
+        '/h': ['scale', '3600'],
+        '/d': ['scale', str(3600 * 24)],
+        '/w': ['scale', str(3600 * 24 * 7)],
+        '/mo': ['scale', str(3600 * 24 * 30)]
     }
     target_modifiers = []
     for (i, pattern) in enumerate(query['patterns']):
         if pattern.startswith('unit='):
             unit = pattern.split('=')[1]
-            for (divisor, modifiers) in unit_conversions.items():
+            for (divisor, modifier) in unit_conversions.items():
                 if unit.endswith(divisor):
+                    real_unit = unit
                     unit = "%s/s" % unit[0:-(len(divisor))]
                     query['patterns'][i] = "unit=%s" % unit
-                    target_modifiers.extend(modifiers)
+                    target_modifiers.append({'target': modifier, 'tags': {'unit': real_unit}})
                     break
     return (query, target_modifiers)
 
