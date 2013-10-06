@@ -10,7 +10,7 @@ Something like SQL but metrics for rows and a list of graph definitions as a res
 The graphs themselves support annotated events and are also interactive because it uses [timeserieswidget](https://github.com/vimeo/timeserieswidget)
 Furthermore, the code is simple and hackable (just a few hundred sLOC) python code and is a breeze to get running
 
-![Screenshot](https://raw.github.com/vimeo/graph-explorer/master/screenshot/screenshot.png)
+![Screenshot](https://raw.github.com/vimeo/graph-explorer/master/screenshots/screenshot.png)
 
 It also has a dashboards feature which are pages that show N queries along with their results (0-N graphs each).
 
