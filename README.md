@@ -10,13 +10,15 @@ Something like SQL but metrics for rows and a list of graph definitions as a res
 The graphs themselves support annotated events and are also interactive because it uses [timeserieswidget](https://github.com/vimeo/timeserieswidget)
 Furthermore, the code is simple and hackable (just a few hundred sLOC) python code and is a breeze to get running
 
-![Screenshot](https://raw.github.com/vimeo/graph-explorer/master/screenshot.png)
+![Screenshot](https://raw.github.com/vimeo/graph-explorer/master/screenshot/screenshot.png)
 
 It also has a dashboards feature which are pages that show N queries along with their results (0-N graphs each).
 
-## Screencast
+## Learn the basics
 
-explains most of the concepts and tricks in less than 30minutes.
+* [Tutorial](https://github.com/vimeo/graph-explorer/wiki/Tutorial)
+* [The query interface explained](https://github.com/vimeo/graph-explorer/wiki/the-Query-interface)
+* Slightly outdated screencast, but explains most of the concepts and tricks in less than 30minutes.
 [vimeo.com/67080202](http://vimeo.com/67080202)
 
 ## Structured Metrics
