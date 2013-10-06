@@ -5,7 +5,7 @@ def parse_query(query_str):
     avg_over_match = '^([0-9]*)(s|M|h|d|w|mo)$'
     query = {
         'patterns': [],
-        'group_by': ['target_type=', 'what=', 'server'],
+        'group_by': ['target_type=', 'unit=', 'server'],
         'sum_by': [],
         'avg_by': [],
         'avg_over': None,
