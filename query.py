@@ -50,9 +50,14 @@ def parse_query(query_str):
     if avg_by_str is not None:
         query['avg_by'] = avg_by_str.split(',')
     if min_str is not None:
-        query['min'] = convert.parse_str(min_str)
+        # check if we can parse the values, but don't actually replace yet
+        # because we want to keep the 'pretty' value for now so we can display
+        # it in the query details section
+        convert.parse_str(min_str)
+        query['min'] = min_str
     if max_str is not None:
-        query['max'] = convert.parse_str(max_str)
+        convert.parse_str(max_str)
+        query['max'] = max_str
 
     # if you specified a tag in avg_by or sum_by that is included in the
     # default group_by (and you didn't explicitly ask to group by that tag), we

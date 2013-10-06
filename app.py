@@ -9,6 +9,7 @@ from simple_match import match
 from query import parse_query, normalize_query, parse_patterns
 import logging
 import re
+import convert
 
 
 # contains all errors as key:(title,msg) items.
@@ -347,10 +348,10 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
             override['state'] = 'stacked'
         if query['min'] is not None:
             override['yaxis'] = override.get('yaxis', {})
-            override['yaxis'].update({'min': query['min']})
+            override['yaxis'].update({'min': convert.parse_str(query['min'])})
         if query['max'] is not None:
             override['yaxis'] = override.get('yaxis', {})
-            override['yaxis'].update({'max': query['max']})
+            override['yaxis'].update({'max': convert.parse_str(query['max'])})
 
         graphs[graph_key].update(override)
 
