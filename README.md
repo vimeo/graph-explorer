@@ -57,13 +57,12 @@ Just get a code checkout and initialize all git submodules, like so:
 ```
 git clone --recursive https://github.com/vimeo/graph-explorer.git
 ```
-This will give you the latest bleeding edge code (master branch), which can be a buggy sometimes.
-You can use a "release" by checking out one of the tags:
+This will give you the latest bleeding edge code (master branch), which may be buggy.
+You can switch to the latest stable release with "git checkout v1.0.0"
 
-* 2013.06.13
-* 2013.04.19
-
-or of course, download a release from the [release page](https://github.com/vimeo/graph-explorer/releases)
+The [releases page](https://github.com/vimeo/graph-explorer/releases) has more info, but don't download from there, the downloads don't contain
+the needed submodules!
+Graph Explorer version numbering is based on [semver](http://semver.org/).
 
 ## Configuration of graph-explorer
 
