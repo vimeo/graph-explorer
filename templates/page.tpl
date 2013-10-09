@@ -31,6 +31,9 @@
     <link rel="apple-touch-icon-precomposed" sizes="114x114" href="../assets/ico/apple-touch-icon-114-precomposed.png">
     <link rel="apple-touch-icon-precomposed" sizes="72x72" href="../assets/ico/apple-touch-icon-72-precomposed.png">
     <link rel="apple-touch-icon-precomposed" href="../assets/ico/apple-touch-icon-57-precomposed.png">
+<script src="../assets/js/jquery-1.7.2.js"></script>
+<script src="../assets/js/bootstrap.js"></script>
+%include templates/snippet.graph-deps
   </head>
 
   <body>
@@ -74,10 +77,6 @@
         </div>
       </div>
     </div>
-
-    <script src="../assets/js/jquery-1.7.2.js"></script>
-    <script src="../assets/js/bootstrap.js"></script>
-    %include templates/snippet.graph-deps
 
 {{!body}}
 

@@ -383,6 +383,14 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
 @route('/graphs/', method='POST')
 @route('/graphs/<query:path>', method='GET')  # used for manually testing
 def graphs(query=''):
+    return handle_graphs(query, False)
+
+@route('/graphs_deps/', method='POST')
+@route('/graphs_deps/<query:path>', method='GET')  # used for manually testing
+def graphs_deps(query=''):
+    return handle_graphs(query, True)
+
+def handle_graphs(query, deps):
     '''
     get all relevant graphs matching query,
     graphs from structured_metrics targets, as well as graphs
@@ -395,21 +403,28 @@ def graphs(query=''):
     if not query:
         return template('templates/graphs', query=query, errors=errors)
 
-    return render_graphs(query)
+    return render_graphs(query, deps=deps)
 
 
 @route('/graphs_minimal/<query:path>', method='GET')
 def graphs_minimal(query=''):
+    return handle_graphs_minimal(query, False)
+
+@route('/graphs_minimal_deps/<query:path>', method='GET')
+def graphs_minimal_deps(query=''):
+    return handle_graphs_minimal(query, True)
+
+def handle_graphs_minimal(query, deps):
     '''
     like graphs(), but without extra decoration, so can be used on dashboards
     TODO dashboard should show any errors
     '''
     if not query:
         return template('templates/graphs', query=query, errors=errors)
-    return render_graphs(query, minimal=True)
+    return render_graphs(query, minimal=True, deps=deps)
 
 
-def render_graphs(query, minimal=False):
+def render_graphs(query, minimal=False, deps=False):
     if "query_parse" in errors:
         del errors["query_parse"]
     try:
@@ -450,7 +465,7 @@ def render_graphs(query, minimal=False):
         stats['len_graphs_targets_matching'] = len(graphs_targets_matching)
         graphs_matching.update(graphs_targets_matching)
         stats['len_graphs_matching_all'] = len(graphs_matching)
-        if len(graphs_matching) > 0 and request.headers.get('X-Requested-With') != 'XMLHttpRequest':
+        if len(graphs_matching) > 0 and deps:
             out += template('templates/snippet.graph-deps')
         for key in sorted(graphs_matching.iterkeys()):
             graphs.append((key, graphs_matching[key]))

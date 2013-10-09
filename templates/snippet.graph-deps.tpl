@@ -1,5 +1,4 @@
-<script src="../assets/js/jquery-1.7.2.js"></script>
-<script src="../assets/js/bootstrap.js"></script>
+<!-- you're assumed to load jquery and bootstrap yourself.  we don't want to load them here again cause that can break things -->
 <script src="../timeserieswidget/jquery-ui.min.js"></script>
 <script src="../timeserieswidget/jquery.tswidget.js"></script>
 <script src="../timeserieswidget/graphite_helpers.js"></script>
