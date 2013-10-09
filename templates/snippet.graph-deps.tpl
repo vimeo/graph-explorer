@@ -1,4 +1,5 @@
 <script src="../assets/js/jquery-1.7.2.js"></script>
+<script src="../assets/js/bootstrap.js"></script>
 <script src="../timeserieswidget/jquery-ui.min.js"></script>
 <script src="../timeserieswidget/jquery.tswidget.js"></script>
 <script src="../timeserieswidget/graphite_helpers.js"></script>
