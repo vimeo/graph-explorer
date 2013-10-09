@@ -118,7 +118,21 @@ function get_vtitle(graph_data) {
 }
 function create_colormap(tags) {
     var colormap = new Array();
-    tags.forEach(function(tag){colormap[tag] = (Math.round(crc32(tag)/256)).toString(16);});
+    var static_colors = {
+        "n1": "fff",
+        "n2": "eee",
+        "n3": "ddd",
+        "n4": "ccc",
+        "n5": "bbb",
+        "n6": "aaa",
+        "n7": "999",
+        "n8": "888",
+        "n9": "777"
+    }
+    tags.forEach(function(tag){
+        colormap[tag] = (Math.round(crc32(tag)/256)).toString(16);
+    });
+    $.extend(colormap, static_colors);
     return colormap;
 }
 function get_inspect_url(data, name) {
