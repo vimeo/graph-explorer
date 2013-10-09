@@ -122,13 +122,20 @@ def graphs_limit_targets(graphs, limit):
 
 
 def graphite_func_aggregate(targets, agg_by_tags, aggfunc):
+    # differentiators is a list of tag values that set the contributing targets apart
+    # this will be used later in the UI
+    differentiators = {}
+    for t in targets:
+        for agg_by_tag in agg_by_tags:
+            differentiators[agg_by_tag] = differentiators.get(agg_by_tag, [])
+            differentiators[agg_by_tag].append(t['variables'][agg_by_tag])
     t = {
         'target': '%s(%s)' % (aggfunc, ','.join([t['target'] for t in targets])),
         'id': [t['id'] for t in targets],
         'variables': targets[0]['variables']
     }
     for agg_by_tag in agg_by_tags:
-        t['variables'][agg_by_tag] = '%s (%s values)' % (aggfunc, len(targets))
+        t['variables'][agg_by_tag] = ('%s (%s values)' % (aggfunc, len(targets)), differentiators[agg_by_tag])
     return t
 
 

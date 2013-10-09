@@ -8,3 +8,4 @@
 <script lang="javascript">
     update_dash_entry("{{key}}");
 </script>
+% include templates/snippet.expand_labels

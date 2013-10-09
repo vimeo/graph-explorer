@@ -14,7 +14,6 @@ def get_unique_tag_value(graph, target, tag):
     all targets to have the same color... except if due to filtering only 1 server shows up, we
     can apply the color again
     '''
-    t = None
     # the graph has other targets that have different values for this tag
     if tag in target['variables']:
         t = target['variables'][tag]
@@ -25,21 +24,34 @@ def get_unique_tag_value(graph, target, tag):
             t = graph['constants'][tag]
         elif tag in graph['promoted_constants']:
             t = graph['promoted_constants'][tag]
-    return t
+        else:
+            return None
+    else:
+        return None
+
+    # t can be a tuple if it's an aggregated tag
+    if isinstance(t, basestring):
+        return t
+    else:
+        return t[0]
 
 
 def get_tag_value(graph, target, tag):
     '''
     get a tag, if it applies to the target.  irrespective of other targets
     '''
-    t = None
     if tag in target['variables']:
         t = target['variables'][tag]
     elif tag in graph['constants']:
         t = graph['constants'][tag]
     elif tag in graph['promoted_constants']:
         t = graph['promoted_constants'][tag]
-    return t
+    else:
+        return None
+    if isinstance(t, basestring):
+        return t
+    else:
+        return t[0]
 
 
 def apply_colors(graph):

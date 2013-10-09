@@ -1,5 +1,5 @@
 %graph_id = ''.join(e for e in graph_key if e.isalnum())
-<h2 id="h2_{{graph_id}}"></h2>
+<h5 id="h5_{{graph_id}}"></h5>
 %try: import json
 %except ImportError: import simplejson as json
         <div class="chart_container flot" id="chart_container_flot_{{graph_id}}">
@@ -12,7 +12,7 @@
 		var graph_data = {{!json.dumps(graph_data)}};
         graph_data['constants_all'] = jQuery.extend({}, graph_data['constants'], graph_data['promoted_constants']);
 
-        $("#h2_{{graph_id}}").html(get_graph_name("{{graph_key}}", graph_data));
+        $("#h5_{{graph_id}}").html(get_graph_name("{{graph_key}}", graph_data));
         vtitle = get_vtitle(graph_data);
         if (vtitle != "") {
             graph_data["vtitle"] = vtitle;

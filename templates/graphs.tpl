@@ -9,7 +9,7 @@
         tags = {{!list(tags)}};
         colormap = create_colormap(tags);
         count_interval = {{preferences.count_interval}};
-        $("#tag_legend").html(list_tags_in_graph_name_order({{!list(tags)}}));
+        $("#tag_legend").html(generate_tag_legend_display({{!list(tags)}}));
         $("#patterns").html(generate_pattern_display({{!list(query['patterns'])}}));
         $("#group_by").html(generate_pattern_display({{!list(query['group_by'])}}));
         $("#avg_by").html(generate_pattern_display({{!list(query['avg_by'])}}) || 'none');
@@ -39,6 +39,7 @@
         % for (k,v) in graphs:
             % include templates/snippet.graph config=config, graph_key=k, graph_data=v, preferences=preferences
         % end
+        % include templates/snippet.expand_labels
         <!-- approximation of get_inspect_url(data, name) that works as long as list mode doesn't support sum by (or other kind of N metrics in 1 target) -->
         % for target_id in targets_list.iterkeys():
             <a href="/inspect/{{targets_list[target_id]['id']}}">{{target_id}}</a></br>
