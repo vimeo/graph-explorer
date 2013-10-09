@@ -60,13 +60,16 @@ function generate_pattern_display(patterns) {
 // generate label list for tags k/v, ordered by moving tags based on keys in pre post lists to begin/end.
 function generate_title_from_dict(tags_dict, order_pre, order_post) {
     var title = '';
+    var keys = Object.keys(tags_dict);
+    keys.sort();
     order_pre.forEach(function(tag) {if(tag in tags_dict) {title += display_tag(tag, tags_dict[tag]); }});
-    $.map(tags_dict, function (tag_v,tag) {if($.inArray(tag, order_pre) < 0 && $.inArray(tag, order_post) < 0) {title += display_tag(tag,tag_v); }});
+    keys.forEach(function (tag) { tag_v = tags_dict[tag]; if($.inArray(tag, order_pre) < 0 && $.inArray(tag, order_post) < 0) {title += display_tag(tag,tag_v); }});
     order_post.forEach(function(tag) {if(tag in tags_dict) {title += display_tag(tag, tags_dict[tag]); }});
     return title;
 }
 function generate_tag_legend_display(tags_list) {
     var title = '';
+    tags_list.sort();
     tags_order_pre.forEach(function(tag) {if($.inArray(tag, tags_list) >= 0) {title += display_tag_for_legend(tag); }});
     tags_list.forEach(function(tag) {if($.inArray(tag, tags_order_pre) < 0 && $.inArray(tag, tags_order_post) < 0) {title += display_tag_for_legend(tag); }});
     tags_order_post.forEach(function(tag) {if($.inArray(tag, tags_list) >= 0) {title += display_tag_for_legend(tag); }});
