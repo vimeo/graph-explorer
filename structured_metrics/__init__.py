@@ -123,12 +123,13 @@ class StructuredMetrics(object):
                 if proto2_metric is not None:
                     (k, v) = proto2_metric
                     tags = v['tags']
-                    if ('what' not in tags or 'target_type' not in tags) and 'unit' not in tags:
-                        self.logger.warn("metric '%s' doesn't have the mandatory tags. ignoring it...", v)
+                    if 'target_type' not in tags or ('unit' not in tags and 'what' not in tags):
+                        self.logger.warn("metric '%s' doesn't have the mandatory tags. ('target_type' and either 'unit' or 'what').  ignoring it...", v)
                     else:
-                        # old style: what and target_type tags, new style: unit tag
-                        # automatically add new style for all old style metrics
-                        if 'unit' not in tags and 'what' in tags and 'target_type' in tags:
+                        # old style tags: what, target_type
+                        # new style: unit, (and target_type, for now)
+                        # automatically convert
+                        if 'unit' not in tags and 'what' in tags:
                             convert = {
                                 'bytes': 'B',
                                 'bits': 'b'
@@ -138,6 +139,7 @@ class StructuredMetrics(object):
                                 v['tags']['unit'] = '%s/s' % unit
                             else:
                                 v['tags']['unit'] = unit
+                            del v['tags']['what']
                         targets[k] = v
                         break
         return targets

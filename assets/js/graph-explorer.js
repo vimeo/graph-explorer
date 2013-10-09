@@ -1,4 +1,4 @@
-tags_order_pre = ['what', 'type', 'target_type'];
+tags_order_pre = ['unit', 'type', 'target_type'];
 tags_order_post = ['server', 'plugin'];
 function display_tag(tag_name, tag_value) {
     // at some point it'll probably make sense to make the background color the inverse of the foreground color
