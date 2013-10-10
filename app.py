@@ -382,10 +382,12 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
 def graphs(query=''):
     return handle_graphs(query, False)
 
+
 @route('/graphs_deps/', method='POST')
 @route('/graphs_deps/<query:path>', method='GET')  # used for manually testing
 def graphs_deps(query=''):
     return handle_graphs(query, True)
+
 
 def handle_graphs(query, deps):
     '''
@@ -407,9 +409,11 @@ def handle_graphs(query, deps):
 def graphs_minimal(query=''):
     return handle_graphs_minimal(query, False)
 
+
 @route('/graphs_minimal_deps/<query:path>', method='GET')
 def graphs_minimal_deps(query=''):
     return handle_graphs_minimal(query, True)
+
 
 def handle_graphs_minimal(query, deps):
     '''
