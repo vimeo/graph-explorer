@@ -219,9 +219,8 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
             graph_config['targets_sum_candidates'] = {}
             graph_config['targets_avg_candidates'] = {}
             graph_config['normal_targets'] = []
-            all_targets = graph_config['targets'][:]  # Get a copy.
 
-            for target in all_targets:
+            for target in graph_config['targets']:
                 # targets that can get summed together with other tags, must
                 # have at least 1 'sum_by' tags in the variables list.
                 # targets that can get summed together must have:
@@ -251,11 +250,11 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
             for (sum_id, targets) in graph_config['targets_sum_candidates'].items():
                 if len(targets) > 1:
                     for t in targets:
-                        all_targets.remove(t)
-                    all_targets.append(
+                        graph_config['targets'].remove(t)
+                    graph_config['targets'].append(
                         graphite_func_aggregate(targets, sum_by, "sumSeries"))
 
-            for target in all_targets:
+            for target in graph_config['targets']:
                 # Now that any summing is done, we look at aggregating by
                 # averaging because avg(foo+bar+baz) is more efficient
                 # than avg(foo)+avg(bar)+avg(baz)
@@ -282,11 +281,9 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
             for (avg_id, targets) in graph_config['targets_avg_candidates'].items():
                 if len(targets) > 1:
                     for t in targets:
-                        all_targets.remove(t)
-                    all_targets.append(
+                        graph_config['targets'].remove(t)
+                    graph_config['targets'].append(
                         graphite_func_aggregate(targets, avg_by, "averageSeries"))
-
-            graph_config["targets"] = all_targets
 
     # remove targets/graphs over the limit
     graphs = graphs_limit_targets(graphs, query['limit_targets'])
