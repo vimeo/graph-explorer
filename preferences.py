@@ -31,6 +31,10 @@ graph_options = [
         {'state': 'stacked'}
     ],
     [
+        {'unit': 'P' },  # probabilities between 0 and 1
+        {'yaxis': {'max': 1}}
+    ],
+    [
         {},
         apply_colors
     ]
