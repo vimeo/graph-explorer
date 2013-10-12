@@ -2,6 +2,7 @@
 <h5 id="h5_{{graph_id}}"></h5>
 %try: import json
 %except ImportError: import simplejson as json
+%from urlparse import urljoin
         <div class="chart_container flot" id="chart_container_flot_{{graph_id}}">
             <div class="chart" id="chart_flot_{{graph_id}}" height="300px" width="700px"></div>
             <div class="legend" id="legend_flot_{{graph_id}}"></div>
@@ -39,7 +40,7 @@
             v["name"] = JSON.stringify(v, null, 2);
         });
 		var defaults = {
-		    graphite_url: "{{config.graphite_url}}/render/",
+		    graphite_url: "{{urljoin(config.graphite_url, "render")}}",
             % if config.anthracite_url is not None:
 		    anthracite_url: "{{config.anthracite_url}}",
             % end

@@ -8,6 +8,7 @@ except ImportError:
         raise ImportError("GE requires python2, 2.6 or higher, or 2.5 with simplejson.")
 import os
 import logging
+from urlparse import urljoin
 
 
 class MetricsError(Exception):
@@ -26,9 +27,8 @@ class Backend(object):
 
     def download_metrics_json(self):
         import urllib2
+        url = urljoin(self.config.graphite_url, "metrics/index.json")
         if (self.config.graphite_username is not None and self.config.graphite_password is not None):
-            # set up the graphite url
-            url = self.config.graphite_url + "/metrics/index.json"
             #user/pass from the config file
             username = self.config.graphite_username
             password = self.config.graphite_password
@@ -41,10 +41,8 @@ class Backend(object):
             opener = urllib2.build_opener(authhandler)
             # install the authentication handler, all url_open commands will now use it
             urllib2.install_opener(opener)
-            # finnally get our data
-            response = urllib2.urlopen(url)
-        else:
-            response = urllib2.urlopen("%s/metrics/index.json" % self.config.graphite_url)
+
+        response = urllib2.urlopen(url)
 
         m = open('%s.tmp' % self.config.filename_metrics, 'w')
         m.write(response.read())
