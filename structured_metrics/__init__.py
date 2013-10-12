@@ -3,6 +3,7 @@ import sys
 from inspect import isclass
 import sre_constants
 import logging
+import time
 try:
     import json
 except ImportError:
@@ -166,6 +167,7 @@ class StructuredMetrics(object):
                 }
             }
         }
+        self.logger.debug("making sure index exists..")
         try:
             self.es.post('graphite_metrics', data=body)
         except ElasticException as e:
@@ -173,6 +175,14 @@ class StructuredMetrics(object):
                 pass
             else:
                 raise
+        self.logger.debug("making sure shard is started..")
+        while True:
+            index = self.es.get('graphite_metrics/_status')
+            shard = index['indices']['graphite_metrics']['shards']['0'][0]
+            self.logger.debug("shard[0][0] state: %s" % shard['state'])
+            if shard['state'] == 'STARTED':
+                break
+            time.sleep(0.1)
 
     def remove_metrics_not_in(self, metrics):
         bulk_size = 1000
