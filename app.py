@@ -31,8 +31,8 @@ if config.log_file:
     logger.addHandler(fhandler)
 
 logger.debug('app starting')
-backend = Backend(config)
-s_metrics = structured_metrics.StructuredMetrics(config)
+backend = Backend(config, logger)
+s_metrics = structured_metrics.StructuredMetrics(config, logger)
 graphs = Graphs()
 graphs.load_plugins()
 graphs_all = graphs.list_graphs()
