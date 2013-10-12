@@ -81,6 +81,7 @@ def parse_query(query_str):
             query['patterns'].append(tag)
 
     (query_str, query['limit_targets']) = parse_out_value(query_str, 'limit ', '[^ ]+', 500)
+    query['limit_targets'] = int(query['limit_targets'])
 
     # split query_str into multiple patterns which are all matched independently
     # this allows you write patterns in any order, and also makes it easy to use negations
