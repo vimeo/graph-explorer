@@ -101,24 +101,19 @@ def build_graphs(graphs, query={}):
     return graphs
 
 
-def graphs_limit_targets(graphs, limit):
+def graphs_limit_targets(nolimit_graphs, limit):
     targets_used = 0
-    unlimited_graphs = graphs
-    graphs = {}
-    limited_reached = False
-    for (graph_key, graph_config) in unlimited_graphs.items():
-        if limited_reached:
-            break
-        graphs[graph_key] = graph_config
-        unlimited_targets = graph_config['targets']
-        graphs[graph_key]['targets'] = []
-        for target in unlimited_targets:
+    limit_graphs = {}
+    for (graph_key, graph_config) in nolimit_graphs.items():
+        limit_graphs[graph_key] = graph_config
+        nolimit_targets = graph_config['targets']
+        limit_graphs[graph_key]['targets'] = []
+        for target in nolimit_targets:
             targets_used += 1
-            graphs[graph_key]['targets'].append(target)
+            limit_graphs[graph_key]['targets'].append(target)
             if targets_used == limit:
-                limited_reached = True
-                break
-    return graphs
+                return limit_graphs
+    return limit_graphs
 
 
 def graphite_func_aggregate(targets, agg_by_tags, aggfunc):
