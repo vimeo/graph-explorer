@@ -2,6 +2,7 @@
 from bottle import route, template, request, static_file, redirect, response, default_app
 import config
 import preferences
+from urlparse import urljoin
 import structured_metrics
 from graphs import Graphs
 from backend import Backend, get_action_on_rules_match
@@ -399,6 +400,21 @@ def handle_graphs(query, deps):
 
     return render_graphs(query, deps=deps)
 
+
+@route('/render/<query>')
+@route('/render/', method='POST')
+@route('/render', method='POST')
+def proxy_render(query=''):
+    import sys
+    import urllib2
+    url = urljoin(config.graphite_url, "/render/" + query)
+    body = request.body.read()
+    f = urllib2.urlopen(url, body)
+    # this can be very verbose:
+    #logger.debug("proxying graphite request: " + body)
+    message = f.info()
+    response.headers['Content-Type'] = message.gettype()
+    return f.read()
 
 @route('/graphs_minimal/<query:path>', method='GET')
 def graphs_minimal(query=''):
