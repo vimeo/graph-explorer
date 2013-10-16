@@ -7,8 +7,8 @@ def parse_query(query_str):
     query = {
         'patterns': [],
         'group_by': ['target_type=', 'unit=', 'server'],
-        'sum_by': [],
-        'avg_by': [],
+        'sum_by': {},
+        'avg_by': {},
         'avg_over': None,
         'min': None,
         'max': None
@@ -46,9 +46,9 @@ def parse_query(query_str):
         query['group_by'] = [tag for tag in query['group_by'] if tag.endswith('=')]
         query['group_by'].extend(explicit_group_by)
     if sum_by_str is not None:
-        query['sum_by'] = sum_by_str.split(',')
+        query['sum_by'] = build_agg_struct(sum_by_str)
     if avg_by_str is not None:
-        query['avg_by'] = avg_by_str.split(',')
+        query['avg_by'] = build_agg_struct(avg_by_str)
     if min_str is not None:
         # check if we can parse the values, but don't actually replace yet
         # because we want to keep the 'pretty' value for now so we can display
@@ -62,14 +62,14 @@ def parse_query(query_str):
     # if you specified a tag in avg_by or sum_by that is included in the
     # default group_by (and you didn't explicitly ask to group by that tag), we
     # remove it from group by, so that the avg/sum can work properly.
-    for tag in query['sum_by'] + query['avg_by']:
+    for tag in query['sum_by'].keys() + query['avg_by'].keys():
         for tag_check in (tag, "%s=" % tag):
             if tag_check in query['group_by'] and tag_check not in explicit_group_by:
                 query['group_by'].remove(tag_check)
 
-    if len(query['group_by']) + len(query['sum_by']) + len(query['avg_by']) != len(set(query['group_by'] + query['sum_by'] + query['avg_by'])):
+    if len(query['group_by']) + len(query['sum_by'].keys()) + len(query['avg_by'].keys()) != len(set(query['group_by'] + query['sum_by'].keys() + query['avg_by'].keys())):
         raise Exception("'group by' (%s), 'sum by (%s)' and 'avg by (%s)' cannot list the same tag keys" %
-                        (', '.join(query['group_by']), ', '.join(query['sum_by']), ', '.join(query['avg_by'])))
+                        (', '.join(query['group_by']), ', '.join(query['sum_by'].keys()), ', '.join(query['avg_by'].keys())))
     if avg_over_str is not None:
         # avg_over_str should be something like 'h', '10M', etc
         avg_over = re.match(avg_over_match, avg_over_str)
@@ -148,3 +148,21 @@ def parse_patterns(query, graph=False):
         else:
             patterns[pattern]['match_id_regex'] = re.compile(pattern)
     return patterns
+
+# avg by foo
+# avg by foo,bar
+# avg by n3:bucketmatch1|bucketmatch2|..,othertag
+def build_agg_struct(agg_str):
+    tag_specs = agg_str.split(',')
+    agg_struct = {}
+    for tag_spec in tag_specs:
+        if ':' in tag_spec:
+            tag_spec = tag_spec.split(':', 2)
+            buckets = tag_spec[1].split('|')
+            agg_struct[tag_spec[0]] = buckets
+        else:
+            # this tag has one bucket, the empty string, which matches all
+            # values
+            agg_struct[tag_spec] = ['']
+    return agg_struct
+

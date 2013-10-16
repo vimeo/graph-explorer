@@ -8,6 +8,7 @@ from graphs import Graphs
 from backend import Backend, get_action_on_rules_match
 from simple_match import match
 from query import parse_query, normalize_query, parse_patterns
+from target import Target
 import logging
 import re
 import convert
@@ -122,7 +123,7 @@ def graphite_func_aggregate(targets, agg_by_tags, aggfunc):
     # this will be used later in the UI
     differentiators = {}
     for t in targets:
-        for agg_by_tag in agg_by_tags:
+        for agg_by_tag in agg_by_tags.keys():
             differentiators[agg_by_tag] = differentiators.get(agg_by_tag, [])
             differentiators[agg_by_tag].append(t['variables'][agg_by_tag])
     t = {
@@ -130,18 +131,22 @@ def graphite_func_aggregate(targets, agg_by_tags, aggfunc):
         'id': [t['id'] for t in targets],
         'variables': targets[0]['variables']
     }
+    bucket_id = targets[0]['match_buckets'][agg_by_tag]
+    bucket_id_str = ''
+    if bucket_id:
+        bucket_id_str = "'%s' " % bucket_id
     for agg_by_tag in agg_by_tags:
-        t['variables'][agg_by_tag] = ('%s (%s values)' % (aggfunc, len(targets)), differentiators[agg_by_tag])
-    return t
+        t['variables'][agg_by_tag] = ('%s%s (%s values)' % (bucket_id_str, aggfunc, len(targets)), differentiators[agg_by_tag])
+    return Target(t)
 
 
 def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
     # merge default options..
     defaults = {
         'group_by': [],
-        'sum_by': [],
+        'sum_by': {},
         'avg_over': None,
-        'avg_by': [],
+        'avg_by': {},
         'from': '-24hours',
         'to': 'now',
         'statement': 'graph',
@@ -194,16 +199,15 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
             graph = {'from': query['from'], 'until': query['to']}
             graph.update({'constants': constants, 'targets': []})
             graphs[graph_key] = graph
-        target = target_data['id']
         # set all options needed for timeserieswidget/flot:
         t = {
             'variables': variables,
             'id': target_data['id'],  # timeserieswidget doesn't care about this
-            'target': target
+            'target': target_data['id']
         }
         if 'color' in target_data:
             t['color'] = target_data['color']
-        graphs[graph_key]['targets'].append(t)
+        graphs[graph_key]['targets'].append(Target(t))
 
     # ok so now we have a graphs dictionary with a graph for every approriate
     # combination of group_by tags, and each graphs contains all targets that
@@ -217,28 +221,8 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
             graph_config['normal_targets'] = []
 
             for target in graph_config['targets']:
-                # targets that can get summed together with other tags, must
-                # have at least 1 'sum_by' tags in the variables list.
-                # targets that can get summed together must have:
-                # * the same 'sum_by' tag keys (not values, because we
-                # aggregate across different values for these tags)
-                # * the same variables (key and val), except those vals that
-                # are being summed by.
-                # so for every group of sum_by tags and variables we build a
-                # list of targets that can be summed together
-
-                # of course it only makes sense to sum by tags that the target
-                # actually has, and that are not already constants (meaning
-                # every target in the graph has the same value)
-                variables = target['variables'].keys()
-                sum_constants = set(sum_by).intersection(set(variables))
-                if sum_constants:
-                    sum_constants_str = '_'.join(sorted(sum_constants))
-                    variables_str = '_'.join(
-                        ['%s_%s' % (k, target['variables'][k])
-                            for k in sorted(variables)
-                            if k not in sum_constants])
-                    sum_id = '%s__%s' % (sum_constants_str, variables_str)
+                sum_id = target.get_agg_key(sum_by)
+                if sum_id:
                     if sum_id not in graph_config['targets_sum_candidates']:
                         graphs[graph_key]['targets_sum_candidates'][sum_id] = []
                     graph_config['targets_sum_candidates'][sum_id].append(target)
@@ -254,22 +238,9 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
                 # Now that any summing is done, we look at aggregating by
                 # averaging because avg(foo+bar+baz) is more efficient
                 # than avg(foo)+avg(bar)+avg(baz)
-                # It's pretty similar than what happened above and aggregates
-                # targets (whether those are sums or regular ones)
-                variables = target['variables'].keys()
-                avg_constants = set(avg_by).intersection(set(variables))
-                if avg_constants:
-                    avg_constants_str = '_'.join(sorted(avg_constants))
-                    variables_str = '_'.join(
-                        ['%s_%s' % (k, target['variables'][k])
-                            for k in sorted(variables)
-                            if k not in avg_constants])
-                    # some values can be like 'sumSeries (8 values)' due to an
-                    # earlier aggregation. if now targets have a different amount of
-                    # values matched, that doesn't matter and they should still
-                    # be aggregated together if the rest of the conditions are met
-                    variables_str = re.sub('\([0-9]+ values\)', '(Xvalues)', variables_str)
-                    avg_id = '%s__%s' % (avg_constants_str, variables_str)
+                # aggregate targets (whether those are sums or regular ones)
+                avg_id = target.get_agg_key(avg_by)
+                if avg_id:
                     if avg_id not in graph_config['targets_avg_candidates']:
                         graph_config['targets_avg_candidates'][avg_id] = []
                     graph_config['targets_avg_candidates'][avg_id].append(target)
