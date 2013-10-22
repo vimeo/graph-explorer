@@ -12,6 +12,7 @@ from target import Target
 import logging
 import re
 import convert
+import traceback
 
 
 # contains all errors as key:(title,msg) items.
@@ -413,7 +414,7 @@ def render_graphs(query, minimal=False, deps=False):
     try:
         query = parse_query(query)
     except Exception, e:
-        errors["query_parse"] = ("Couldn't parse query", e)
+        errors["query_parse"] = ("Couldn't parse query: %s" % e, traceback.format_exc())
     if errors:
         body = template('templates/snippet.errors', errors=errors)
         return render_page(body)
@@ -422,7 +423,7 @@ def render_graphs(query, minimal=False, deps=False):
     try:
         patterns = parse_patterns(query)
     except Exception, e:
-        errors["query_parse"] = ("Couldn't parse query patterns", e)
+        errors["query_parse"] = ("Couldn't parse query patterns: %s" % e, traceback.format_exc())
     if errors:
         body = template('templates/snippet.errors', errors=errors)
         return render_page(body)
