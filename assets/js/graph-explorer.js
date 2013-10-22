@@ -92,6 +92,9 @@ function get_vtitle(graph_data) {
     //automatically generate vtitle, if possible
     var vtitle = "";
     var target_type = "";
+    if ('stat' in graph_data['constants_all']) {
+        vtitle += display_tag('stat', graph_data['constants_all']['stat']);
+    }
     if ('type' in graph_data['constants_all']) {
         vtitle += display_tag('type', graph_data['constants_all']['type']);
     }
