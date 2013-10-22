@@ -117,6 +117,9 @@ class StructuredMetrics(object):
             (plugin_name, plugin_object) = plugin
             plugin_object.reset_target_yield_counters()
         targets = {}
+        plugin_stats = {}
+        for plugin in self.plugins:
+            plugin_stats[plugin[0]] = 0
         for metric in metrics:
             for (i, plugin) in enumerate(self.plugins):
                 (plugin_name, plugin_object) = plugin
@@ -142,7 +145,11 @@ class StructuredMetrics(object):
                                 v['tags']['unit'] = unit
                             del v['tags']['what']
                         targets[k] = v
+                        plugin_stats[plugin_name] += 1
                         break
+        for plugin in self.plugins:
+            plugin_name = plugin[0]
+            self.logger.debug("plugin %20s upgraded %10d metrics to proto2", plugin_name, plugin_stats[plugin_name])
         return targets
 
 
