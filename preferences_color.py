@@ -1,5 +1,5 @@
-import backend
 from colors import colors, color_variant
+from backend import get_action_on_rules_match
 
 
 # convenience functions
@@ -12,7 +12,12 @@ def get_unique_tag_value(graph, target, tag):
     each cpu type (user, idle, etc) has a representative color
     but if you group by type (and compare servers on one graph for e.g. 'idle') you don't want
     all targets to have the same color... except if due to filtering only 1 server shows up, we
-    can apply the color again
+    can apply the color again.
+    note that if the graph has 6 targets: 3 different servers, each 2 different types, then this
+    will proceed and you'll see 3 targets of each color.
+    this could be extended to search for the value in the variables of all other targets, to guarantee
+    uniqueness (and avoid a color showing up multiple times)
+    TLDR: color a target based on tag value, but avoid all targets having the same color on 1 graph
     '''
     # the graph has other targets that have different values for this tag
     if tag in target['variables']:
@@ -39,6 +44,8 @@ def get_unique_tag_value(graph, target, tag):
 def get_tag_value(graph, target, tag):
     '''
     get a tag, if it applies to the target.  irrespective of other targets
+    i.e. color a target based on tag value, and don't try to avoid multiple targets with same color
+    on 1 graph.
     '''
     if tag in target['variables']:
         t = target['variables'][tag]
@@ -78,82 +85,101 @@ def apply_colors(graph):
         }
     '''
 
-    color_assign_cpu = {
-        'idle': colors['green'][0],
-        'user': colors['blue'][0],
-        'system': colors['blue'][1],
-        'nice': colors['purple'][0],
-        'softirq': colors['red'][0],
-        'irq': colors['red'][1],
-        'iowait': colors['orange'][0],
-        'guest': colors['white'],
-        'guest_nice': colors['white'],
-        'steal': '#FFA791'  # brighter red
-    }
+    # color targets based on tags, even when due to grouping metrics with the same tags (colors)
+    # show up on the same graph
+    rules_tags = [
+        # http stuff, for swift and others
+        [
+            {},
+            {
+                'http_method': {
+                    'GET':       colors['blue'][0],
+                    'HEAD':      colors['yellow'][0],
+                    'PUT':       colors['green'][0],
+                    'REPLICATE': colors['brown'][0],
+                    'DELETE':    colors['red'][0]
+                }
+            }
+        ],
+        [
+            {'stat': ['upper', 'upper_90']},
+            {
+                'http_method': {
+                    'GET':       colors['blue'][1],
+                    'HEAD':      colors['yellow'][1],
+                    'PUT':       colors['green'][1],
+                    'REPLICATE': colors['brown'][1],
+                    'DELETE':    colors['red'][1]
+                }
+            }
+        ],
+    ]
 
-    color_assign_mountpoint = {
-        '_var': colors['red'][0],
-        '_lib': colors['orange'][1],
-        '_boot': colors['blue'][0],
-        '_tmp': colors['purple'][0],
-        'root': colors['green'][0]
-    }
-
-    color_assign_load = {
-        '01': colors['red'][1],
-        '05': colors['red'][0],
-        '15': '#FFA791'  # brighter red
-    }
-
-    color_assign_timing = {
-        'update_time': colors['turq'][0]
-    }
-
-    # http stuff, for swift and others
-    color_assign_http = [
-        ({'http_method': 'GET'},       colors['blue']),
-        ({'http_method': 'HEAD'},      colors['yellow']),
-        ({'http_method': 'PUT'},       colors['green']),
-        ({'http_method': 'REPLICATE'}, colors['brown']),
-        ({'http_method': 'DELETE'},    colors['red']),
+    # color targets based on tags, except when due to grouping metrics
+    # with the same tags show up on the same graph
+    rules_unique_tags = [
+        [
+            {'unit': 'cpu_state'},
+            {
+                'type': {
+                    'idle': colors['green'][0],
+                    'user': colors['blue'][0],
+                    'system': colors['blue'][1],
+                    'nice': colors['purple'][0],
+                    'softirq': colors['red'][0],
+                    'irq': colors['red'][1],
+                    'iowait': colors['orange'][0],
+                    'guest': colors['white'],
+                    'guest_nice': colors['white'],
+                    'steal': '#FFA791'  # brighter red
+                }
+            }
+        ],
+        [
+            {},
+            {
+                'mountpoint': {
+                    '_var': colors['red'][0],
+                    '_lib': colors['orange'][1],
+                    '_boot': colors['blue'][0],
+                    '_tmp': colors['purple'][0],
+                    'root': colors['green'][0]
+                }
+            }
+        ],
+        [
+            {'plugin': 'load'},
+            {
+                'type': {
+                    '01': colors['red'][1],
+                    '05': colors['red'][0],
+                    '15': '#FFA791'  # brighter red
+                }
+            }
+        ],
+        [
+            {'unit': 'ms'},
+            {
+                'type': {
+                    'update_time': colors['turq'][0]
+                }
+            }
+        ]
     ]
 
     for (i, target) in enumerate(graph['targets']):
-        if get_tag_value(graph, target, 'what') == 'cpu_state':
-            t = get_unique_tag_value(graph, target, 'type')
-            if t is not None:
-                graph['targets'][i]['color'] = color_assign_cpu[t]
+        tags = dict(graph['constants'].items() + graph['promoted_constants'].items() + target['variables'].items())
 
-        if get_tag_value(graph, target, 'what') == 'ms':
-            t = get_unique_tag_value(graph, target, 'type')
-            if t in color_assign_timing:
-                graph['targets'][i]['color'] = color_assign_timing[t]
+        for action in get_action_on_rules_match(rules_unique_tags, tags):
+            for (tag_key, matches) in action.items():
+                t = get_unique_tag_value(graph, target, tag_key)
+                if t is not None and t in matches:
+                    graph['targets'][i]['color'] = matches[t]
 
-        t = get_unique_tag_value(graph, target, 'mountpoint')
-        if t is not None and t in color_assign_mountpoint:
-            graph['targets'][i]['color'] = color_assign_mountpoint[t]
-
-        if get_tag_value(graph, target, 'plugin') == 'load':
-            t = get_unique_tag_value(graph, target, 'type')
-            if t is not None and t in color_assign_load:
-                graph['targets'][i]['color'] = color_assign_load[t]
-
-        # swift
-        w = get_tag_value(graph, target, 'what')
-        if w == 'async_pendings':
-            graph['targets'][i]['color'] = colors['turq'][0]
-
-        # http.
-        # note this doesn't prevent targets possibly having the same color
-        m = get_tag_value(graph, target, 'http_method')
-        if m is not None:
-            t = {'http_method': m}
-            for color in backend.get_action_on_rules_match(color_assign_http, t):
-                # in some cases we want the color extra strong:
-                if w in ('upper_90', 'errors'):
-                    color = color[1]
-                else:
-                    color = color[0]
-                graph['targets'][i]['color'] = color
+        for action in get_action_on_rules_match(rules_tags, target):
+            for (tag_key, matches) in action.items():
+                t = get_tag_value(graph, target, tag_key)
+                if t is not None and t in matches:
+                    graph['targets'][i]['color'] = matches[t]
 
     return graph
