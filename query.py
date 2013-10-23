@@ -147,7 +147,8 @@ def parse_patterns(query, graph=False):
                 del patterns[pattern]
         else:
             patterns[pattern]['match_id_regex'] = re.compile(pattern)
-    return patterns
+    query['compiled_patterns'] = patterns
+    return query
 
 # avg by foo
 # avg by foo,bar

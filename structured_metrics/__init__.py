@@ -72,6 +72,7 @@ class StructuredMetrics(object):
         self.plugins = []
         self.es = rawes.Elastic("%s:%s" % (config.es_host, config.es_port))
         self.logger = logger
+        self.config = config
 
     def load_plugins(self):
         '''
@@ -314,14 +315,23 @@ class StructuredMetrics(object):
         self.assure_index()
         return self.es.get('graphite_metrics/metric/%s' % metric_id)
 
-    def matching(self, patterns):
+    def matching(self, query):
         self.assure_index()
-        # future optimisation: query['limit_targets'] can be applied if no
-        # sum_by or kind of later aggregation
-        es_query = self.build_es_query(patterns)
-        metrics = self.get_metrics(es_query)
+        if query['sum_by'] or query['avg_by']:
+            # user requested aggregation, so we must make sure there's enough
+            # metrics to have enough ($limit or more) targets after aggregation
+            limit_es = query['limit_targets'] * 1000
+        else:
+            # no aggregation, so fetching $limit targets is enough
+            limit_es = query['limit_targets']
+        limit_es = min(self.config.limit_es_metrics, limit_es)
+        self.logger.debug("querying up to %d metrics from ES...", limit_es)
+        es_query = self.build_es_query(query['compiled_patterns'])
+        metrics = self.get_metrics(es_query, limit_es)
+        self.logger.debug("got %d metrics!", len(metrics))
         results = {}
         for hit in metrics['hits']['hits']:
             metric = hit_to_metric(hit)
             results[metric['id']] = metric
-        return results
+        query['limit_es'] = limit_es
+        return (query, results)

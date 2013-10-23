@@ -29,7 +29,12 @@
                 % end
             </dl>
             <dl class="dl-horizontal span6">
-                <dt>Targets matching</dt><dd>{{len_targets_matching}}/{{len_targets_all}}</dd>
+                % targets_class = ''
+                % if len_targets_matching == query['limit_es']:
+                %      targets_class = 'text-warning'
+                % end
+                <dt>Targets matching</dt><dd><span class="{{targets_class}}">{{len_targets_matching}}</span>/{{len_targets_all}}
+(<span class="{{targets_class}}">limit {{query['limit_es']}}</span>)</dd>
                 <dt>Graphs matching</dt><dd>{{len_graphs_matching}}/{{len_graphs_all}}</dd>
                 <dt>Graphs from matching targets</dt><dd>{{len_graphs_targets_matching}}</dd>
                 <dt>Total graphs</dt><dd>{{len_graphs_matching_all}}</dd>

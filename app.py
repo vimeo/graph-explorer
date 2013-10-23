@@ -421,18 +421,18 @@ def render_graphs(query, minimal=False, deps=False):
 
     (query, target_modifiers) = normalize_query(query)
     try:
-        patterns = parse_patterns(query)
+        query = parse_patterns(query)
     except Exception, e:
         errors["query_parse"] = ("Couldn't parse query patterns: %s" % e, traceback.format_exc())
     if errors:
         body = template('templates/snippet.errors', errors=errors)
         return render_page(body)
     tags = set()
-    targets_matching = s_metrics.matching(patterns)
+    (query, targets_matching) = s_metrics.matching(query)
     for target in targets_matching.values():
         for tag_name in target['tags'].keys():
             tags.add(tag_name)
-    graphs_matching = match(graphs_all, patterns, True)
+    graphs_matching = match(graphs_all, query['compiled_patterns'], True)
     graphs_matching = build_graphs(graphs_matching, query)
     stats = {'len_targets_all': s_metrics.count_metrics(),
              'len_graphs_all': len(graphs_all),
