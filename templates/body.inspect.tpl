@@ -10,7 +10,8 @@
             <dt>png</dt><dd><a href="{{urljoin(config.graphite_url, "render/?target=%s" % metric['id'])}}"><i class="icon-picture"></i></a></dd>
             <dt>tags</dt><dd>
             <dl class="dl-horizontal span6" style="margin-top: 0px;">
-                % for (tag_k,tag_v) in metric['tags'].items():
+                % for tag_k in sorted(metric['tags'].keys()):
+                    % tag_v = metric['tags'][tag_k]
                     <dt>{{tag_k}}</dt>
                     % if tag_v:
                         <dd>{{tag_v}}</dd>
