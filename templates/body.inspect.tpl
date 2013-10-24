@@ -11,7 +11,12 @@
             <dt>tags</dt><dd>
             <dl class="dl-horizontal span6" style="margin-top: 0px;">
                 % for (tag_k,tag_v) in metric['tags'].items():
-                    <dt>{{tag_k}}</dt><dd>{{tag_v}}</dd>
+                    <dt>{{tag_k}}</dt>
+                    % if tag_v:
+                        <dd>{{tag_v}}</dd>
+                    % else:
+                        <dd>&nbsp;</dd>
+                    % end
                 %end
             </dl>
         </dd>
