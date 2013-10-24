@@ -108,6 +108,14 @@ see section 'Configuration of graphite server' above
 
 [wiki page](https://github.com/vimeo/graph-explorer/wiki)
 
+
+## Unit tests
+
+```
+sudo pip install -U pytest
+py.test
+```
+
 ## Getting in touch
 
 * irc: #graph-explorer on freenode
