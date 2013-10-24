@@ -17,7 +17,7 @@ def parse_query(query_str):
     # for a call like ('foo bar baz quux', 'bar ', 'baz', 'def')
     # returns ('foo quux', 'baz') or the original query and the default val if no match
     def parse_out_value(query_str, predicate_match, value_match, value_default):
-        match = re.search('(%s%s)' % (predicate_match, value_match), query_str)
+        match = re.search('\\b(%s%s)' % (predicate_match, value_match), query_str)
         value = value_default
         if match and match.groups() > 0:
             value = match.groups(1)[0].replace(predicate_match, '')
