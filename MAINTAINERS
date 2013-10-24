@@ -1,4 +1,0 @@
-for screenshot:
-byte read rate dfs dm-0|sd[a-e]1 from -3hours
-hover with mouse over a graph to get datapoint tooltip
-try to get an event on it too
