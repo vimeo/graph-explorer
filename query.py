@@ -150,6 +150,7 @@ def parse_patterns(query, graph=False):
     query['compiled_patterns'] = patterns
     return query
 
+
 # avg by foo
 # avg by foo,bar
 # avg by n3:bucketmatch1|bucketmatch2|..,othertag
@@ -166,4 +167,3 @@ def build_agg_struct(agg_str):
             # values
             agg_struct[tag_spec] = ['']
     return agg_struct
-
