@@ -23,8 +23,8 @@ class Target(dict):
     # every target in the graph has the same value)
 
     def get_agg_key(self, agg_by_struct):
-        variables = self['variables'].keys()
-        agg_tags = set(agg_by_struct.keys()).intersection(set(variables))
+        variables_keys = self['variables'].keys()
+        agg_tags = set(agg_by_struct.keys()).intersection(set(variables_keys))
         if not agg_tags:
             return None
         agg_id = []
@@ -41,9 +41,16 @@ class Target(dict):
             self['match_buckets'][agg_tag] = bucket_id
 
         agg_id_str = '_'.join(sorted(agg_id))
-        variables_str = '_'.join(
-            ['%s_%s' % (k, self['variables'][k])
-                for k in sorted(variables) if k not in agg_tags])
+        variables = []
+        for tag_key in sorted(variables_keys):
+            if tag_key not in agg_tags:
+                val = self['variables'][tag_key]
+                # t can be a tuple if it's an aggregated tag
+                if not isinstance(val, basestring):
+                    val = val[0]
+                variables.append('%s=%s' % (tag_key, val))
+
+        variables_str = ','.join(variables)
         # some values can be like "'bucket' sumSeries (8 values)" due to an
         # earlier aggregation. if now targets have a different amount
         # values matched, that doesn't matter and they should still
