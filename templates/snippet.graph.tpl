@@ -56,9 +56,14 @@
             tz: "{{preferences.timezone}}",
 		};
 		var graph_flot_{{graph_id}} = $.extend({}, defaults, graph_data);
-		$("#chart_flot_{{graph_id}}").graphiteFlot(graph_flot_{{graph_id}}, function(err) { console.log(err); });
+        var error_cb = function(err) {
+            $("#chart_flot_{{graph_id}}").append('<div class="alert alert-error"><strong>Error:<strong> ' +
+                err + '</div>' + 'Check your config.py and your graphite CORS config ' +
+                '(see <a href="https://github.com/vimeo/graph-explorer">README</a>).' +
+                "<br/>and the network requests debugger in your browser's dev tools");
+            console.log("Error: " + err);
+        }
+		$("#chart_flot_{{graph_id}}").graphiteFlot(graph_flot_{{graph_id}}, error_cb);
 		//$("#chart_flot_{{graph_id}}").graphiteHighcharts(graph_flot_{{graph_id}}, function(err) { console.log(err); });
-        // TODO: error callback should actually show the errors in the html, something like:
-        // function(err) { $("#chart_flot_{{graph_id}}").append('<span class="label label-important">' + err + '</span>'); }
 	});
         </script>
