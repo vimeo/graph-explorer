@@ -379,7 +379,7 @@ def handle_graphs(query, deps):
 def proxy_render(query=''):
     import sys
     import urllib2
-    url = urljoin(config.graphite_url, "/render/" + query)
+    url = urljoin(config.graphite_url_server, "/render/" + query)
     body = request.body.read()
     f = urllib2.urlopen(url, body)
     # this can be very verbose:

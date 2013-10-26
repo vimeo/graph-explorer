@@ -27,7 +27,7 @@ class Backend(object):
 
     def download_metrics_json(self):
         import urllib2
-        url = urljoin(self.config.graphite_url, "metrics/index.json")
+        url = urljoin(self.config.graphite_url_server, "metrics/index.json")
         if (self.config.graphite_username is not None and self.config.graphite_password is not None):
             #user/pass from the config file
             username = self.config.graphite_username

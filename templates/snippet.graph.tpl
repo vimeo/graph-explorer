@@ -40,7 +40,7 @@
             v["name"] = JSON.stringify(v, null, 2);
         });
 		var defaults = {
-		    graphite_url: "{{urljoin(config.graphite_url, "render")}}",
+		    graphite_url: "{{urljoin(config.graphite_url_client, "render")}}",
             % if config.anthracite_url is not None:
 		    anthracite_url: "{{config.anthracite_url}}",
             % end
