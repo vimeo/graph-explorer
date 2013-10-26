@@ -5,7 +5,7 @@ import preferences
 from urlparse import urljoin
 import structured_metrics
 from graphs import Graphs
-from backend import Backend, get_action_on_rules_match
+from backend import Backend, get_action_on_rules_match, make_config
 from simple_match import match
 from query import parse_query, normalize_query, parse_patterns
 from target import Target
@@ -21,6 +21,8 @@ errors = {}
 
 # will contain the latest data
 last_update = None
+
+config = make_config(config)
 
 logger = logging.getLogger('app')
 logger.setLevel(logging.DEBUG)

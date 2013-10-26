@@ -4,8 +4,10 @@ import sys
 import logging
 
 import config
-from backend import Backend
+from backend import Backend, make_config
 import structured_metrics
+
+config = make_config(config)
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 

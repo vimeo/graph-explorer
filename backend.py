@@ -81,6 +81,16 @@ class Backend(object):
         s_metrics.update_targets(metrics)
 
 
+def make_config(config):
+    # backwards compat.
+    if hasattr(config, 'graphite_url'):
+        if not hasattr(config, 'graphite_url_server'):
+            config.graphite_url_server = config.graphite_url
+        if not hasattr(config, 'graphite_url_client'):
+            config.graphite_url_client = config.graphite_url
+    return config
+
+
 def get_action_on_rules_match(rules, subject):
     '''
     rules being a a list of tuples, and each tuple having 2 elements, like:
