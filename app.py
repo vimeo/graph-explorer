@@ -129,6 +129,7 @@ def graphite_func_aggregate(targets, agg_by_tags, aggfunc):
         for agg_by_tag in agg_by_tags.keys():
             differentiators[agg_by_tag] = differentiators.get(agg_by_tag, [])
             differentiators[agg_by_tag].append(t['variables'][agg_by_tag])
+        differentiators[agg_by_tag].sort()
     t = {
         'target': '%s(%s)' % (aggfunc, ','.join([t['target'] for t in targets])),
         'id': [t['id'] for t in targets],
