@@ -8,7 +8,7 @@ A highly interactive dashboard to satisfy varying ad-hoc information needs acros
 Something like SQL but metrics for rows and a list of graph definitions as a result set.  All graphs are built dynamically.
 
 The graphs themselves support annotated events and are also interactive because it uses [timeserieswidget](https://github.com/vimeo/timeserieswidget)
-Furthermore, the code is simple and hackable (just a few hundred sLOC) python code and is a breeze to get running
+Furthermore, we aim for minimal, hackable code and as simple as possible deploy/install.
 
 ![Screenshot](https://raw.github.com/vimeo/graph-explorer/master/screenshots/screenshot.png)
 
