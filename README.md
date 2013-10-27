@@ -58,7 +58,7 @@ Just get a code checkout and initialize all git submodules, like so:
 git clone --recursive https://github.com/vimeo/graph-explorer.git
 ```
 This will give you the latest bleeding edge code (master branch), which may be buggy.
-You can switch to the latest stable release with "git checkout v1.0.0"
+You can switch to the latest stable release with `git checkout v<version>`
 
 The [releases page](https://github.com/vimeo/graph-explorer/releases) has more info, but don't download from there, the downloads don't contain
 the needed submodules!
@@ -89,11 +89,11 @@ For apache2 this works:
 
 
 ## Troubleshooting
-
 * no graphs show up and I don't know why.
 
 first check in the top section if there are target matching and 'total graphs' is > 0.  
-if not, your query expression might be too restricting.  or maybe it didn't find your metrics from metrics.json (see 'targets matching: x/total')  
+if not, your query expression might be too restricting,
+or maybe it didn't find your metrics from metrics.json (see 'targets matching: x/total')  
 if yes, check for any errors in the javascript console, (in firefox you need firebug, in chrome and such 'tools->javascript console')
 
 also check all network requests in the network tab, and make sure they return http 200 or 304
