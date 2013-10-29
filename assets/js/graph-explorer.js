@@ -77,7 +77,15 @@ function generate_tag_legend_display(tags_list) {
 }
 function get_graph_name(key, graph_data) {
     // set graph_name; with each tag in its own color. this way it's very clear how it's related to the query (esp. the group by)
-    var graph_name = generate_title_from_dict(graph_data['constants_all'], tags_order_pre, tags_order_post);
+    // remove all constants that are already printed in vtitle..
+    filtered_constants = [];
+    $.map(graph_data["constants_all"], function (tag_v, tag_k) {
+        if (jQuery.inArray(tag_k, ["stat", "type", "unit", "target_type"]) == -1) {
+            filtered_constants[tag_k] = tag_v;
+        }
+    });
+
+    var graph_name = generate_title_from_dict(filtered_constants, tags_order_pre, tags_order_post);
     if(graph_name == "") {
         // this was probably a predefined graph, or at least one for which no constants are known
         graph_name = key;
@@ -116,6 +124,9 @@ function get_vtitle(graph_data) {
         if (target_type == 'count') {
             vtitle += "/" + count_interval;
         }
+    }
+    if ('target_type' in graph_data['constants_all']) {
+        vtitle += "(" + display_tag('target_type', graph_data['constants_all']['target_type']) + ")";
     }
     return vtitle;
 }
