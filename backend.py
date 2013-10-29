@@ -1,11 +1,5 @@
 #!/usr/bin/env python2
-try:
-    import json
-except ImportError:
-    try:
-        import simplejson as json
-    except ImportError:
-        raise ImportError("GE requires python2, 2.6 or higher, or 2.5 with simplejson.")
+import json
 import os
 import logging
 from urlparse import urljoin

@@ -46,7 +46,7 @@ For more information see the [Graph-Explorer Query Language](https://github.com/
 
 ## Dependencies
 
-* python2: either 2.6 or higher, or 2.5 and the additional simplejson module
+* python2: python2.6 or higher
 * install elasticsearch and run it (super easy, see [docs](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/setup.html) just set a unique cluster name)
 * pytz for rawes(elasticsearch) (TODO: we can probably avoid this)
 

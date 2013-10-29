@@ -1,7 +1,6 @@
 %graph_id = ''.join(e for e in graph_key if e.isalnum())
 <h5 id="h5_{{graph_id}}"></h5>
-%try: import json
-%except ImportError: import simplejson as json
+%import json
 %from urlparse import urljoin
         <div class="chart_container flot" id="chart_container_flot_{{graph_id}}">
             <div class="chart" id="chart_flot_{{graph_id}}" height="300px" width="700px"></div>

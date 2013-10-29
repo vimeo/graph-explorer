@@ -23,37 +23,29 @@ class Target(dict):
     # every target in the graph has the same value)
 
     def get_agg_key(self, agg_by_struct):
-        variables_keys = self['variables'].keys()
-        agg_tags = set(agg_by_struct.keys()).intersection(set(variables_keys))
-        if not agg_tags:
-            return None
+
+        # key with all tag_v:bucket_id for tags in agg_by_struct
         agg_id = []
-        for agg_tag in agg_tags:
-            bucket_matches = agg_by_struct[agg_tag]
-            # if we can't find a better bucket_id, just use the
-            # one that always represent catchall
-            bucket_id = ''
-            for bucket_match in bucket_matches:
-                if bucket_match in self['variables'][agg_tag]:
-                    bucket_id = bucket_match
-                    break
-            agg_id.append("%s__%s" % (agg_tag, bucket_id))
+        for agg_tag in sorted(set(agg_by_struct.keys()).intersection(set(self['variables'].keys()))):
+            # find first bucket pattern that maches, or '' as fallback (catchall)
+            bucket_id = next((patt for patt in agg_by_struct[agg_tag] if patt in self['variables'][agg_tag]), '')
+            agg_id.append("%s:%s" % (agg_tag, bucket_id))
             self['match_buckets'][agg_tag] = bucket_id
+        agg_id_str = ','.join(sorted(agg_id))
 
-        agg_id_str = '_'.join(sorted(agg_id))
+        # key with all variable tag_k=tag_v if tag_k not in agg_by_struct
         variables = []
-        for tag_key in sorted(variables_keys):
-            if tag_key not in agg_tags:
-                val = self['variables'][tag_key]
-                # t can be a tuple if it's an aggregated tag
-                if not isinstance(val, basestring):
-                    val = val[0]
-                variables.append('%s=%s' % (tag_key, val))
-
+        for tag_key in sorted(set(self['variables'].keys()).difference(set(agg_by_struct.keys()))):
+            val = self['variables'][tag_key]
+            # t can be a tuple if it's an aggregated tag
+            if not isinstance(val, basestring):
+                val = val[0]
+            variables.append('%s=%s' % (tag_key, val))
         variables_str = ','.join(variables)
         # some values can be like "'bucket' sumSeries (8 values)" due to an
         # earlier aggregation. if now targets have a different amount
         # values matched, that doesn't matter and they should still
         # be aggregated together if the rest of the conditions are met
         variables_str = re.sub('\([0-9]+ values\)', '(Xvalues)', variables_str)
+
         return '%s__%s' % (agg_id_str, variables_str)

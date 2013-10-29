@@ -4,13 +4,7 @@ from inspect import isclass
 import sre_constants
 import logging
 import time
-try:
-    import json
-except ImportError:
-    try:
-        import simplejson as json
-    except ImportError:
-        raise ImportError("GE requires python2, 2.6 or higher, or 2.5 with simplejson.")
+import json
 sys.path.append("%s/%s" % (os.path.dirname(os.path.realpath(__file__)), 'requests'))
 sys.path.append("%s/%s" % (os.path.dirname(os.path.realpath(__file__)), 'rawes'))
 
