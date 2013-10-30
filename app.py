@@ -362,6 +362,7 @@ def proxy_render(query=''):
     response.headers['Content-Type'] = message.gettype()
     return f.read()
 
+
 @route('/graphs_minimal/<query:path>', method='GET')
 def graphs_minimal(query=''):
     return handle_graphs_minimal(query, False)
