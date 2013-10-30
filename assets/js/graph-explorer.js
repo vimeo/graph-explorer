@@ -86,10 +86,7 @@ function get_graph_name(key, graph_data) {
     });
 
     var graph_name = generate_title_from_dict(filtered_constants, tags_order_pre, tags_order_post);
-    if(graph_name == "") {
-        // this was probably a predefined graph, or at least one for which no constants are known
-        graph_name = key;
-    }
+    // note graph_name can be empty
     return graph_name;
 }
 // http://stackoverflow.com/questions/280634/endswith-in-javascript
