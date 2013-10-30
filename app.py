@@ -7,10 +7,10 @@ import structured_metrics
 from graphs import Graphs
 from backend import Backend, get_action_on_rules_match, make_config
 from simple_match import match
-from query import parse_query, normalize_query, parse_patterns
+from query import Query
+
 from target import Target
 import logging
-import re
 import convert
 import traceback
 
@@ -93,14 +93,7 @@ def inspect_metric(metrics=''):
     return render_page(body, 'inspect')
 
 
-def build_graphs(graphs, query={}):
-    defaults = {
-        'from': '-24hours',
-        'to': 'now'
-    }
-    query = dict(defaults.items() + query.items())
-    query['until'] = query['to']
-    del query['to']
+def build_graphs(graphs, query):
     for (k, v) in graphs.items():
         v.update(query)
     return graphs
@@ -144,19 +137,7 @@ def graphite_func_aggregate(targets, agg_by_tags, aggfunc):
     return Target(t)
 
 
-def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
-    # merge default options..
-    defaults = {
-        'group_by': [],
-        'sum_by': {},
-        'avg_over': None,
-        'avg_by': {},
-        'from': '-24hours',
-        'to': 'now',
-        'statement': 'graph',
-        'limit_targets': 500
-    }
-    query = dict(defaults.items() + query.items())
+def build_graphs_from_targets(targets, query):
     graphs = {}
     if not targets:
         return (graphs, query)
@@ -181,37 +162,27 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
         avg_over_unit = avg_over[1]
         if avg_over_unit in averaging.keys():
             multiplier = averaging[avg_over_unit]
-            target_modifier = {'target': ['movingAverage', str(avg_over_amount * multiplier)]}
-            target_modifiers.append(target_modifier)
+            query['target_modifiers'].append({'target': ['movingAverage', str(avg_over_amount * multiplier)]})
 
-    # for each combination of values of tags from group_by, make 1 graph with
-    # all targets that have these values. so for each graph, we have:
+    # for each group_by bucket, make 1 graph.
+    # so for each graph, we have:
     # the "constants": tags in the group_by
-    # the "variables": tags not in the group_by, which can have arbitrary values
+    # the "variables": tags not in the group_by, which can have arbitrary
+    # values, or different values from a group_by tag that match the same
+    # bucket pattern
     # go through all targets and group them into graphs:
     for (i, target_id) in enumerate(sorted(targets.iterkeys())):
-        constants = {}
-        variables = {}
         target_data = targets[target_id]
-        for (tag_name, tag_value) in target_data['tags'].items():
-            if tag_name in group_by or '%s=' % tag_name in group_by:
-                constants[tag_name] = tag_value
-            else:
-                variables[tag_name] = tag_value
-        graph_key = '__'.join([target_data['tags'][tag_name] for tag_name in constants])
+        # FWIW. has an 'id' which timeserieswidget doesn't care about
+        target = Target(target_data)
+        target['target'] = target['id']
+
+        (graph_key, constants) = target.get_graph_info(group_by)
         if graph_key not in graphs:
             graph = {'from': query['from'], 'until': query['to']}
             graph.update({'constants': constants, 'targets': []})
             graphs[graph_key] = graph
-        # set all options needed for timeserieswidget/flot:
-        t = {
-            'variables': variables,
-            'id': target_data['id'],  # timeserieswidget doesn't care about this
-            'target': target_data['id']
-        }
-        if 'color' in target_data:
-            t['color'] = target_data['color']
-        graphs[graph_key]['targets'].append(Target(t))
+        graphs[graph_key]['targets'].append(target)
 
     # ok so now we have a graphs dictionary with a graph for every approriate
     # combination of group_by tags, and each graphs contains all targets that
@@ -260,7 +231,7 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
     # Apply target modifiers (like movingAverage, summarize, ...)
     for (graph_key, graph_config) in graphs.items():
         for target in graph_config['targets']:
-            for target_modifier in target_modifiers:
+            for target_modifier in query['target_modifiers']:
                 target['target'] = "%s(%s,%s)" % (target_modifier['target'][0],
                                                   target['target'],
                                                   ','.join(target_modifier['target'][1:]))
@@ -335,12 +306,15 @@ def build_graphs_from_targets(targets, query={}, target_modifiers=[]):
     # would otherwise have the same key, even though they have a different
     # set of constants, this can manifest itself on dashboard pages where
     # graphs for different queries are shown.
+    # note that we can't just compile constants + promoted_constants,
+    # part of the original graph key is also set by the group by (which, by
+    # means of the bucket patterns doesn't always translate into constants),
+    # we solve this by just including the old key.
     new_graphs = {}
     for (graph_key, graph_config) in graphs.items():
-        better_graph_key_1 = '__'.join('%s_%s' % i for i in graph_config['constants'].items())
-        better_graph_key_2 = '__'.join('%s_%s' % i for i in graph_config['promoted_constants'].items())
-        better_graph_key = '%s___%s' % (better_graph_key_1, better_graph_key_2)
-        new_graphs[better_graph_key] = graph_config
+        new_key = ','.join('%s=%s' % i for i in graph_config['promoted_constants'].items())
+        new_key = '%s__%s' % (graph_key, new_key)
+        new_graphs[new_key] = graph_config
     graphs = new_graphs
 
     return (graphs, query)
@@ -378,7 +352,6 @@ def handle_graphs(query, deps):
 @route('/render/', method='POST')
 @route('/render', method='POST')
 def proxy_render(query=''):
-    import sys
     import urllib2
     url = urljoin(config.graphite_url_server, "/render/" + query)
     body = request.body.read()
@@ -413,21 +386,13 @@ def render_graphs(query, minimal=False, deps=False):
     if "query_parse" in errors:
         del errors["query_parse"]
     try:
-        query = parse_query(query)
+        query = Query(query)
     except Exception, e:
         errors["query_parse"] = ("Couldn't parse query: %s" % e, traceback.format_exc())
     if errors:
         body = template('templates/snippet.errors', errors=errors)
         return render_page(body)
 
-    (query, target_modifiers) = normalize_query(query)
-    try:
-        query = parse_patterns(query)
-    except Exception, e:
-        errors["query_parse"] = ("Couldn't parse query patterns: %s" % e, traceback.format_exc())
-    if errors:
-        body = template('templates/snippet.errors', errors=errors)
-        return render_page(body)
     tags = set()
     (query, targets_matching) = s_metrics.matching(query)
     for target in targets_matching.values():
@@ -446,7 +411,7 @@ def render_graphs(query, minimal=False, deps=False):
     # the code to handle different statements, and the view
     # templates could be a bit prettier, but for now it'll do.
     if query['statement'] in ('graph', 'lines', 'stack'):
-        graphs_targets_matching = build_graphs_from_targets(targets_matching, query, target_modifiers)[0]
+        graphs_targets_matching = build_graphs_from_targets(targets_matching, query)[0]
         stats['len_graphs_targets_matching'] = len(graphs_targets_matching)
         graphs_matching.update(graphs_targets_matching)
         stats['len_graphs_matching_all'] = len(graphs_matching)

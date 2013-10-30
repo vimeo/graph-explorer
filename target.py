@@ -49,3 +49,27 @@ class Target(dict):
         variables_str = re.sub('\([0-9]+ values\)', '(Xvalues)', variables_str)
 
         return '%s__%s' % (agg_id_str, variables_str)
+
+    def get_graph_info(self, group_by):
+        constants = {}
+        graph_key = []
+        self['variables'] = {}
+        for (tag_name, tag_value) in self['tags'].items():
+            in_group_by = None
+            if tag_name in group_by:
+                in_group_by = tag_name
+            elif '%s=' % tag_name in group_by:
+                in_group_by = '%s=' % tag_name
+            if in_group_by:
+                if len(group_by[in_group_by]) == 1:
+                    # only the fallback bucket, we know this will be a constant
+                    constants[tag_name] = tag_value
+                    graph_key.append("%s=%s" % (tag_name, tag_value))
+                else:
+                    bucket_id = next((patt for patt in group_by[in_group_by] if patt in tag_value), '')
+                    graph_key.append("%s:%s" % (tag_name, bucket_id))
+                    self['variables'][tag_name] = tag_value
+            else:
+                self['variables'][tag_name] = tag_value
+        graph_key = '__'.join(sorted(graph_key))
+        return (graph_key, constants)
