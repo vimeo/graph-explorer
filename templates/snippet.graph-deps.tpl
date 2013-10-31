@@ -9,6 +9,8 @@
 <script src="../timeserieswidget/flot/jquery.flot.selection.js"></script>
 <script src="../timeserieswidget/flot/jquery.flot.time.js"></script>
 <script src="../timeserieswidget/flot/jquery.flot.stack.js"></script>
+<script src="../timeserieswidget/highcharts/highcharts.js"></script>
+<script src="../timeserieswidget/highcharts/modules/exporting.js"></script>
 <script src="../timeserieswidget/jquery.flot.axislabels.js"></script>
 <script src="../timeserieswidget/timezone-js/src/date.js"></script>
 <script src="../assets/js/graph-explorer.js"></script>
