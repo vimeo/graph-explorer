@@ -2,9 +2,9 @@
 	path = timeserieswidget
 	url = https://github.com/vimeo/timeserieswidget.git
 	pushurl = git@github.com:vimeo/timeserieswidget.git
-[submodule "structured_metrics/rawes"]
-	path = structured_metrics/rawes
-	url = git://github.com/humangeo/rawes.git
-[submodule "structured_metrics/requests"]
-	path = structured_metrics/requests
-	url = git://github.com/kennethreitz/requests.git
+[submodule "structured_metrics/elasticsearch-py"]
+	path = structured_metrics/elasticsearch-py
+	url = git@github.com:elasticsearch/elasticsearch-py.git
+[submodule "structured_metrics/urllib3"]
+	path = structured_metrics/urllib3
+	url = git@github.com:shazow/urllib3.git

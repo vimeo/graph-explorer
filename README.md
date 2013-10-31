@@ -48,7 +48,6 @@ For more information see the [Graph-Explorer Query Language](https://github.com/
 
 * python2: python2.6 or higher
 * install elasticsearch and run it (super easy, see [docs](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/setup.html) just set a unique cluster name)
-* pytz for rawes(elasticsearch) (TODO: we can probably avoid this)
 
 ## Installation
 

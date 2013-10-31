@@ -3,14 +3,12 @@ import sys
 from inspect import isclass
 import sre_constants
 import logging
-import time
 import json
-sys.path.append("%s/%s" % (os.path.dirname(os.path.realpath(__file__)), 'requests'))
-sys.path.append("%s/%s" % (os.path.dirname(os.path.realpath(__file__)), 'rawes'))
+sys.path.append("%s/%s" % (os.path.dirname(os.path.realpath(__file__)), 'elasticsearch-py'))
+sys.path.append("%s/%s" % (os.path.dirname(os.path.realpath(__file__)), 'urllib3'))
 
-import rawes
-from rawes.elastic_exception import ElasticException
-import requests
+from elasticsearch import Elasticsearch
+from elasticsearch.exceptions import TransportError
 
 
 query_all = {
@@ -64,7 +62,8 @@ class StructuredMetrics(object):
 
     def __init__(self, config, logger=logging):
         self.plugins = []
-        self.es = rawes.Elastic("%s:%s" % (config.es_host, config.es_port))
+        es_host = config.es_host.replace('http://', '').replace('https://', '')
+        self.es = Elasticsearch([{"host": es_host, "port": config.es_port}])
         self.logger = logger
         self.config = config
 
@@ -147,12 +146,11 @@ class StructuredMetrics(object):
             self.logger.debug("plugin %20s upgraded %10d metrics to proto2", plugin_name, plugin_stats[plugin_name])
         return targets
 
-
     def es_bulk(self, bulk_list):
         if not len(bulk_list):
             return
         body = '\n'.join(map(json.dumps, bulk_list)) + '\n'
-        self.es.post('graphite_metrics/metric/_bulk', data=body)
+        self.es.bulk(index='graphite_metrics', doc_type='metric', body=body)
 
     def assure_index(self):
         body = {
@@ -171,20 +169,17 @@ class StructuredMetrics(object):
         }
         self.logger.debug("making sure index exists..")
         try:
-            self.es.post('graphite_metrics', data=body)
-        except ElasticException as e:
-            if e.result['error'] == 'IndexAlreadyExistsException[[graphite_metrics] Already exists]':
+            self.es.indices.create(index='graphite_metrics', body=body)
+        except TransportError, e:
+            if e[1] == 'IndexAlreadyExistsException[[graphite_metrics] Already exists]':
                 pass
             else:
                 raise
+
         self.logger.debug("making sure shard is started..")
-        while True:
-            index = self.es.get('graphite_metrics/_status')
-            shard = index['indices']['graphite_metrics']['shards']['0'][0]
-            self.logger.debug("shard[0][0] state: %s" % shard['state'])
-            if shard['state'] == 'STARTED':
-                break
-            time.sleep(0.1)
+        # not sure what happens when this times out, an exception maybe?
+        self.es.cluster.health(index='graphite_metrics', wait_for_status='yellow')
+        self.logger.debug("shard is ready!")
 
     def remove_metrics_not_in(self, metrics):
         bulk_size = 1000
@@ -222,14 +217,13 @@ class StructuredMetrics(object):
         self.es_bulk(bulk_list)
         self.logger.debug("indexed %d metrics", affected)
 
-
     def load_metric(self, metric_id):
         hit = self.get(metric_id)
         return hit_to_metric(hit)
 
     def count_metrics(self):
         self.assure_index()
-        ret = self.es.post('graphite_metrics/metric/_count')
+        ret = self.es.count(index='graphite_metrics', doc_type='metric')
         return ret['count']
 
     def build_es_query(self, query):
@@ -282,10 +276,10 @@ class StructuredMetrics(object):
         try:
             if query is None:
                 query = query_all
-            return self.es.get('graphite_metrics/metric/_search?size=%s' % size, data={
+            return self.es.search(index='graphite_metrics', doc_type='metric', size=size, body={
                 "query": query,
             })
-        except requests.exceptions.ConnectionError as e:
+        except Exception as e:
             sys.stderr.write("Could not connect to ElasticSearch: %s" % e)
 
     def get_all_metrics(self, query=None, size=200):
@@ -293,21 +287,21 @@ class StructuredMetrics(object):
         try:
             if query is None:
                 query = query_all
-            d = self.es.get('graphite_metrics/metric/_search?search_type=scan&scroll=10m&size=%s' % size, data={
+            d = self.es.search(index='graphite_metrics', doc_type='metric', size=size, search_type='scan', scroll='10m', body={
                 "query": query,
             })
             scroll_id = d['_scroll_id']
             d = None
             while (d is None or len(d['hits']['hits'])):
-                d = self.es.get('_search/scroll?scroll=10m', data=scroll_id)
+                d = self.es.scroll(scroll='10m', scroll_id=scroll_id)
                 yield d
                 scroll_id = d['_scroll_id']
-        except requests.exceptions.ConnectionError as e:
+        except Exception as e:
             sys.stderr.write("Could not connect to ElasticSearch: %s" % e)
 
     def get(self, metric_id):
         self.assure_index()
-        return self.es.get('graphite_metrics/metric/%s' % metric_id)
+        return self.es.get(index='graphite_metrics', doc_type='metric', id=metric_id)
 
     def matching(self, query):
         self.assure_index()
