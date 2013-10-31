@@ -394,8 +394,17 @@ def render_graphs(query, minimal=False, deps=False):
         body = template('templates/snippet.errors', errors=errors)
         return render_page(body)
 
+    if "match_metrics" in errors:
+        del errors["match_metrics"]
+    try:
+        (query, targets_matching) = s_metrics.matching(query)
+    except Exception, e:
+        errors["match_metrics"] = ("Couldn't find matching metrics: %s" % e, traceback.format_exc())
+    if errors:
+        body = template('templates/snippet.errors', errors=errors)
+        return render_page(body)
+
     tags = set()
-    (query, targets_matching) = s_metrics.matching(query)
     for target in targets_matching.values():
         for tag_name in target['tags'].keys():
             tags.add(tag_name)
