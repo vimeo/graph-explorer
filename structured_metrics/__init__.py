@@ -171,7 +171,7 @@ class StructuredMetrics(object):
         try:
             self.es.indices.create(index='graphite_metrics', body=body)
         except TransportError, e:
-            if e[1] == 'IndexAlreadyExistsException[[graphite_metrics] Already exists]':
+            if 'IndexAlreadyExistsException' in e[1]:
                 pass
             else:
                 raise
