@@ -23,7 +23,7 @@
     </div><!--/span-->
     <div class="span9">
       <div class="nav-header">Query
-        <span class="badge badge-info"><a href="" target="_blank" onclick="window.location=$('#query').value;"><i class="icon-share"></i></a></span>
+        <span class="badge badge-info"><a href="" target="_blank"><i class="icon-share"></i></a></span>
       </div>
       <form action="/index" method="get" onsubmit="location.href='/index/' + encodeURIComponent(this.query.value); return false;">
         %# http://stackoverflow.com/questions/1370021/enter-key-on-a-form-with-a-single-input-field-will-automatically-submit-with-ge
