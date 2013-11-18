@@ -108,23 +108,47 @@ class Query(dict):
         self['patterns'] += query_str.split()
 
 
+    @staticmethod
+    def graphite_function_applier(funcname, *args):
+        def apply(target, _graph_config):
+            target['target'] = "%s(%s,%s)" % (funcname, target['target'], ','.join(map(str, args)))
+        return apply
+
+
+    @staticmethod
+    def variable_applier(**tags):
+        def apply(target, graph_config):
+            for new_k, new_v in tags.items():
+                if new_k in graph_config['constants']:
+                    graph_config['constants'][new_k] = new_v
+                else:
+                    target['variables'][new_k] = new_v
+        return apply
+
+
+    unit_conversions = (
+        ('/s', (lambda *_: None)),
+        ('/M', graphite_function_applier.__func__('scale', 60)),
+        ('/h', graphite_function_applier.__func__('scale', 3600)),
+        ('/d', graphite_function_applier.__func__('scale', 3600 * 24)),
+        ('/w', graphite_function_applier.__func__('scale', 3600 * 24 * 7)),
+        ('/mo', graphite_function_applier.__func__('scale', 3600 * 24 * 30))
+    )
+
+
     def normalize(self):
-        unit_conversions = {
-            '/M': ['scale', '60'],
-            '/h': ['scale', '3600'],
-            '/d': ['scale', str(3600 * 24)],
-            '/w': ['scale', str(3600 * 24 * 7)],
-            '/mo': ['scale', str(3600 * 24 * 30)]
-        }
         for (i, pattern) in enumerate(self['patterns']):
             if pattern.startswith('unit='):
                 unit = pattern.split('=')[1]
-                for (divisor, modifier) in unit_conversions.items():
+                for divisor, modifier in self.unit_conversions:
                     if unit.endswith(divisor):
                         real_unit = unit
                         unit = "%s/s" % unit[0:-(len(divisor))]
                         self['patterns'][i] = "unit=%s" % unit
-                        self['target_modifiers'].append({'target': modifier, 'tags': {'unit': real_unit}})
+                        self['target_modifiers'].extend((
+                            modifier,
+                            self.variable_applier(unit=real_unit),
+                        ))
                         break
 
 
