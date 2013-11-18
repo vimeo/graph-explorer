@@ -1,6 +1,7 @@
 import re
 import convert
 import copy
+import unitconv
 
 # note, consider "query" in the broad sense.  it is used for user input, as
 # well as the blueprint config for graphs, i.e. "spec"
@@ -25,8 +26,8 @@ class Query(dict):
         tmp = copy.deepcopy(Query.default)
         self.update(tmp)
         self.parse(query_str)
-        self.normalize()
         self['compiled_pattern'] = self.compile_pattern(self['patterns'])
+        self.allow_compatible_units()
 
     def parse(self, query_str):
         avg_over_match = '^([0-9]*)(s|M|h|d|w|mo)$'
@@ -132,30 +133,89 @@ class Query(dict):
         return apply_variables
 
 
-    unit_conversions = (
-        ('/s', (lambda *_: None)),
-        ('/M', graphite_function_applier.__func__('scale', 60)),
-        ('/h', graphite_function_applier.__func__('scale', 3600)),
-        ('/d', graphite_function_applier.__func__('scale', 3600 * 24)),
-        ('/w', graphite_function_applier.__func__('scale', 3600 * 24 * 7)),
-        ('/mo', graphite_function_applier.__func__('scale', 3600 * 24 * 30))
-    )
+    @classmethod
+    def convert_to_requested_unit_applier(cls, compatibles):
+        def apply_requested_unit(target, _graph_config):
+            tags = target['tags']
+            try:
+                scale, extra_op = compatibles[tags['unit']]
+            except (KeyError, ValueError):
+                # this probably means ES didn't respect the query we made,
+                # or we didn't make it properly, or something? issue a warning
+                # but let things go on
+                warnings.warn("Found a target with unit %r which wasn't in our "
+                              "list of compatible units (%r) for this query."
+                              % (tags.get('unit'), compatibles.keys()),
+                              RuntimeWarning)
+                return
+            if extra_op == 'derive':
+                cls.apply_derivative_to_target(target, scale)
+            else:
+                if scale != 1.0:
+                    cls.apply_graphite_function_to_target(target, 'scale', scale)
+                if extra_op == 'integrate':
+                    cls.apply_graphite_function_to_target(target, 'integrate')
+        return apply_requested_unit
 
 
-    def normalize(self):
-        for (i, pattern) in enumerate(self['patterns']):
-            if pattern.startswith('unit='):
-                unit = pattern.split('=')[1]
-                for divisor, modifier in self.unit_conversions:
-                    if unit.endswith(divisor):
-                        real_unit = unit
-                        unit = "%s/s" % unit[0:-(len(divisor))]
-                        self['patterns'][i] = "unit=%s" % unit
-                        self['target_modifiers'].extend((
-                            modifier,
-                            self.variable_applier(unit=real_unit),
-                        ))
-                        break
+    @classmethod
+    def derive_counters(cls, target, _graph_config):
+        if target['tags'].get('target_type') == 'counter':
+            cls.apply_derivative_to_target(target)
+
+
+    @classmethod
+    def apply_derivative_to_target(cls, target, scale=1):
+        wraparound = target['tags'].get('wraparound')
+        if wraparound is not None:
+            cls.apply_graphite_function_to_target(target, 'nonNegativeDerivative', wraparound)
+        else:
+            cls.apply_graphite_function_to_target(target, 'derivative')
+        cls.apply_graphite_function_to_target(target, 'scaleToSeconds', scale)
+
+
+    def allow_compatible_units(self):
+        newpat, mods = self.transform_pattern_for_compatible_units(self['compiled_pattern'])
+        if not mods:
+            # no explicit unit requested; default is to apply derivative to
+            # targets with target_type=counter, and leave others alone
+            mods = [self.derive_counters]
+        self['compiled_pattern'] = newpat
+        self['target_modifiers'].extend(mods)
+
+
+    @classmethod
+    def transform_pattern_for_compatible_units(cls, pattern):
+        if pattern[0] == 'match_tag_equality' and pattern[1] == 'unit':
+            requested_unit = pattern[2]
+            unitinfo = unitconv.parse_unitname(requested_unit)
+            compatibles = unitconv.determine_compatible_units(**unitinfo)
+
+            # rewrite the search term to include all the alternates
+            pattern = ('match_or',) + tuple(
+                [('match_tag_equality', 'unit', u) for u in compatibles.keys()])
+
+            return pattern, [
+                cls.convert_to_requested_unit_applier(compatibles),
+                cls.variable_applier(unit=requested_unit),
+            ]
+        elif pattern[0] in ('match_and', 'match_or'):
+            # recurse into subpatterns, in case they have unit=* terms
+            # underneath. this won't be totally correct in case there's a way
+            # to have multiple "unit=*" terms inside varying structures of
+            # 'and' and 'or', but that's not exposed to the user yet anyway,
+            # and auto-unit-conversion in that case probably isn't worth
+            # supporting.
+            new_target_modifiers = []
+            newargs = []
+            for subpattern in pattern[1:]:
+                if isinstance(subpattern, tuple):
+                    subpattern, mods = cls.transform_pattern_for_compatible_units(subpattern)
+                    new_target_modifiers.extend(mods)
+                newargs.append(subpattern)
+            pattern = (pattern[0],) + tuple(newargs)
+            return pattern, new_target_modifiers
+        return pattern, []
 
 
     query_pattern_re = re.compile(r'''
