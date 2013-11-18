@@ -6,7 +6,7 @@ from urlparse import urljoin
 import structured_metrics
 from graphs import Graphs
 from backend import Backend, get_action_on_rules_match, make_config
-from simple_match import match
+from simple_match import filter_matching
 from query import Query
 
 from target import Target
@@ -402,7 +402,7 @@ def render_graphs(query, minimal=False, deps=False):
     for target in targets_matching.values():
         for tag_name in target['tags'].keys():
             tags.add(tag_name)
-    graphs_matching = match(graphs_all, query['compiled_patterns'], True)
+    graphs_matching = filter_matching(query['compiled_pattern'], graphs_all)
     graphs_matching = build_graphs(graphs_matching, query)
     stats = {'len_targets_all': s_metrics.count_metrics(),
              'len_graphs_all': len(graphs_all),

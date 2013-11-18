@@ -20,12 +20,13 @@ class Query(dict):
         'limit_targets': 500,
         'target_modifiers': []
     }
+
     def __init__(self, query_str):
         tmp = copy.deepcopy(Query.default)
         self.update(tmp)
         self.parse(query_str)
         self.normalize()
-        self.compile_patterns()
+        self['compiled_pattern'] = self.compile_pattern(self['patterns'])
 
     def parse(self, query_str):
         avg_over_match = '^([0-9]*)(s|M|h|d|w|mo)$'
@@ -109,21 +110,26 @@ class Query(dict):
 
 
     @staticmethod
-    def graphite_function_applier(funcname, *args):
-        def apply(target, _graph_config):
-            target['target'] = "%s(%s,%s)" % (funcname, target['target'], ','.join(map(str, args)))
-        return apply
+    def apply_graphite_function_to_target(target, funcname, *args):
+        target['target'] = "%s(%s)" % (funcname, ','.join([target['target']] + map(str, args)))
+
+
+    @classmethod
+    def graphite_function_applier(cls, funcname, *args):
+        def apply_graphite_function(target, _graph_config):
+            cls.apply_graphite_function_to_target(target, funcname, *args)
+        return apply_graphite_function
 
 
     @staticmethod
     def variable_applier(**tags):
-        def apply(target, graph_config):
+        def apply_variables(target, graph_config):
             for new_k, new_v in tags.items():
                 if new_k in graph_config['constants']:
                     graph_config['constants'][new_k] = new_v
                 else:
                     target['variables'][new_k] = new_v
-        return apply
+        return apply_variables
 
 
     unit_conversions = (
@@ -152,37 +158,70 @@ class Query(dict):
                         break
 
 
-    def compile_patterns(self):
-        # prepare higher performing query structure, to later match objects
-        # note that if you have twice the exact same "word" (ignoring leading '!'), the last one wins
-        """
-        if self['patterns'] looks like so:
-        ['target_type=', 'what=', '!tag_k=not_equals_thistag_v', 'tag_k:match_this_val', 'arbitrary', 'words']
+    query_pattern_re = re.compile(r'''
+        # this should accept any string
+        ^
+        (?P<negate> ! )?
+        (?P<key> [^=:]* )
+        (?:
+            (?P<operation> [=:] )
+            (?P<term> .* )
+        )?
+        $
+    ''', re.X)
 
-        then the patterns will look like so:
-        {
-        'tag_k=not_equals_thistag_v': {'negate': True, 'match_tag_equality': ['tag_k', 'not_equals_thistag_v']},
-        'target_type=':               {'negate': False, 'match_tag_equality': ['target_type', '']},
-        'what=':                      {'negate': False, 'match_tag_equality': ['what', '']},
-        'tag_k:match_this_val':       {'negate': False, 'match_tag_regex': ['tag_k', 'match_this_val']},
-        'words':                      {'negate': False, 'match_id_regex': <_sre.SRE_Pattern object at 0x2612cb0>},
-        'arbitrary':                  {'negate': False, 'match_id_regex': <_sre.SRE_Pattern object at 0x7f6cc000bd90>}
-        }
+
+    @classmethod
+    def compile_pattern(cls, patterns):
+        # prepare higher performing query structure, to later match objects
         """
-        patterns = {}
-        for pattern in self['patterns']:
-            negate = False
-            if pattern.startswith('!'):
-                negate = True
-                pattern = pattern[1:]
-            patterns[pattern] = {'negate': negate}
-            if '=' in pattern:
-                patterns[pattern]['match_tag_equality'] = pattern.split('=')
-            elif ':' in pattern:
-                patterns[pattern]['match_tag_regex'] = pattern.split(':')
+        if patterns looks like so:
+        ['target_type=', 'what=', '!tag_k=not_equals_thistag', 'tag_k:match_this_val', 'arbitrary', 'words']
+
+        then the compiled pattern will look like so:
+        ('match_and',
+         ('!tag_k=not_equals_thistag', ('match_negate',
+                                         ('match_tag_equality', 'tag_k', 'not_equals_thistag'))),
+         ('target_type=',              ('match_tag_exists', 'target_type')),
+         ('what=',                     ('match_tag_exists', 'what')),
+         ('tag_k:match_this_val',      ('match_tag_regex', 'tag_k', 'match_this_val')),
+         ('words',                     ('match_id_regex', 'words')),
+         ('arbitrary',                 ('match_id_regex', 'arbitrary'))
+        )
+        """
+
+        compiled_patterns = []
+        for pattern in patterns:
+            matchobj = cls.query_pattern_re.match(pattern)
+            oper, key, term, negate = matchobj.group('operation', 'key', 'term', 'negate')
+            if oper == '=':
+                if key and term:
+                    pat = ('match_tag_equality', key, term)
+                elif key and not term:
+                    pat = ('match_tag_exists', key)
+                elif term and not key:
+                    pat = ('match_any_tag_value', term)
+                else:
+                    # pointless pattern
+                    continue
+            elif oper == ':':
+                if key and term:
+                    pat = ('match_tag_regex', key, term)
+                elif key and not term:
+                    pat = ('match_tag_name_regex', key)
+                elif term and not key:
+                    pat = ('match_tag_value_regex', key)
+                else:
+                    # pointless pattern
+                    continue
             else:
-                patterns[pattern]['match_id_regex'] = re.compile(pattern)
-        self['compiled_patterns'] = patterns
+                pat = ('match_id_regex', key)
+            if negate:
+                pat = ('match_negate', pat)
+            compiled_patterns.append(pat)
+        if len(compiled_patterns) == 1:
+            return compiled_patterns[0]
+        return ('match_and',) + tuple(compiled_patterns)
 
 
     # avg by foo

@@ -59,6 +59,57 @@ class PluginError(Exception):
         return "%s -> %s (%s)" % (self.plugin, self.msg, self.underlying_error)
 
 
+def build_es_match_tag_equality(key, term):
+    return es_query('match', 'tags', '%s=%s' % (key, term))
+
+
+def build_es_match_tag_exists(key):
+    return es_regexp('tags', '%s=.*' % key)
+
+
+def build_es_match_any_tag_value(term):
+    return es_regexp('tags', ".*=%s$" % term)
+
+
+def build_es_match_tag_regex(key, term):
+    return es_regexp('tags', '%s=.*%s.*' % (key, term))
+
+
+def build_es_match_tag_name_regex(key):
+    return es_regexp('tags', '.*%s.*=.*' % key)
+
+
+def build_es_match_tag_value_regex(term):
+    return es_regexp('tags', '.*=.*%s.*' % term)
+
+
+def build_es_match_id_regex(key):
+    # here 'id' is to be interpreted loosely, as in the old
+    # (python-native datastructures) approach where we used
+    # Plugin.get_target_id to have an id that contains the graphite
+    # metric, but also the tags etc. so if the user types just a
+    # word, we want the metrics to be returned where the id or tags
+    # are matched
+    return {'or': [es_regexp('_id', '.*%s.*' % key),
+                   es_regexp('tags', '.*%s.*' % key)]}
+
+
+def build_es_match_negate(pattern):
+    return {'not': build_es_expr(pattern)}
+
+
+def build_es_match_or(*patterns):
+    return {'or': map(build_es_expr, patterns)}
+
+
+def build_es_match_and(*patterns):
+    return {'and': map(build_es_expr, patterns)}
+
+
+def build_es_expr(pattern):
+    return globals()['build_es_' + pattern[0]](*pattern[1:])
+
+
 class StructuredMetrics(object):
 
     def __init__(self, config, logger=logging):
@@ -237,53 +288,17 @@ class StructuredMetrics(object):
         ret = self.es.count(index='graphite_metrics', doc_type='metric')
         return ret['count']
 
-    def build_es_query(self, query):
-        conditions = []
-        for (k, data) in query.items():
-            negate = data['negate']
-            if 'match_tag_equality' in data:
-                data = data['match_tag_equality']
-                if data[0] and data[1]:
-                    condition = es_query('match', 'tags', "%s=%s" % tuple(data))
-                elif data[0]:
-                    condition = es_regexp('tags', "%s=.*" % data[0])  # i think a '^' prefix is implied here
-                elif data[1]:
-                    condition = es_regexp('tags', ".*=%s$" % data[0])
-            elif 'match_tag_regex' in data:
-                data = data['match_tag_regex']
-                if data[0] and data[1]:
-                    condition = es_regexp('tags', '%s=.*%s.*' % tuple(data))  # i think a '^' prefix is implied here
-                elif data[0]:
-                    condition = es_regexp('tags', '.*%s.*=.*' % data[0])
-                elif data[1]:
-                    condition = es_regexp('tags', '.*=.*%s.*' % data[1])
-            elif 'match_id_regex' in data:
-                # here 'id' is to be interpreted loosely, as in the old
-                # (python-native datastructures) approach where we used
-                # Plugin.get_target_id to have an id that contains the graphite
-                # metric, but also the tags etc. so if the user types just a
-                # word, we want the metrics to be returned where the id or tags
-                # are matched
-                condition = {
-                    "or": [
-                        es_regexp('_id', '.*%s.*' % k),
-                        es_regexp('tags', '.*%s.*' % k)
-                    ]
-                }
-            if negate:
-                condition = {"not": condition}
-            conditions.append(condition)
+    def build_es_query(self, pattern):
         return {
             "filtered": {
                 "query": {"match_all": {}},
-                "filter": {
-                    "and": conditions
-                }
+                "filter": build_es_expr(pattern)
             }
         }
 
     def get_metrics(self, query=None, size=1000):
         self.assure_index()
+        self.logger.debug("Sending query to ES: %r", query)
         try:
             if query is None:
                 query = query_all
@@ -325,7 +340,7 @@ class StructuredMetrics(object):
             limit_es = query['limit_targets']
         limit_es = min(self.config.limit_es_metrics, limit_es)
         self.logger.debug("querying up to %d metrics from ES...", limit_es)
-        es_query = self.build_es_query(query['compiled_patterns'])
+        es_query = self.build_es_query(query['compiled_pattern'])
         metrics = self.get_metrics(es_query, limit_es)
         self.logger.debug("got %d metrics!", len(metrics))
         results = {}
