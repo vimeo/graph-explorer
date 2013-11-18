@@ -1,6 +1,7 @@
 import os
 import sys
 import imp
+import re
 from inspect import isclass
 import sre_constants
 import logging
@@ -37,6 +38,14 @@ def es_regexp(k, v):
     }
 
 
+def es_prefix(k, v):
+    return {
+        'prefix': {
+            k: v
+        }
+    }
+
+
 def hit_to_metric(hit):
     tags = {}
     for tag in hit['_source']['tags']:
@@ -59,28 +68,49 @@ class PluginError(Exception):
         return "%s -> %s (%s)" % (self.plugin, self.msg, self.underlying_error)
 
 
+def regex_unanchor(regexp):
+    """
+    ES regexps are anchored, so adding .* is necessary at the beginning and
+    end to get a substring match. But we want to skip that if front/end
+    anchors are explicitly used.
+
+    Also avoid doubling up wildcards, in case the regexp engine is not smart
+    about backtracking.
+    """
+
+    if regexp.startswith('^'):
+        regexp = regexp.lstrip('^')
+    elif not regexp.startswith('.*'):
+        regexp = '.*' + regexp
+    if regexp.endswith('$'):
+        regexp = regexp.rstrip('$')
+    elif not regexp.endswith('.*'):
+        regexp += '.*'
+    return regexp
+
+
 def build_es_match_tag_equality(key, term):
     return es_query('match', 'tags', '%s=%s' % (key, term))
 
 
 def build_es_match_tag_exists(key):
-    return es_regexp('tags', '%s=.*' % key)
+    return es_prefix('tags', key + '=')
 
 
 def build_es_match_any_tag_value(term):
-    return es_regexp('tags', ".*=%s$" % term)
+    return es_regexp('tags', ".*=" + re.escape(term))
 
 
 def build_es_match_tag_regex(key, term):
-    return es_regexp('tags', '%s=.*%s.*' % (key, term))
+    return es_regexp('tags', '%s=%s' % (re.escape(key), regex_unanchor(term)))
 
 
 def build_es_match_tag_name_regex(key):
-    return es_regexp('tags', '.*%s.*=.*' % key)
+    return es_regexp('tags', '%s=.*' % regex_unanchor(key))
 
 
 def build_es_match_tag_value_regex(term):
-    return es_regexp('tags', '.*=.*%s.*' % term)
+    return es_regexp('tags', '.*=%s' % regex_unanchor(term))
 
 
 def build_es_match_id_regex(key):
@@ -90,8 +120,8 @@ def build_es_match_id_regex(key):
     # metric, but also the tags etc. so if the user types just a
     # word, we want the metrics to be returned where the id or tags
     # are matched
-    return {'or': [es_regexp('_id', '.*%s.*' % key),
-                   es_regexp('tags', '.*%s.*' % key)]}
+    return {'or': [es_regexp('_id', regex_unanchor(key)),
+                   es_regexp('tags', regex_unanchor(key))]}
 
 
 def build_es_match_negate(pattern):
