@@ -40,7 +40,7 @@ class Query(dict):
                 query_str = query_str[:match.start(1)] + query_str[match.end(1):]
             return (query_str, value)
 
-        (query_str, self['statement']) = parse_val(query_str, '^', '(graph|list|stack|lines) ', self['statement'])
+        (query_str, self['statement']) = parse_val(query_str, '^', '(graph|list|stack|lines)\\b', self['statement'])
         self['statement'] = self['statement'].rstrip()
 
         (query_str, self['to']) = parse_val(query_str, 'to ', '[^ ]+', self['to'])

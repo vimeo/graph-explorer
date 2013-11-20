@@ -31,6 +31,15 @@ def test_query_basic():
     assert query == ref
 
 
+def test_query_only_statement():
+    ref = get_default_parsed_query()
+    ref['statement'] = 'list'
+    query = Query("list")
+    assert query == ref
+    query = Query("list ")
+    assert query == ref
+
+
 def test_query_advanced():
     query = Query("octo -20hours unit=b/s memory group by foo avg by barsum by baz")
     ref = get_default_parsed_query()
@@ -44,7 +53,7 @@ def test_query_advanced():
     ref['group_by'] = {'target_type=': [''], 'unit=': [''], 'foo': ['']}
     assert query == ref
     query = Query("stack from -20hours to -10hours avg over 10M sum by foo:bucket1|bucket2,bar min 100 max 200")
-    ref= get_default_parsed_query()
+    ref = get_default_parsed_query()
     ref['statement'] = 'stack'
     ref['avg_over'] = (10, 'M')
     ref['from'] = '-20hours'
