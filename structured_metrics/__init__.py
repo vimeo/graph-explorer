@@ -81,13 +81,16 @@ class StructuredMetrics(object):
         for plugin_dir in plugin_dirs:
             if plugin_dir == '**builtins**':
                 plugin_dir = os.path.dirname(plugins.__file__)
-            self.plugins.extend(self.load_plugins_from(plugin_dir, plugins, errors))
+            newplugins, newerrors = self.load_plugins_from(plugin_dir, plugins)
+            self.plugins.extend(newplugins)
+            errors.extend(newerrors)
         return errors
 
-    def load_plugins_from(self, plugin_dir, package, errors):
+    def load_plugins_from(self, plugin_dir, package):
         # import in sorted order to let it be predictable; lets user plugins import
         # pieces of other plugins imported earlier
         plugins = []
+        errors = []
         Plugin = package.Plugin
         for f in sorted(os.listdir(plugin_dir)):
             if f == '__init__.py' or not f.endswith(".py"):
@@ -115,7 +118,7 @@ class StructuredMetrics(object):
                     except Exception, e:
                         errors.append(PluginError(mname, "Failed to add plugin '%s'" % mname, e))
         # sort plugins by their matching priority
-        return sorted(plugins, key=lambda t: t[1].priority, reverse=True)
+        return sorted(plugins, key=lambda t: t[1].priority, reverse=True), errors
 
     def list_metrics(self, metrics):
         for plugin in self.plugins:
