@@ -2,6 +2,8 @@
 Conversions between simple units and simple combinations of units, with
 an eye to monitoring metrics
 
+See https://github.com/vimeo/graph-explorer/wiki/Units-%26-Prefixes
+
 2013 paul cannon <paul@spacemonkey.com>
 """
 
@@ -37,7 +39,8 @@ iec_multiplier_prefixes = (
 
 # make sure longer prefixes are first, since some of the shorter ones
 # are prefixes of the longer ones, and we iterate over them with
-# .startswith() tests
+# .startswith() tests. So if we checked for .startswith('M') first,
+# we'd never see 'Mi'. etc
 multiplier_prefixes = iec_multiplier_prefixes + si_multiplier_prefixes
 multiplier_prefixes_with_empty = multiplier_prefixes + (('', 1),)
 

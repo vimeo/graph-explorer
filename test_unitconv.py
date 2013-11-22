@@ -67,3 +67,16 @@ class TestUnitconv(unittest.TestCase):
     def test_conversion_between_units_of_different_class(self):
         self.assertIsNone(run_scenario(user_asked_for='d', data_exists_as='Mb'))
         # we know what they are but we can't convert days to megabits
+
+    def test_straightforward_conversion_with_compound_units(self):
+        self.assertEqual(run_scenario(user_asked_for='kb/s', data_exists_as='TiB/w'),
+                         ('TiB/w', 14543.8046, None))
+        # X(t) TiB/w * (1024**4 B/TiB) * (8 b/B) * (1 w/604800 s) * (1 kb/1000 b) = Y(t) kb/s
+        # 1024**4 * 8 / 604800 / 1000 =~ 14543.8046
+
+    def test_straightforward_conversion_between_iec_data_rates(self):
+        self.assertEqual(run_scenario(user_asked_for='KiB', data_exists_as='TiB/w',
+                                      allow_integration=True),
+                         ('TiB/w', 1775.366772, 'integrate'))
+        # X(t) TiB/w * (1024**3 KiB/TiB) * (1 w/604800 s) = Z(t) KiB/s
+        # Integral(Z(t) KiB/s, dt) = Y(t) KiB

@@ -99,7 +99,7 @@ class TestQueryAdvanced(_QueryTestBase):
         self.assertTrue(any('apply_requested_unit' in str(f) for f in query['target_modifiers']),
                         msg='apply_requested_unit callback not in %r' % query['target_modifiers'])
 
-    def test_regexing(self):
+    def test_sum_by_buckets(self):
         query = Query("stack from -20hours to -10hours avg over 10M sum by foo:bucket1|bucket2,bar min 100 max 200")
         self.assertQueryMatches(query, self.dummyQuery(**{
             'compiled_pattern': (
