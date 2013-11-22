@@ -15,6 +15,11 @@ graphite_password = None
 # (the clientside graph renderer talks directly to it)
 anthracite_url = None
 
+# load structured_metrics plugins from all of these directories, in order;
+# the magic string "**builtins**" refers to the graph-explorer builtin
+# plugins. if you don't want them loaded, take out "**builtins**".
+metric_plugin_dirs = ('**builtins**',)
+
 ## graph explorer daemon needs to connect to elasticsearch,
 # you typically run an ES on the same host as GE.
 es_host = "localhost"

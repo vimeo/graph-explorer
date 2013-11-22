@@ -1,5 +1,6 @@
 import os
 import sys
+import imp
 from inspect import isclass
 import sre_constants
 import logging
@@ -74,37 +75,47 @@ class StructuredMetrics(object):
         whoever calls this function defines how any errors are
         handled. meanwhile, loading must continue
         '''
-        from plugins import Plugin
         import plugins
         errors = []
-        plugins_dir = os.path.dirname(plugins.__file__)
-        wd = os.getcwd()
-        os.chdir(plugins_dir)
-        for f in os.listdir("."):
+        plugin_dirs = getattr(self.config, "metric_plugin_dirs", ('**builtins**',))
+        for plugin_dir in plugin_dirs:
+            if plugin_dir == '**builtins**':
+                plugin_dir = os.path.dirname(plugins.__file__)
+            self.plugins.extend(self.load_plugins_from(plugin_dir, plugins, errors))
+        return errors
+
+    def load_plugins_from(self, plugin_dir, package, errors):
+        # import in sorted order to let it be predictable; lets user plugins import
+        # pieces of other plugins imported earlier
+        plugins = []
+        Plugin = package.Plugin
+        for f in sorted(os.listdir(plugin_dir)):
             if f == '__init__.py' or not f.endswith(".py"):
                 continue
-            module = f[:-3]
+            mname = f[:-3]
+            qualifiedname = package.__name__ + '.' + mname
+            imp.acquire_lock()
             try:
-                imp = __import__('plugins.' + module, globals(), locals(), ['*'])
+                module = imp.load_source(qualifiedname, os.path.join(plugin_dir, f))
+                sys.modules[qualifiedname] = module
+                setattr(package, mname, module)
             except Exception, e:
-                errors.append(PluginError(module, "Failed to add plugin '%s'" % module, e))
+                errors.append(PluginError(mname, "Failed to add plugin '%s'" % mname, e))
                 continue
-
-            for itemname in dir(imp):
-                item = getattr(imp, itemname)
+            finally:
+                imp.release_lock()
+            for itemname, item in vars(module).iteritems():
                 if isclass(item) and item != Plugin and issubclass(item, Plugin):
                     try:
-                        self.plugins.append((module, item()))
+                        plugins.append((mname, item()))
                     # regex error is too vague to stand on its own
                     except sre_constants.error, e:
                         e = "error problem parsing matching regex: %s" % e
-                        errors.append(PluginError(module, "Failed to add plugin '%s'" % module, e))
+                        errors.append(PluginError(mname, "Failed to add plugin '%s'" % mname, e))
                     except Exception, e:
-                        errors.append(PluginError(module, "Failed to add plugin '%s'" % module, e))
-        os.chdir(wd)
+                        errors.append(PluginError(mname, "Failed to add plugin '%s'" % mname, e))
         # sort plugins by their matching priority
-        self.plugins = sorted(self.plugins, key=lambda t: t[1].priority, reverse=True)
-        return errors
+        return sorted(plugins, key=lambda t: t[1].priority, reverse=True)
 
     def list_metrics(self, metrics):
         for plugin in self.plugins:
