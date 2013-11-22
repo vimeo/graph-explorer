@@ -6,7 +6,7 @@ from urlparse import urljoin
 import structured_metrics
 from graphs import Graphs
 from backend import Backend, get_action_on_rules_match, make_config
-from simple_match import match
+from simple_match import filter_matching
 from query import Query
 
 from target import Target
@@ -132,8 +132,11 @@ def graphite_func_aggregate(targets, agg_by_tags, aggfunc):
     bucket_id_str = ''
     if bucket_id:
         bucket_id_str = "'%s' " % bucket_id
+    t['tags'] = targets[0]['tags']
     for agg_by_tag in agg_by_tags:
-        t['variables'][agg_by_tag] = ('%s%s (%s values)' % (bucket_id_str, aggfunc, len(targets)), differentiators[agg_by_tag])
+        tag_val = ('%s%s (%s values)' % (bucket_id_str, aggfunc, len(targets)), differentiators[agg_by_tag])
+        t['variables'][agg_by_tag] = tag_val
+        t['tags'][agg_by_tag] = tag_val
     return Target(t)
 
 
@@ -162,7 +165,8 @@ def build_graphs_from_targets(targets, query):
         avg_over_unit = avg_over[1]
         if avg_over_unit in averaging.keys():
             multiplier = averaging[avg_over_unit]
-            query['target_modifiers'].append({'target': ['movingAverage', str(avg_over_amount * multiplier)]})
+            query['target_modifiers'].append(
+                Query.graphite_function_applier('movingAverage', avg_over_amount * multiplier))
 
     # for each group_by bucket, make 1 graph.
     # so for each graph, we have:
@@ -232,15 +236,8 @@ def build_graphs_from_targets(targets, query):
     for (graph_key, graph_config) in graphs.items():
         for target in graph_config['targets']:
             for target_modifier in query['target_modifiers']:
-                target['target'] = "%s(%s,%s)" % (target_modifier['target'][0],
-                                                  target['target'],
-                                                  ','.join(target_modifier['target'][1:]))
-                if 'tags' in target_modifier:
-                    for (new_k, new_v) in target_modifier['tags'].items():
-                        if new_k in graph_config['constants']:
-                            graph_config['constants'][new_k] = new_v
-                        else:
-                            target['variables'][new_k] = new_v
+                target_modifier(target, graph_config)
+
     # if in a graph all targets have a tag with the same value, they are
     # effectively constants, so promote them.  this makes the display of the
     # graphs less rendundant and makes it easier to do config/preferences
@@ -408,7 +405,7 @@ def render_graphs(query, minimal=False, deps=False):
     for target in targets_matching.values():
         for tag_name in target['tags'].keys():
             tags.add(tag_name)
-    graphs_matching = match(graphs_all, query['compiled_patterns'], True)
+    graphs_matching = filter_matching(query['ast'], graphs_all)
     graphs_matching = build_graphs(graphs_matching, query)
     stats = {'len_targets_all': s_metrics.count_metrics(),
              'len_graphs_all': len(graphs_all),

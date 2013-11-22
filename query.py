@@ -1,6 +1,8 @@
 import re
 import convert
 import copy
+import unitconv
+import warnings
 
 # note, consider "query" in the broad sense.  it is used for user input, as
 # well as the blueprint config for graphs, i.e. "spec"
@@ -20,12 +22,13 @@ class Query(dict):
         'limit_targets': 500,
         'target_modifiers': []
     }
+
     def __init__(self, query_str):
         tmp = copy.deepcopy(Query.default)
         self.update(tmp)
         self.parse(query_str)
-        self.normalize()
-        self.compile_patterns()
+        self['ast'] = self.build_ast(self['patterns'])
+        self.allow_compatible_units()
 
     def parse(self, query_str):
         avg_over_match = '^([0-9]*)(s|M|h|d|w|mo)$'
@@ -108,57 +111,178 @@ class Query(dict):
         self['patterns'] += query_str.split()
 
 
-    def normalize(self):
-        unit_conversions = {
-            '/M': ['scale', '60'],
-            '/h': ['scale', '3600'],
-            '/d': ['scale', str(3600 * 24)],
-            '/w': ['scale', str(3600 * 24 * 7)],
-            '/mo': ['scale', str(3600 * 24 * 30)]
-        }
-        for (i, pattern) in enumerate(self['patterns']):
-            if pattern.startswith('unit='):
-                unit = pattern.split('=')[1]
-                for (divisor, modifier) in unit_conversions.items():
-                    if unit.endswith(divisor):
-                        real_unit = unit
-                        unit = "%s/s" % unit[0:-(len(divisor))]
-                        self['patterns'][i] = "unit=%s" % unit
-                        self['target_modifiers'].append({'target': modifier, 'tags': {'unit': real_unit}})
-                        break
+    @staticmethod
+    def apply_graphite_function_to_target(target, funcname, *args):
+        target['target'] = "%s(%s)" % (funcname, ','.join([target['target']] + map(str, args)))
 
 
-    def compile_patterns(self):
-        # prepare higher performing query structure, to later match objects
-        # note that if you have twice the exact same "word" (ignoring leading '!'), the last one wins
-        """
-        if self['patterns'] looks like so:
-        ['target_type=', 'what=', '!tag_k=not_equals_thistag_v', 'tag_k:match_this_val', 'arbitrary', 'words']
+    @classmethod
+    def graphite_function_applier(cls, funcname, *args):
+        def apply_graphite_function(target, _graph_config):
+            cls.apply_graphite_function_to_target(target, funcname, *args)
+        return apply_graphite_function
 
-        then the patterns will look like so:
-        {
-        'tag_k=not_equals_thistag_v': {'negate': True, 'match_tag_equality': ['tag_k', 'not_equals_thistag_v']},
-        'target_type=':               {'negate': False, 'match_tag_equality': ['target_type', '']},
-        'what=':                      {'negate': False, 'match_tag_equality': ['what', '']},
-        'tag_k:match_this_val':       {'negate': False, 'match_tag_regex': ['tag_k', 'match_this_val']},
-        'words':                      {'negate': False, 'match_id_regex': <_sre.SRE_Pattern object at 0x2612cb0>},
-        'arbitrary':                  {'negate': False, 'match_id_regex': <_sre.SRE_Pattern object at 0x7f6cc000bd90>}
-        }
-        """
-        patterns = {}
-        for pattern in self['patterns']:
-            negate = False
-            if pattern.startswith('!'):
-                negate = True
-                pattern = pattern[1:]
-            patterns[pattern] = {'negate': negate}
-            if '=' in pattern:
-                patterns[pattern]['match_tag_equality'] = pattern.split('=')
-            elif ':' in pattern:
-                patterns[pattern]['match_tag_regex'] = pattern.split(':')
+
+    @staticmethod
+    def variable_applier(**tags):
+        def apply_variables(target, graph_config):
+            for new_k, new_v in tags.items():
+                if new_k in graph_config['constants']:
+                    graph_config['constants'][new_k] = new_v
+                else:
+                    target['variables'][new_k] = new_v
+        return apply_variables
+
+
+    @classmethod
+    def convert_to_requested_unit_applier(cls, compatibles):
+        def apply_requested_unit(target, _graph_config):
+            tags = target['tags']
+            try:
+                scale, extra_op = compatibles[tags['unit']]
+            except (KeyError, ValueError):
+                # this probably means ES didn't respect the query we made,
+                # or we didn't make it properly, or something? issue a warning
+                # but let things go on
+                warnings.warn("Found a target with unit %r which wasn't in our "
+                              "list of compatible units (%r) for this query."
+                              % (tags.get('unit'), compatibles.keys()),
+                              RuntimeWarning)
+                return
+            if extra_op == 'derive':
+                cls.apply_derivative_to_target(target, scale)
             else:
-                patterns[pattern]['match_id_regex'] = re.compile(pattern)
-        self['compiled_patterns'] = patterns
+                if scale != 1.0:
+                    cls.apply_graphite_function_to_target(target, 'scale', scale)
+                if extra_op == 'integrate':
+                    cls.apply_graphite_function_to_target(target, 'integrate')
+        return apply_requested_unit
+
+
+    @classmethod
+    def derive_counters(cls, target, _graph_config):
+        if target['tags'].get('target_type') == 'counter':
+            cls.apply_derivative_to_target(target)
+
+
+    @classmethod
+    def apply_derivative_to_target(cls, target, scale=1):
+        wraparound = target['tags'].get('wraparound')
+        if wraparound is not None:
+            cls.apply_graphite_function_to_target(target, 'nonNegativeDerivative', wraparound)
+        else:
+            cls.apply_graphite_function_to_target(target, 'derivative')
+        cls.apply_graphite_function_to_target(target, 'scaleToSeconds', scale)
+
+
+    def allow_compatible_units(self):
+        newpat, mods = self.transform_ast_for_compatible_units(self['ast'])
+        if not mods:
+            # no explicit unit requested; default is to apply derivative to
+            # targets with target_type=counter, and leave others alone
+            mods = [self.derive_counters]
+        self['ast'] = newpat
+        self['target_modifiers'].extend(mods)
+
+
+    @classmethod
+    def transform_ast_for_compatible_units(cls, ast):
+        if ast[0] == 'match_tag_equality' and ast[1] == 'unit':
+            requested_unit = ast[2]
+            unitinfo = unitconv.parse_unitname(requested_unit)
+            compatibles = unitconv.determine_compatible_units(**unitinfo)
+
+            # rewrite the search term to include all the alternates
+            ast = ('match_or',) + tuple(
+                [('match_tag_equality', 'unit', u) for u in compatibles.keys()])
+
+            return ast, [
+                cls.convert_to_requested_unit_applier(compatibles),
+                cls.variable_applier(unit=requested_unit),
+            ]
+        elif ast[0] in ('match_and', 'match_or'):
+            # recurse into subexpressions, in case they have unit=* terms
+            # underneath. this won't be totally correct in case there's a way
+            # to have multiple "unit=*" terms inside varying structures of
+            # 'and' and 'or', but that's not exposed to the user yet anyway,
+            # and auto-unit-conversion in that case probably isn't worth
+            # supporting.
+            new_target_modifiers = []
+            newargs = []
+            for sub_ast in ast[1:]:
+                if isinstance(sub_ast, tuple):
+                    sub_ast, mods = cls.transform_ast_for_compatible_units(sub_ast)
+                    new_target_modifiers.extend(mods)
+                newargs.append(sub_ast)
+            ast = (ast[0],) + tuple(newargs)
+            return ast, new_target_modifiers
+        return ast, []
+
+
+    query_pattern_re = re.compile(r'''
+        # this should accept any string
+        ^
+        (?P<negate> ! )?
+        (?P<key> [^=:]* )
+        (?:
+            (?P<operation> [=:] )
+            (?P<term> .* )
+        )?
+        $
+    ''', re.X)
+
+
+    @classmethod
+    def build_ast(cls, patterns):
+        # prepare higher performing query structure, to later match objects
+        """
+        if patterns looks like so:
+        ['target_type=', 'what=', '!tag_k=not_equals_thistag', 'tag_k:match_this_val', 'arbitrary', 'words']
+
+        then the AST will look like so:
+        ('match_and',
+         ('!tag_k=not_equals_thistag', ('match_negate',
+                                         ('match_tag_equality', 'tag_k', 'not_equals_thistag'))),
+         ('target_type=',              ('match_tag_exists', 'target_type')),
+         ('what=',                     ('match_tag_exists', 'what')),
+         ('tag_k:match_this_val',      ('match_tag_regex', 'tag_k', 'match_this_val')),
+         ('words',                     ('match_id_regex', 'words')),
+         ('arbitrary',                 ('match_id_regex', 'arbitrary'))
+        )
+        """
+
+        asts = []
+        for pattern in patterns:
+            matchobj = cls.query_pattern_re.match(pattern)
+            oper, key, term, negate = matchobj.group('operation', 'key', 'term', 'negate')
+            if oper == '=':
+                if key and term:
+                    ast = ('match_tag_equality', key, term)
+                elif key and not term:
+                    ast = ('match_tag_exists', key)
+                elif term and not key:
+                    ast = ('match_any_tag_value', term)
+                else:
+                    # pointless pattern
+                    continue
+            elif oper == ':':
+                if key and term:
+                    ast = ('match_tag_regex', key, term)
+                elif key and not term:
+                    ast = ('match_tag_name_regex', key)
+                elif term and not key:
+                    ast = ('match_tag_value_regex', key)
+                else:
+                    # pointless pattern
+                    continue
+            else:
+                ast = ('match_id_regex', key)
+            if negate:
+                ast = ('match_negate', ast)
+            asts.append(ast)
+        if len(asts) == 1:
+            return asts[0]
+        return ('match_and',) + tuple(asts)
 
 
     # avg by foo
