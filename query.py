@@ -2,6 +2,7 @@ import re
 import convert
 import copy
 import unitconv
+import warnings
 
 # note, consider "query" in the broad sense.  it is used for user input, as
 # well as the blueprint config for graphs, i.e. "spec"
