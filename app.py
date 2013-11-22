@@ -132,8 +132,11 @@ def graphite_func_aggregate(targets, agg_by_tags, aggfunc):
     bucket_id_str = ''
     if bucket_id:
         bucket_id_str = "'%s' " % bucket_id
+    t['tags'] = targets[0]['tags']
     for agg_by_tag in agg_by_tags:
-        t['variables'][agg_by_tag] = ('%s%s (%s values)' % (bucket_id_str, aggfunc, len(targets)), differentiators[agg_by_tag])
+        tag_val = ('%s%s (%s values)' % (bucket_id_str, aggfunc, len(targets)), differentiators[agg_by_tag])
+        t['variables'][agg_by_tag] = tag_val
+        t['tags'][agg_by_tag] = tag_val
     return Target(t)
 
 
