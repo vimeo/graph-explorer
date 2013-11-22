@@ -124,20 +124,20 @@ def build_es_match_id_regex(key):
                    es_regexp('tags', regex_unanchor(key))]}
 
 
-def build_es_match_negate(pattern):
-    return {'not': build_es_expr(pattern)}
+def build_es_match_negate(ast):
+    return {'not': build_es_expr(ast)}
 
 
-def build_es_match_or(*patterns):
-    return {'or': map(build_es_expr, patterns)}
+def build_es_match_or(*asts):
+    return {'or': map(build_es_expr, asts)}
 
 
-def build_es_match_and(*patterns):
-    return {'and': map(build_es_expr, patterns)}
+def build_es_match_and(*asts):
+    return {'and': map(build_es_expr, asts)}
 
 
-def build_es_expr(pattern):
-    return globals()['build_es_' + pattern[0]](*pattern[1:])
+def build_es_expr(ast):
+    return globals()['build_es_' + ast[0]](*ast[1:])
 
 
 class StructuredMetrics(object):
@@ -318,11 +318,11 @@ class StructuredMetrics(object):
         ret = self.es.count(index='graphite_metrics', doc_type='metric')
         return ret['count']
 
-    def build_es_query(self, pattern):
+    def build_es_query(self, ast):
         return {
             "filtered": {
                 "query": {"match_all": {}},
-                "filter": build_es_expr(pattern)
+                "filter": build_es_expr(ast)
             }
         }
 
@@ -370,7 +370,7 @@ class StructuredMetrics(object):
             limit_es = query['limit_targets']
         limit_es = min(self.config.limit_es_metrics, limit_es)
         self.logger.debug("querying up to %d metrics from ES...", limit_es)
-        es_query = self.build_es_query(query['compiled_pattern'])
+        es_query = self.build_es_query(query['ast'])
         metrics = self.get_metrics(es_query, limit_es)
         self.logger.debug("got %d metrics!", len(metrics))
         results = {}

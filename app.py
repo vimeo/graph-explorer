@@ -402,7 +402,7 @@ def render_graphs(query, minimal=False, deps=False):
     for target in targets_matching.values():
         for tag_name in target['tags'].keys():
             tags.add(tag_name)
-    graphs_matching = filter_matching(query['compiled_pattern'], graphs_all)
+    graphs_matching = filter_matching(query['ast'], graphs_all)
     graphs_matching = build_graphs(graphs_matching, query)
     stats = {'len_targets_all': s_metrics.count_metrics(),
              'len_graphs_all': len(graphs_all),

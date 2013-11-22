@@ -26,7 +26,7 @@ class Query(dict):
         tmp = copy.deepcopy(Query.default)
         self.update(tmp)
         self.parse(query_str)
-        self['compiled_pattern'] = self.compile_pattern(self['patterns'])
+        self['ast'] = self.build_ast(self['patterns'])
         self.allow_compatible_units()
 
     def parse(self, query_str):
@@ -175,32 +175,32 @@ class Query(dict):
 
 
     def allow_compatible_units(self):
-        newpat, mods = self.transform_pattern_for_compatible_units(self['compiled_pattern'])
+        newpat, mods = self.transform_ast_for_compatible_units(self['ast'])
         if not mods:
             # no explicit unit requested; default is to apply derivative to
             # targets with target_type=counter, and leave others alone
             mods = [self.derive_counters]
-        self['compiled_pattern'] = newpat
+        self['ast'] = newpat
         self['target_modifiers'].extend(mods)
 
 
     @classmethod
-    def transform_pattern_for_compatible_units(cls, pattern):
-        if pattern[0] == 'match_tag_equality' and pattern[1] == 'unit':
-            requested_unit = pattern[2]
+    def transform_ast_for_compatible_units(cls, ast):
+        if ast[0] == 'match_tag_equality' and ast[1] == 'unit':
+            requested_unit = ast[2]
             unitinfo = unitconv.parse_unitname(requested_unit)
             compatibles = unitconv.determine_compatible_units(**unitinfo)
 
             # rewrite the search term to include all the alternates
-            pattern = ('match_or',) + tuple(
+            ast = ('match_or',) + tuple(
                 [('match_tag_equality', 'unit', u) for u in compatibles.keys()])
 
-            return pattern, [
+            return ast, [
                 cls.convert_to_requested_unit_applier(compatibles),
                 cls.variable_applier(unit=requested_unit),
             ]
-        elif pattern[0] in ('match_and', 'match_or'):
-            # recurse into subpatterns, in case they have unit=* terms
+        elif ast[0] in ('match_and', 'match_or'):
+            # recurse into subexpressions, in case they have unit=* terms
             # underneath. this won't be totally correct in case there's a way
             # to have multiple "unit=*" terms inside varying structures of
             # 'and' and 'or', but that's not exposed to the user yet anyway,
@@ -208,14 +208,14 @@ class Query(dict):
             # supporting.
             new_target_modifiers = []
             newargs = []
-            for subpattern in pattern[1:]:
-                if isinstance(subpattern, tuple):
-                    subpattern, mods = cls.transform_pattern_for_compatible_units(subpattern)
+            for sub_ast in ast[1:]:
+                if isinstance(sub_ast, tuple):
+                    sub_ast, mods = cls.transform_ast_for_compatible_units(sub_ast)
                     new_target_modifiers.extend(mods)
-                newargs.append(subpattern)
-            pattern = (pattern[0],) + tuple(newargs)
-            return pattern, new_target_modifiers
-        return pattern, []
+                newargs.append(sub_ast)
+            ast = (ast[0],) + tuple(newargs)
+            return ast, new_target_modifiers
+        return ast, []
 
 
     query_pattern_re = re.compile(r'''
@@ -232,13 +232,13 @@ class Query(dict):
 
 
     @classmethod
-    def compile_pattern(cls, patterns):
+    def build_ast(cls, patterns):
         # prepare higher performing query structure, to later match objects
         """
         if patterns looks like so:
         ['target_type=', 'what=', '!tag_k=not_equals_thistag', 'tag_k:match_this_val', 'arbitrary', 'words']
 
-        then the compiled pattern will look like so:
+        then the AST will look like so:
         ('match_and',
          ('!tag_k=not_equals_thistag', ('match_negate',
                                          ('match_tag_equality', 'tag_k', 'not_equals_thistag'))),
@@ -250,38 +250,38 @@ class Query(dict):
         )
         """
 
-        compiled_patterns = []
+        asts = []
         for pattern in patterns:
             matchobj = cls.query_pattern_re.match(pattern)
             oper, key, term, negate = matchobj.group('operation', 'key', 'term', 'negate')
             if oper == '=':
                 if key and term:
-                    pat = ('match_tag_equality', key, term)
+                    ast = ('match_tag_equality', key, term)
                 elif key and not term:
-                    pat = ('match_tag_exists', key)
+                    ast = ('match_tag_exists', key)
                 elif term and not key:
-                    pat = ('match_any_tag_value', term)
+                    ast = ('match_any_tag_value', term)
                 else:
                     # pointless pattern
                     continue
             elif oper == ':':
                 if key and term:
-                    pat = ('match_tag_regex', key, term)
+                    ast = ('match_tag_regex', key, term)
                 elif key and not term:
-                    pat = ('match_tag_name_regex', key)
+                    ast = ('match_tag_name_regex', key)
                 elif term and not key:
-                    pat = ('match_tag_value_regex', key)
+                    ast = ('match_tag_value_regex', key)
                 else:
                     # pointless pattern
                     continue
             else:
-                pat = ('match_id_regex', key)
+                ast = ('match_id_regex', key)
             if negate:
-                pat = ('match_negate', pat)
-            compiled_patterns.append(pat)
-        if len(compiled_patterns) == 1:
-            return compiled_patterns[0]
-        return ('match_and',) + tuple(compiled_patterns)
+                ast = ('match_negate', ast)
+            asts.append(ast)
+        if len(asts) == 1:
+            return asts[0]
+        return ('match_and',) + tuple(asts)
 
 
     # avg by foo

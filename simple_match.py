@@ -31,26 +31,26 @@ def match_id_regex(oid, _data, key):
     return re.search(key, oid)
 
 
-def match_negate(oid, data, pattern):
-    return not match_pattern(oid, data, pattern)
+def match_negate(oid, data, ast):
+    return not match_ast(oid, data, ast)
 
 
-def match_or(oid, data, *patterns):
-    return any(match_pattern(oid, data, pattern) for pattern in patterns)
+def match_or(oid, data, *asts):
+    return any(match_ast(oid, data, ast) for ast in asts)
 
 
-def match_and(oid, data, *patterns):
-    return all(match_pattern(oid, data, pattern) for pattern in patterns)
+def match_and(oid, data, *asts):
+    return all(match_ast(oid, data, ast) for ast in asts)
 
 
 # (oid, data) -> a key:object from the dict of objects
-# pattern: a pattern structure from Query.compile_patterns()
-def match_pattern(oid, data, pattern):
-    return globals()[pattern[0]](oid, data, *pattern[1:])
+# ast: an AST structure from Query.compile_asts()
+def match_ast(oid, data, ast):
+    return globals()[ast[0]](oid, data, *ast[1:])
 
 
 # objects is expected to be a dict with elements like id: data
 # id's are matched, and the return value is a dict in the same format
 # if you use tags, make sure data['tags'] is a dict of tags or this'll blow up
-def filter_matching(patterns, objects):
-    return dict((oid, data) for (oid, data) in objects.items() if match_and(oid, data, *patterns))
+def filter_matching(ast, objects):
+    return dict((oid, data) for (oid, data) in objects.items() if match_and(oid, data, *asts))

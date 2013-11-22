@@ -19,7 +19,7 @@ class TestQueryBasic(_QueryTestBase):
     def test_empty(self):
         query = Query("")
         self.assertQueryMatches(query, self.dummyQuery(
-            compiled_pattern=(
+            ast=(
                 'match_and',
                 ('match_tag_exists', 'target_type'),
                 ('match_tag_exists', 'unit')
@@ -31,7 +31,7 @@ class TestQueryBasic(_QueryTestBase):
     def test_two_simple_terms(self):
         query = Query("foo bar")
         self.assertQueryMatches(query, self.dummyQuery(
-            compiled_pattern=(
+            ast=(
                 'match_and',
                 ('match_tag_exists', 'target_type'),
                 ('match_tag_exists', 'unit'),
@@ -45,7 +45,7 @@ class TestQueryBasic(_QueryTestBase):
     def test_query_only_statement(self):
         dummy = self.dummyQuery(
             statement='list',
-            compiled_pattern=(
+            ast=(
                 'match_and',
                 ('match_tag_exists', 'target_type'),
                 ('match_tag_exists', 'unit')
@@ -70,25 +70,25 @@ class TestQueryAdvanced(_QueryTestBase):
         )
         del dummy['target_modifiers']
         self.assertDictContainsSubset(dummy, query)
-        pattern_first_part = (
+        ast_first_part = (
             'match_and',
             ('match_tag_exists', 'target_type'),
             ('match_tag_exists', 'unit'),
             ('match_id_regex', 'octo'),
             ('match_id_regex', '-20hours'),
         )
-        pattern_last_part = (
+        ast_last_part = (
             ('match_id_regex', 'memory'),
             ('match_id_regex', 'by'),
             ('match_id_regex', 'baz')
         )
-        pat = query['compiled_pattern']
+        ast = query['ast']
 
-        self.assertTupleEqual(pat[:len(pattern_first_part)],
-                              pattern_first_part)
-        self.assertTupleEqual(pat[len(pattern_first_part) + 1:],
-                              pattern_last_part)
-        fat_hairy_or_filter = pat[len(pattern_first_part)]
+        self.assertTupleEqual(ast[:len(ast_first_part)],
+                              ast_first_part)
+        self.assertTupleEqual(ast[len(ast_first_part) + 1:],
+                              ast_last_part)
+        fat_hairy_or_filter = ast[len(ast_first_part)]
         self.assertEqual(fat_hairy_or_filter[0], 'match_or')
         unit_clauses = fat_hairy_or_filter[1:]
         for clause in unit_clauses:
@@ -102,7 +102,7 @@ class TestQueryAdvanced(_QueryTestBase):
     def test_sum_by_buckets(self):
         query = Query("stack from -20hours to -10hours avg over 10M sum by foo:bucket1|bucket2,bar min 100 max 200")
         self.assertQueryMatches(query, self.dummyQuery(**{
-            'compiled_pattern': (
+            'ast': (
                 'match_and',
                 ('match_tag_exists', 'target_type'),
                 ('match_tag_exists', 'unit')
