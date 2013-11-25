@@ -8,7 +8,6 @@ See https://github.com/vimeo/graph-explorer/wiki/Units-%26-Prefixes
 """
 
 from __future__ import division
-from itertools import product
 
 
 si_multiplier_prefixes = (
@@ -70,19 +69,42 @@ unit_classes = (('time', times), ('datasize', datasizes))
 unit_classes_by_name = dict(unit_classes)
 
 
-def parse_simple_unitname(unitname):
+def is_power_of_2(n):
+    return n & (n - 1) == 0
+
+
+def prefix_class_for(multiplier):
+    if multiplier > 1 \
+            and (isinstance(multiplier, int) or multiplier.is_integer()) \
+            and is_power_of_2(int(multiplier)):
+        return 'binary'
+    return 'si'
+
+
+def identify_base_unit(unitname):
+    for unitclassname, units in unit_classes:
+        for unit_abbrev, multiplier in units:
+            if unitname == unit_abbrev:
+                return {'multiplier': multiplier, 'unit_class': unitclassname,
+                        'primary_unit': units[0][0], 'base_unit': unitname}
+    return {'multiplier': 1, 'unit_class': None, 'primary_unit': unitname,
+            'base_unit': unitname}
+
+
+def parse_simple_unitname(unitname, fold_scale_prefix=True):
     """
-    Parse a single unit term with at most one multiplier prefix and one unit
+    Parse a single unit term with zero or more multiplier prefixes and one unit
     abbreviation, which may or may not be in a known unit class.
 
     Returns a dictionary with the following keys and values:
 
-    'base_unit': either the requested unit with any multiplier prefix stripped,
-    or, if the unit is in one of the known unit classes, the base unit for
-    that unit class. E.g., if 'h' (hour) were requested, the base_unit would be
-    's' (second).
+    'base_unit': the requested unit with any scaling prefix(es) stripped.
 
-    'multiplier': a numeric value giving the multiplier from the base_unit
+    'primary_unit': either the same as base_unit, or, if the unit is in one
+    of the known unit classes, the primary unit for that unit class. E.g., if
+    'h' (hour) were requested, the primary_unit would be 's' (second).
+
+    'multiplier': a numeric value giving the multiplier from the primary_unit
     to the requested unit. For example, if 'kh' (kilo-hour) were requested,
     the multiplier would be 1000 * 3600 == 3600000, since a kilo-hour is
     3600000 seconds.
@@ -90,108 +112,114 @@ def parse_simple_unitname(unitname):
     'unit_class': if the requested unit was in one of the known unit classes,
     the name of that unit class. Otherwise None.
 
+    If fold_scale_prefix is passed and false, any multiplicative factor
+    imparted by a scaling prefix will be present in the key 'scale_multiplier'
+    instead of being included with the 'multiplier' key.
+
     >>> parse_simple_unitname('Mb') == {
     ...     'multiplier': 1e6, 'unit_class': 'datasize',
-    ...     'base_unit': 'b'}
+    ...     'primary_unit': 'b', 'base_unit': 'b'}
+    True
+    >>> parse_simple_unitname('Mb', fold_scale_prefix=False) == {
+    ...     'multiplier': 1, 'unit_class': 'datasize', 'primary_unit': 'b',
+    ...     'scale_multiplier': 1e6, 'base_unit': 'b'}
     True
     >>> parse_simple_unitname('Err') == {
-    ...     'multiplier': 1, 'unit_class': None, 'base_unit': 'Err'}
+    ...     'multiplier': 1, 'unit_class': None, 'primary_unit': 'Err',
+    ...     'base_unit': 'Err'}
     True
     >>> parse_simple_unitname('Kimo') == {   # "kibimonth"
     ...     'multiplier': 1024 * 86400 * 30, 'unit_class': 'time',
-    ...     'base_unit': 's'}
+    ...     'primary_unit': 's', 'base_unit': 'mo'}
     True
     >>> parse_simple_unitname('MiG') == {
     ...     'multiplier': 1024 * 1024, 'unit_class': None,
-    ...     'base_unit': 'G'}
+    ...     'primary_unit': 'G', 'base_unit': 'G'}
     True
     >>> parse_simple_unitname('kk') == {  # "kilo-k", don't know what k unit is
-    ...     'multiplier': 1000, 'unit_class': None, 'base_unit': 'k'}
+    ...     'multiplier': 1000, 'unit_class': None, 'primary_unit': 'k',
+    ...     'base_unit': 'k'}
     True
     >>> parse_simple_unitname('MM') == {  # "megaminute"
-    ...     'multiplier': 60000000, 'unit_class': 'time', 'base_unit': 's'}
+    ...     'multiplier': 60000000, 'unit_class': 'time',
+    ...     'primary_unit': 's', 'base_unit': 'M'}
     True
-    >>> parse_simple_unitname('Ki') == {
-    ...     'multiplier': 1, 'unit_class': None, 'base_unit': 'Ki'}
+    >>> parse_simple_unitname('Ki', fold_scale_prefix=False) == {
+    ...     'multiplier': 1, 'unit_class': None, 'primary_unit': 'Ki',
+    ...     'scale_multiplier': 1, 'base_unit': 'Ki'}
     True
-    >>> parse_simple_unitname('')
-    Traceback (most recent call last):
-        ...
-    ValueError: Empty unit passed to parse_simple_unitname
+    >>> parse_simple_unitname('') == {
+    ...     'multiplier': 1, 'unit_class': None, 'primary_unit': '',
+    ...     'base_unit': ''}
+    True
     """
 
-    if unitname == '':
-        raise ValueError('Empty unit passed to parse_simple_unitname')
-    pref_mult = 1
     for prefix, multiplier in multiplier_prefixes:
         if unitname.startswith(prefix) and unitname != prefix:
-            pref_mult = multiplier
-            unitname = unitname[len(prefix):]
-            break
-    for unitclassname, units in unit_classes:
-        for unit_abbrev, multiplier in units:
-            if unitname == unit_abbrev:
-                return {'multiplier': pref_mult * multiplier,
-                        'unit_class': unitclassname,
-                        'base_unit': units[0][0]}
-    return {'multiplier': pref_mult,
-            'unit_class': None,
-            'base_unit': unitname}
+            base = parse_simple_unitname(unitname[len(prefix):],
+                                         fold_scale_prefix=fold_scale_prefix)
+            if fold_scale_prefix:
+                base['multiplier'] *= multiplier
+            else:
+                base['scale_multiplier'] *= multiplier
+            return base
+    base = identify_base_unit(unitname)
+    if not fold_scale_prefix:
+        base['scale_multiplier'] = 1
+    return base
 
 
-def parse_unitname(unitname):
+def parse_unitname(unitname, fold_scale_prefix=True):
     """
     Parse a unit term with at most two parts separated by / (a numerator and
     denominator, or just a plain term). Returns a structure identical to that
-    returned by parse_simple_unitname(), but with possible extra fields for
-    the denominator, if one exists.
+    returned by parse_simple_unitname(), but with extra fields for the
+    numerator and for the denominator, if one exists.
 
-    >>> parse_unitname('Kimo') == {
-    ...     'multiplier': 1024 * 2592000, 'unit_class': 'time',
-    ...     'base_unit': 's'}
-    True
+    If there is a denominator, the 'base_unit', 'unit_class', 'primary_unit',
+    'multiplier', and 'scale_multiplier' fields will be returned as
+    combinations of the corresponding fields for the numerator and the
+    denominator.
+
     >>> parse_unitname('GB/h') == {
-    ...     'multiplier': 1e9 * 8 / 3600, 'unit_class': 'datasize',
-    ...     'base_unit': 'b', 'denom_unit_class': 'time',
-    ...     'denom_base_unit': 's'}
+    ...     'numer_multiplier': 1e9 * 9, 'denom_multiplier': 3600,
+    ...     'multiplier': 1e9 * 8 / 3600,
+    ...     'numer_unit_class': 'datasize', 'denom_unit_class': 'time',
+    ...     'unit_class': 'datasize/time',
+    ...     'numer_primary_unit': 'b', 'denom_primary_unit': 's',
+    ...     'primary_unit': 'b/s',
+    ...     'numer_base_unit': 'B', 'denom_base_unit': 'h',
+    ...     'base_unit': 'B/h'}
     True
-    >>> parse_unitname('kb/k') == {
-    ...     'multiplier': 1000, 'unit_class': 'datasize',
-    ...     'base_unit': 'b', 'denom_unit_class': None,
-    ...     'denom_base_unit': 'k'}
-    True
-    >>> parse_unitname('Foobity/w') == {
-    ...     'multiplier': 1.0 / (86400 * 7), 'unit_class': None,
-    ...     'base_unit': 'Foobity', 'denom_unit_class': 'time',
-    ...     'denom_base_unit': 's'}
-    True
-    >>> parse_unitname('/w') == {
-    ...     'multiplier': 1, 'unit_class': None, 'base_unit': '/w'}
-    True
-    >>> parse_unitname('/') == {
-    ...     'multiplier': 1, 'unit_class': None, 'base_unit': '/'}
-    True
-    >>> parse_unitname('a/b/c') == {
-    ...     'multiplier': 1, 'unit_class': None, 'base_unit': 'a/b/c'}
-    True
-    >>> parse_unitname('')
-    Traceback (most recent call last):
-        ...
-    ValueError: Empty unit passed to parse_unitname
     """
 
-    if unitname == '':
-        raise ValueError("Empty unit passed to parse_unitname")
+    def copyfields(srcdict, nameprefix):
+        fields = ('multiplier', 'unit_class', 'primary_unit', 'base_unit', 'scale_multiplier')
+        for f in fields:
+            try:
+                unitstruct[nameprefix + f] = srcdict[f]
+            except KeyError:
+                pass
+
     parts = unitname.split('/', 2)
     if len(parts) > 2 or '' in parts:
         # surrender pathetically and just return the original unit
-        return {'multiplier': 1, 'unit_class': None, 'base_unit': unitname}
-    unitstruct = parse_simple_unitname(parts[0])
+        return {'multiplier': 1, 'unit_class': None, 'primary_unit': unitname,
+                'base_unit': unitname}
+    unitstruct = parse_simple_unitname(parts[0], fold_scale_prefix=fold_scale_prefix)
+    copyfields(unitstruct, 'numer_')
     if len(parts) == 2:
-        denominator = parse_simple_unitname(parts[1])
-        unitstruct['denom_unit_class'] = denominator['unit_class']
-        unitstruct['denom_base_unit'] = denominator['base_unit']
+        denominator = parse_simple_unitname(parts[1], fold_scale_prefix=fold_scale_prefix)
+        copyfields(denominator, 'denom_')
         unitstruct['multiplier'] /= denominator['multiplier']
+        if unitstruct['unit_class'] is None or denominator['unit_class'] is None:
+            unitstruct['unit_class'] = None
+        else:
+            unitstruct['unit_class'] += '/' + denominator['unit_class']
+        unitstruct['primary_unit'] += '/' + denominator['primary_unit']
+        unitstruct['base_unit'] += '/' + denominator['base_unit']
+        if not fold_scale_prefix:
+            unitstruct['scale_multiplier'] /= denominator['scale_multiplier']
     return unitstruct
 
 
@@ -220,10 +248,10 @@ def compat_simple_units(unitclass, base_unit=None):
             for (prefix, pmult) in multiplier_prefixes_with_empty]
 
 
-def determine_compatible_units(base_unit, unit_class, multiplier=1,
+def determine_compatible_units(numer_base_unit, numer_unit_class, multiplier=1,
                                denom_base_unit=None, denom_unit_class=None,
                                allow_derivation=True, allow_integration=False,
-                               allow_prefixes_in_denominator=False):
+                               allow_prefixes_in_denominator=False, **_other):
     """
     Return a dict mapping unit strings to 2-tuples. The keys are all the unit
     strings that we consider compatible with the requested unit. I.e., unit
@@ -233,35 +261,6 @@ def determine_compatible_units(base_unit, unit_class, multiplier=1,
     requested by the user.
 
     extra_op may be None, "derive", or "integrate".
-
-    >>> all_time_units = [pair[0] for pair in unit_classes_by_name['time']]
-    >>> u = determine_compatible_units('s', 'time')
-    >>> set(all_time_units).issubset(u.keys())
-    True
-    >>> u['MM']
-    (60000000.0, None)
-    >>> all(extra_op is None for (multiplier, extra_op) in u.values())
-    True
-    >>> u['h']
-    (3600.0, None)
-    >>> u = determine_compatible_units('b', 'datasize', 1, 's', 'time')
-    >>> u['b']
-    (1.0, 'derive')
-    >>> u['B']
-    (8.0, 'derive')
-    >>> u['b/s']
-    (1.0, None)
-    >>> (round(u['B/d'][0], 6), u['B/d'][1])
-    (9.3e-05, None)
-    >>> 'h' in u
-    False
-    >>> u = determine_compatible_units('Eggnog', None, 0.125, allow_integration=True)
-    >>> u['Eggnog']
-    (8.0, None)
-    >>> (round(u['Eggnog/h'][0], 6), u['Eggnog/h'][1])
-    (0.002222, 'integrate')
-    >>> any(extra_op == 'derive' for (multiplier, extra_op) in u.values())
-    False
     """
 
     # this multiplier was for converting the other direction, so we'll use
@@ -273,7 +272,7 @@ def determine_compatible_units(base_unit, unit_class, multiplier=1,
     else:
         denom_compat_units = compat_simple_units_noprefix
 
-    compat_numer = compat_simple_units(unit_class, base_unit)
+    compat_numer = compat_simple_units(numer_unit_class, numer_base_unit)
     compat_denom = denom_compat_units(denom_unit_class, denom_base_unit)
 
     if denom_base_unit is None:
