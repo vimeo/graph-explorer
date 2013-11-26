@@ -10,11 +10,11 @@ class DiskspacePlugin(Plugin):
     ]
 
     def sanitize(self, target):
-        (what, type) = target['tags']['wwt'].split('_')
+        (what, mtype) = target['tags']['wwt'].split('_')
         if what == 'byte':
             what = 'bytes'
         target['tags']['what'] = what
-        target['tags']['type'] = type
+        target['tags']['type'] = mtype
         del target['tags']['wwt']
 
 # vim: ts=4 et sw=4:

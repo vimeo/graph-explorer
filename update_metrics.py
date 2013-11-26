@@ -35,7 +35,7 @@ try:
     logger.info("generating structured metrics data...")
     backend.update_data(s_metrics)
     logger.info("success!")
-except Exception, e:
+except Exception, e:  # pylint: disable=W0703
     logger.error("sorry, something went wrong: %s", e)
     from traceback import print_exc
     print_exc()

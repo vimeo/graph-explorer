@@ -3,6 +3,7 @@ import re
 
 class Target(dict):
     def __init__(self, src_dict):
+        dict.__init__(self)
         self['match_buckets'] = {}
         self.update(src_dict)
 

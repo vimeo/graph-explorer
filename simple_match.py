@@ -53,4 +53,4 @@ def match_ast(oid, data, ast):
 # id's are matched, and the return value is a dict in the same format
 # if you use tags, make sure data['tags'] is a dict of tags or this'll blow up
 def filter_matching(ast, objects):
-    return dict((oid, data) for (oid, data) in objects.items() if match_and(oid, data, *asts))
+    return dict((oid, data) for (oid, data) in objects.items() if match_ast(oid, data, ast))

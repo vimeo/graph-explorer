@@ -10,7 +10,7 @@ class LoadPlugin(Plugin):
     ]
 
     def sanitize(self, target):
-        if target['tags']['wt'] in ('01','05','15'):
+        if target['tags']['wt'] in ('01', '05', '15'):
             target['tags']['what'] = 'load'
             target['tags']['type'] = target['tags']['wt']
         if target['tags']['wt'] in ('processes_running', 'processes_total'):  # this should be ev. else

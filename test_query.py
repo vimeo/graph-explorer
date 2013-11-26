@@ -6,7 +6,8 @@ import unittest
 class _QueryTestBase(unittest.TestCase):
     maxDiff = None
 
-    def dummyQuery(self, **dummydict):
+    @staticmethod
+    def dummyQuery(**dummydict):
         dummy = copy.deepcopy(Query.default)
         dummy.update(dummydict)
         return dummy

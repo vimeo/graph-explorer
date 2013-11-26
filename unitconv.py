@@ -8,7 +8,6 @@ See https://github.com/vimeo/graph-explorer/wiki/Units-%26-Prefixes
 """
 
 from __future__ import division
-from itertools import product
 
 
 si_multiplier_prefixes = (

@@ -49,7 +49,7 @@ def es_prefix(k, v):
 def hit_to_metric(hit):
     tags = {}
     for tag in hit['_source']['tags']:
-        (k, v) = tag.split('=')
+        (k, v) = tag.split('=', 1)
         tags[str(k)] = str(v)
     return {
         'id': hit['_id'],
@@ -60,6 +60,7 @@ def hit_to_metric(hit):
 class PluginError(Exception):
 
     def __init__(self, plugin, msg, underlying_error):
+        Exception.__init__(self, msg)
         self.plugin = plugin
         self.msg = msg
         self.underlying_error = underlying_error
@@ -140,6 +141,15 @@ def build_es_expr(ast):
     return globals()['build_es_' + ast[0]](*ast[1:])
 
 
+def build_es_query(ast):
+    return {
+        "filtered": {
+            "query": {"match_all": {}},
+            "filter": build_es_expr(ast)
+        }
+    }
+
+
 class StructuredMetrics(object):
 
     def __init__(self, config, logger=logging):
@@ -156,7 +166,7 @@ class StructuredMetrics(object):
         whoever calls this function defines how any errors are
         handled. meanwhile, loading must continue
         '''
-        import plugins
+        from . import plugins
         errors = []
         plugin_dirs = getattr(self.config, "metric_plugin_dirs", ('**builtins**',))
         for plugin_dir in plugin_dirs:
@@ -167,7 +177,8 @@ class StructuredMetrics(object):
             errors.extend(newerrors)
         return errors
 
-    def load_plugins_from(self, plugin_dir, package):
+    @staticmethod
+    def load_plugins_from(plugin_dir, package):
         # import in sorted order to let it be predictable; lets user plugins import
         # pieces of other plugins imported earlier
         plugins = []
@@ -183,12 +194,12 @@ class StructuredMetrics(object):
                 module = imp.load_source(qualifiedname, os.path.join(plugin_dir, f))
                 sys.modules[qualifiedname] = module
                 setattr(package, mname, module)
-            except Exception, e:
+            except Exception, e:  # pylint: disable=W0703
                 errors.append(PluginError(mname, "Failed to add plugin '%s'" % mname, e))
                 continue
             finally:
                 imp.release_lock()
-            for itemname, item in vars(module).iteritems():
+            for item in vars(module).itervalues():
                 if isclass(item) and item != Plugin and issubclass(item, Plugin):
                     try:
                         plugins.append((mname, item()))
@@ -196,7 +207,7 @@ class StructuredMetrics(object):
                     except sre_constants.error, e:
                         e = "error problem parsing matching regex: %s" % e
                         errors.append(PluginError(mname, "Failed to add plugin '%s'" % mname, e))
-                    except Exception, e:
+                    except Exception, e:  # pylint: disable=W0703
                         errors.append(PluginError(mname, "Failed to add plugin '%s'" % mname, e))
         # sort plugins by their matching priority
         return sorted(plugins, key=lambda t: t[1].priority, reverse=True), errors
@@ -210,14 +221,16 @@ class StructuredMetrics(object):
         for plugin in self.plugins:
             plugin_stats[plugin[0]] = 0
         for metric in metrics:
-            for (i, plugin) in enumerate(self.plugins):
+            for plugin in self.plugins:
                 (plugin_name, plugin_object) = plugin
                 proto2_metric = plugin_object.upgrade_metric(metric)
                 if proto2_metric is not None:
                     (k, v) = proto2_metric
                     tags = v['tags']
                     if 'target_type' not in tags or ('unit' not in tags and 'what' not in tags):
-                        self.logger.warn("metric '%s' doesn't have the mandatory tags. ('target_type' and either 'unit' or 'what').  ignoring it...", v)
+                        self.logger.warn("metric '%s' doesn't have the mandatory tags "
+                                         "('target_type' and either 'unit' or 'what').  "
+                                         "ignoring it...", v)
                     else:
                         # old style tags: what, target_type
                         # new style: unit, (and target_type, for now)
@@ -321,14 +334,6 @@ class StructuredMetrics(object):
         ret = self.es.count(index='graphite_metrics', doc_type='metric')
         return ret['count']
 
-    def build_es_query(self, ast):
-        return {
-            "filtered": {
-                "query": {"match_all": {}},
-                "filter": build_es_expr(ast)
-            }
-        }
-
     def get_metrics(self, query=None, size=1000):
         self.assure_index()
         self.logger.debug("Sending query to ES: %r", query)
@@ -338,7 +343,7 @@ class StructuredMetrics(object):
             return self.es.search(index='graphite_metrics', doc_type='metric', size=size, body={
                 "query": query,
             })
-        except Exception as e:
+        except Exception, e:  # pylint: disable=W0703
             sys.stderr.write("Could not connect to ElasticSearch: %s" % e)
 
     def get_all_metrics(self, query=None, size=200):
@@ -346,16 +351,15 @@ class StructuredMetrics(object):
         try:
             if query is None:
                 query = query_all
-            d = self.es.search(index='graphite_metrics', doc_type='metric', size=size, search_type='scan', scroll='10m', body={
-                "query": query,
-            })
+            d = self.es.search(index='graphite_metrics', doc_type='metric', size=size,
+                               search_type='scan', scroll='10m', body={"query": query})
             scroll_id = d['_scroll_id']
             d = None
             while (d is None or len(d['hits']['hits'])):
                 d = self.es.scroll(scroll='10m', scroll_id=scroll_id)
                 yield d
                 scroll_id = d['_scroll_id']
-        except Exception as e:
+        except Exception, e:  # pylint: disable=W0703
             sys.stderr.write("Could not connect to ElasticSearch: %s" % e)
 
     def get(self, metric_id):
@@ -373,8 +377,8 @@ class StructuredMetrics(object):
             limit_es = query['limit_targets']
         limit_es = min(self.config.limit_es_metrics, limit_es)
         self.logger.debug("querying up to %d metrics from ES...", limit_es)
-        es_query = self.build_es_query(query['ast'])
-        metrics = self.get_metrics(es_query, limit_es)
+        my_es_query = build_es_query(query['ast'])
+        metrics = self.get_metrics(my_es_query, limit_es)
         self.logger.debug("got %d metrics!", len(metrics))
         results = {}
         for hit in metrics['hits']['hits']:
