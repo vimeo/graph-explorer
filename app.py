@@ -1,5 +1,5 @@
 #!/usr/bin/env python2
-from bottle import route, template, request, static_file, redirect, response, default_app
+from bottle import route, template, request, static_file, response
 import config
 import preferences
 from urlparse import urljoin
@@ -38,9 +38,9 @@ if config.log_file:
 logger.debug('app starting')
 backend = Backend(config, logger)
 s_metrics = structured_metrics.StructuredMetrics(config, logger)
-graphs = Graphs()
-graphs.load_plugins()
-graphs_all = graphs.list_graphs()
+graphs_manager = Graphs()
+graphs_manager.load_plugins()
+graphs_all = graphs_manager.list_graphs()
 
 
 @route('<path:re:/assets/.*>')
@@ -94,7 +94,7 @@ def inspect_metric(metrics=''):
 
 
 def build_graphs(graphs, query):
-    for (k, v) in graphs.items():
+    for v in graphs.values():
         v.update(query)
     return graphs
 
@@ -118,12 +118,13 @@ def graphite_func_aggregate(targets, agg_by_tags, aggfunc):
     # differentiators is a list of tag values that set the contributing targets apart
     # this will be used later in the UI
     differentiators = {}
+    agg_by_tag = None
     for t in targets:
         for agg_by_tag in agg_by_tags.keys():
             differentiators[agg_by_tag] = differentiators.get(agg_by_tag, [])
             differentiators[agg_by_tag].append(t['variables'][agg_by_tag])
         differentiators[agg_by_tag].sort()
-    t = {
+    tdict = {
         'target': '%s(%s)' % (aggfunc, ','.join([t['target'] for t in targets])),
         'id': [t['id'] for t in targets],
         'variables': targets[0]['variables']
@@ -132,12 +133,12 @@ def graphite_func_aggregate(targets, agg_by_tags, aggfunc):
     bucket_id_str = ''
     if bucket_id:
         bucket_id_str = "'%s' " % bucket_id
-    t['tags'] = targets[0]['tags']
+    tdict['tags'] = targets[0]['tags']
     for agg_by_tag in agg_by_tags:
         tag_val = ('%s%s (%s values)' % (bucket_id_str, aggfunc, len(targets)), differentiators[agg_by_tag])
-        t['variables'][agg_by_tag] = tag_val
-        t['tags'][agg_by_tag] = tag_val
-    return Target(t)
+        tdict['variables'][agg_by_tag] = tag_val
+        tdict['tags'][agg_by_tag] = tag_val
+    return Target(tdict)
 
 
 def build_graphs_from_targets(targets, query):
@@ -175,8 +176,7 @@ def build_graphs_from_targets(targets, query):
     # values, or different values from a group_by tag that match the same
     # bucket pattern
     # go through all targets and group them into graphs:
-    for (i, target_id) in enumerate(sorted(targets.iterkeys())):
-        target_data = targets[target_id]
+    for _target_id, target_data in sorted(targets.items()):
         # FWIW. has an 'id' which timeserieswidget doesn't care about
         target = Target(target_data)
         target['target'] = target['id']
@@ -188,8 +188,8 @@ def build_graphs_from_targets(targets, query):
             graphs[graph_key] = graph
         graphs[graph_key]['targets'].append(target)
 
-    # ok so now we have a graphs dictionary with a graph for every approriate
-    # combination of group_by tags, and each graphs contains all targets that
+    # ok so now we have a graphs dictionary with a graph for every appropriate
+    # combination of group_by tags, and each graph contains all targets that
     # should be shown on it.  but the user may have asked to aggregate certain
     # targets together, by summing and/or averaging across different values of
     # (a) certain tag(s). let's process the aggregations now.
@@ -266,20 +266,19 @@ def build_graphs_from_targets(targets, query):
         effective_constants = tags_seen - effective_variables
 
         # promote the effective_constants by adjusting graph and targets:
-        graphs[graph_key]['promoted_constants'] = {}
+        graph_config['promoted_constants'] = {}
         for tag_name in effective_constants:
-            graphs[graph_key]['promoted_constants'][tag_name] = first_values_seen[tag_name]
-            for (i, target) in enumerate(graph_config['targets']):
-                if tag_name in graphs[graph_key]['targets'][i]['variables']:
-                    del graphs[graph_key]['targets'][i]['variables'][tag_name]
+            graph_config['promoted_constants'][tag_name] = first_values_seen[tag_name]
+            for target in graph_config['targets']:
+                target['variables'].pop(tag_name, None)
 
         # now that graph config is "rich", merge in settings from preferences
-        constants = dict(graphs[graph_key]['constants'].items() + graphs[graph_key]['promoted_constants'].items())
+        constants = dict(graph_config['constants'].items() + graph_config['promoted_constants'].items())
         for graph_option in get_action_on_rules_match(preferences.graph_options, constants):
             if isinstance(graph_option, dict):
-                graphs[graph_key].update(graph_option)
+                graph_config.update(graph_option)
             else:
-                graphs[graph_key] = graph_option(graphs[graph_key])
+                graph_config = graphs[graph_key] = graph_option(graph_config)
 
         # but, the query may override some preferences:
         override = {}
@@ -319,7 +318,7 @@ def build_graphs_from_targets(targets, query):
 
 @route('/graphs/', method='POST')
 @route('/graphs/<query:path>', method='GET')  # used for manually testing
-def graphs(query=''):
+def graphs_nodeps(query=''):
     return handle_graphs(query, False)
 
 
@@ -372,7 +371,8 @@ def graphs_minimal_deps(query=''):
 
 def handle_graphs_minimal(query, deps):
     '''
-    like graphs(), but without extra decoration, so can be used on dashboards
+    like handle_graphs(), but without extra decoration, so can be used on
+    dashboards
     TODO dashboard should show any errors
     '''
     if not query:
@@ -385,7 +385,7 @@ def render_graphs(query, minimal=False, deps=False):
         del errors["query_parse"]
     try:
         query = Query(query)
-    except Exception, e:
+    except Exception, e:  # pylint: disable=W0703
         errors["query_parse"] = ("Couldn't parse query: %s" % e, traceback.format_exc())
     if errors:
         body = template('templates/snippet.errors', errors=errors)
@@ -395,7 +395,7 @@ def render_graphs(query, minimal=False, deps=False):
         del errors["match_metrics"]
     try:
         (query, targets_matching) = s_metrics.matching(query)
-    except Exception, e:
+    except Exception, e:  # pylint: disable=W0703
         errors["match_metrics"] = ("Couldn't find matching metrics: %s" % e, traceback.format_exc())
     if errors:
         body = template('templates/snippet.errors', errors=errors)

@@ -1,0 +1,23 @@
+[MASTER]
+profile=no
+ignore=
+persistent=no
+
+[REPORTS]
+output-format=colorized
+include-ids=yes
+files-output=no
+reports=no
+
+[FORMAT]
+;max-line-length=100
+max-line-length=200
+
+[MESSAGES CONTROL]
+disable=C0103,C0111,E1123,I0011,R0801,R0904,R0912,R0913,R0914,R0915,W0142,W0511
+
+[BASIC]
+bad-functions=eval,input,compile
+
+[TYPECHECK]
+ignored-classes=elasticsearch.client.cluster.ClusterClient

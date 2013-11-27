@@ -7,6 +7,7 @@ from urlparse import urljoin
 
 class MetricsError(Exception):
     def __init__(self, msg, underlying_error):
+        Exception.__init__(self, msg, underlying_error)
         self.msg = str(msg)
         self.underlying_error = str(underlying_error)
 

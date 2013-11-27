@@ -16,8 +16,8 @@ class Graphs(object):
         whoever calls this function defines how any errors are
         handled. meanwhile, loading must continue
         '''
-        from plugins import Plugin
-        import plugins
+        from .plugins import Plugin
+        from . import plugins
         errors = []
         plugins_dir = os.path.dirname(plugins.__file__)
         wd = os.getcwd()
@@ -28,7 +28,7 @@ class Graphs(object):
             module = f[:-3]
             try:
                 imp = __import__('plugins.' + module, globals(), locals(), ['*'])
-            except Exception, e:
+            except Exception, e:  # pylint: disable=W0703
                 errors.append(PluginError(module, "Failed to add plugin '%s'" % module, e))
                 continue
 
@@ -37,7 +37,7 @@ class Graphs(object):
                 if isclass(item) and item != Plugin and issubclass(item, Plugin):
                     try:
                         self.plugins.append((module, item()))
-                    except Exception, e:
+                    except Exception, e:  # pylint: disable=W0703
                         errors.append(PluginError(module, "Failed to add plugin '%s'" % module, e))
         os.chdir(wd)
         # sort plugins by their priority
@@ -47,6 +47,6 @@ class Graphs(object):
     def list_graphs(self):
         graphs = {}
         for plugin in self.plugins:
-            (plugin_name, plugin_object) = plugin
+            _plugin_name, plugin_object = plugin
             graphs.update(plugin_object.get_graphs())
         return graphs

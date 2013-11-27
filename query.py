@@ -24,6 +24,7 @@ class Query(dict):
     }
 
     def __init__(self, query_str):
+        dict.__init__(self)
         tmp = copy.deepcopy(Query.default)
         self.update(tmp)
         self.parse(query_str)
@@ -43,7 +44,8 @@ class Query(dict):
                 query_str = query_str[:match.start(1)] + query_str[match.end(1):]
             return (query_str, value)
 
-        (query_str, self['statement']) = parse_val(query_str, '^', '(graph|list|stack|lines)\\b', self['statement'])
+        (query_str, self['statement']) = parse_val(query_str, '^', '(graph|list|stack|lines)\\b',
+                                                   self['statement'])
         self['statement'] = self['statement'].rstrip()
 
         (query_str, self['to']) = parse_val(query_str, 'to ', '[^ ]+', self['to'])
@@ -91,8 +93,11 @@ class Query(dict):
         sum_individual_keys = len(self['group_by']) + len(self['sum_by']) + len(self['avg_by'])
         sum_unique_keys = len(set(self['group_by'].keys() + self['sum_by'].keys() + self['avg_by'].keys()))
         if sum_individual_keys != sum_unique_keys:
-            raise Exception("'group by' (%s), 'sum by (%s)' and 'avg by (%s)' cannot list the same tag keys" %
-                            (', '.join(self['group_by'].keys()), ', '.join(self['sum_by'].keys()), ', '.join(self['avg_by'].keys())))
+            raise Exception("'group by' (%s), 'sum by (%s)' and 'avg by (%s)' "
+                            "cannot list the same tag keys" %
+                            (', '.join(self['group_by'].keys()),
+                             ', '.join(self['sum_by'].keys()),
+                             ', '.join(self['avg_by'].keys())))
         if avg_over_str is not None:
             # avg_over_str should be something like 'h', '10M', etc
             avg_over = re.match(avg_over_match, avg_over_str)

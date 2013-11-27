@@ -1,8 +1,17 @@
 #!/usr/bin/env python2
-import re
 """
 Base Plugin class
 """
+
+import re
+
+
+def camel_to_underscore(name):
+    '''
+    from http://stackoverflow.com/questions/1175208/elegant-python-function-to-convert-camelcase-to-camel-case/1176023#1176023
+    '''
+    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
 
 class Plugin(object):
@@ -15,19 +24,21 @@ class Plugin(object):
     targets_found = 0
 
     # useful configure functions:
-    def default_configure_target(self, target):
+    def default_configure_target(self, _target):  # pylint: disable=R0201
         return {}
 
-    def fix_underscores(self, target, keys):
+    @staticmethod
+    def fix_underscores(target, keys):
         # SwapCached -> swap_cached
         # keys can be a list of keys or just one key
         try:
             for key in keys:
-                target['tags'][key] = self.camel_to_underscore(target['tags'][key])
-        except:
-            target['tags'][keys] = self.camel_to_underscore(target['tags'][keys])
+                target['tags'][key] = camel_to_underscore(target['tags'][key])
+        except (TypeError, KeyError):
+            target['tags'][keys] = camel_to_underscore(target['tags'][keys])
 
-    def add_tag(self, target, key, val):
+    @staticmethod
+    def add_tag(target, key, val):
         '''
         add tag to existing set of tags
         overiddes any tag with the same name
@@ -36,49 +47,52 @@ class Plugin(object):
 
     def get_targets(self):
         # "denormalize" dense configuration list into a new list of full-blown configs
-        targets = []
+        pre_merge_targets = []
         for target in self.targets:
             if 'targets' in target:
                 for sub_target in target['targets']:
                     t = target.copy()
                     del t['targets']
                     t.update(sub_target)
-                    targets.append(t)
+                    pre_merge_targets.append(t)
             else:
-                targets.append(target)
+                pre_merge_targets.append(target)
 
-        for (id, target) in enumerate(targets):
+        targets = []
+        for pre_merge_target in pre_merge_targets:
             # merge options into defaults
             # 'configure' is a special case.. we append new entries to the
             # original list.  this allows you to add extra functions, while
             # maintaining the original (which can be overridden).
             # or don't bother with specifying any configure options, and just
             # override the function.
-            targets[id] = self.target_default.copy()
-            targets[id].update(target)
-            targets[id]['configure'] = list(self.target_default['configure'])
-            if 'configure' in target:
-                if not isinstance(target['configure'], list):
-                    target['configure'] = [target['configure']]
-                targets[id]['configure'].extend(target['configure'])
+            target = self.target_default.copy()
+            target.update(pre_merge_target)
+            target['configure'] = list(self.target_default['configure'])
+            if 'configure' in pre_merge_target:
+                if not isinstance(pre_merge_target['configure'], (list, tuple)):
+                    pre_merge_target['configure'] = [pre_merge_target['configure']]
+                target['configure'].extend(pre_merge_target['configure'])
             # compile fast match objects
             # because sometimes a target covers multiple metric naming
             # patterns, we must support a list of possible matching regexes.
             # we can't just do '|'.join(list of regexes)
             # because then we can't repeat group names.
-            if isinstance(target['match'], basestring):
-                target['match'] = [target['match']]
-            targets[id]['match_object'] = []
-            for regex in target['match']:
+            if isinstance(pre_merge_target['match'], basestring):
+                pre_merge_target['match'] = [pre_merge_target['match']]
+            target['match_object'] = []
+            for regex in pre_merge_target['match']:
                 # can raise sre_constants.error ! and maybe other regex errors.
-                targets[id]['match_object'].append(re.compile(regex))
+                target['match_object'].append(re.compile(regex))
             # similar for 'no_match' if specified
-            if 'no_match' in target:
-                if isinstance(target['no_match'], basestring):
-                    target['no_match'] = [target['no_match']]
-                targets[id]['no_match_object'] = []
-                for regex in target['no_match']:
-                    targets[id]['no_match_object'].append(re.compile(regex))
+            if 'no_match' in pre_merge_target:
+                if isinstance(pre_merge_target['no_match'], basestring):
+                    pre_merge_target['no_match'] = [pre_merge_target['no_match']]
+                target['no_match_object'] = []
+                for regex in pre_merge_target['no_match']:
+                    target['no_match_object'].append(re.compile(regex))
+            targets.append(target)
+
         return targets
 
     def __init__(self):
@@ -86,20 +100,22 @@ class Plugin(object):
 
     # track how many times targets have been yielded, for limit setting
     def reset_target_yield_counters(self):
-        for (id, target) in enumerate(self.targets):
-            self.targets[id]['yielded'] = 0
+        for target in self.targets:
+            target['yielded'] = 0
 
-    def get_target_id(self, target):
+    @staticmethod
+    def get_target_id(target):
         target_key = ['targets']
-        for tag_key in sorted(target['tags'].iterkeys()):  # including the tag key allows to filter out all http things by just writing 'http'
-            tag_val = target['tags'][tag_key]
+        # including the tag key allows to filter out all http things by just writing 'http'
+        for tag_key, tag_val in sorted(target['tags'].items()):
             if tag_val:
                 target_key.append('%s:%s' % (tag_key, tag_val))
         return ' '.join(target_key)
 
-    def __create_target(self, match, target_config):
+    @classmethod
+    def __create_target(cls, match, target_config):
         tags = match.groupdict()
-        tags.update({'target_type': target_config['target_type'], 'plugin': self.classname_to_tag()})
+        tags.update({'target_type': target_config['target_type'], 'plugin': cls.classname_to_tag()})
         target = {
             'id': match.string,  # graphite metric
             'config': target_config,
@@ -124,7 +140,7 @@ class Plugin(object):
                 target.update(out)
         return target
 
-    def sanitize(self, target):
+    def sanitize(self, _target):  # pylint: disable=R0201
         return None
 
     def upgrade_metric(self, metric):
@@ -138,7 +154,7 @@ class Plugin(object):
         }
         """
         # for every target config, see if the metric meets all criteria
-        for (id, target) in enumerate(self.targets):
+        for target in self.targets:
             if 'limit' in target and target['limit'] == target['yielded']:
                 continue
             # metric must not match any of the no_match objects
@@ -159,25 +175,17 @@ class Plugin(object):
                     target = self.__configure_target(target)
                     del target['config']  # not needed beyond this point
                     self.targets_found += 1
-                    self.targets[id]['yielded'] += 1
+                    target['yielded'] += 1
                     return (self.get_target_id(target), target)
-                    continue
         return None
 
-    def classname_to_tag(self):
+    @classmethod
+    def classname_to_tag(cls):
         '''
         FooBarHTTPPlugin -> foo_bar_http
         '''
-        name = self.__class__.__name__.replace('Plugin', '')
-        return self.camel_to_underscore(name)
-
-    def camel_to_underscore(self, name):
-        '''
-        from http://stackoverflow.com/questions/1175208/elegant-python-function-to-convert-camelcase-to-camel-case/1176023#1176023
-        '''
-        s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
-        return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
-
+        name = cls.__name__.replace('Plugin', '')
+        return camel_to_underscore(name)
 
     # experimental shortcut functions to easily define targets.
     # some of these would be better provided by the plugins themselves

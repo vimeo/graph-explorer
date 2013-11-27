@@ -2,10 +2,10 @@ from . import Plugin
 
 
 class CatchallStatsdPlugin(Plugin):
-    priority = -4
     """
     Like catchall, but for targets from statsd (presumably)
     """
+    priority = -4
 
     targets = [
         {

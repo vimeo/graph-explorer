@@ -54,15 +54,15 @@ class CollectdPlugin(Plugin):
     }]
 
     @classmethod
-    def collectd_desc(self, target):
-        return self.collectd_types.get(target['tags']['type'], (target['tags']['type'], 'gauge'))
+    def collectd_desc(cls, target):
+        return cls.collectd_types.get(target['tags']['type'], (target['tags']['type'], 'gauge'))
 
     @classmethod
-    def collectd_target_type(self, target):
-        return self.collectd_desc(target)[1]
+    def collectd_target_type(cls, target):
+        return cls.collectd_desc(target)[1]
 
     @classmethod
-    def collectd_what(self, target):
-        return self.collectd_desc(target)[0]
+    def collectd_what(cls, target):
+        return cls.collectd_desc(target)[0]
 
 # vim: ts=4 et sw=4:

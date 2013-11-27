@@ -28,7 +28,7 @@ prefixes_IEC = {
 def parse_str(string):
     try:
         return float(string)
-    except:
+    except ValueError:
         prefixes = dict(prefixes_SI.items() + prefixes_IEC.items())
         for prefix, val in prefixes.items():
             if string.endswith(prefix):

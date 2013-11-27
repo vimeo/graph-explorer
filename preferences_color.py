@@ -1,4 +1,4 @@
-from colors import colors, color_variant
+from colors import colors
 from backend import get_action_on_rules_match
 
 
@@ -167,19 +167,19 @@ def apply_colors(graph):
         ]
     ]
 
-    for (i, target) in enumerate(graph['targets']):
+    for target in graph['targets']:
         tags = dict(graph['constants'].items() + graph['promoted_constants'].items() + target['variables'].items())
 
         for action in get_action_on_rules_match(rules_unique_tags, tags):
             for (tag_key, matches) in action.items():
                 t = get_unique_tag_value(graph, target, tag_key)
                 if t is not None and t in matches:
-                    graph['targets'][i]['color'] = matches[t]
+                    target['color'] = matches[t]
 
         for action in get_action_on_rules_match(rules_tags, target):
             for (tag_key, matches) in action.items():
                 t = get_tag_value(graph, target, tag_key)
                 if t is not None and t in matches:
-                    graph['targets'][i]['color'] = matches[t]
+                    target['color'] = matches[t]
 
     return graph

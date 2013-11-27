@@ -2,10 +2,10 @@ from . import Plugin
 
 
 class CatchallDiamondPlugin(Plugin):
-    priority = -4
     """
     Like catchall, but for targets from diamond (presumably)
     """
+    priority = -4
 
     targets = [
         {
