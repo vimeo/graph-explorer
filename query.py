@@ -134,6 +134,13 @@ class Query(dict):
         return apply_variables
 
 
+    @staticmethod
+    def graph_config_applier(**configs):
+        def apply_graph_config(_target, graph_config):
+            graph_config.update(configs)
+        return apply_graph_config
+
+
     @classmethod
     def convert_to_requested_unit_applier(cls, compatibles):
         def apply_requested_unit(target, _graph_config):
@@ -191,17 +198,22 @@ class Query(dict):
     def transform_ast_for_compatible_units(cls, ast):
         if ast[0] == 'match_tag_equality' and ast[1] == 'unit':
             requested_unit = ast[2]
-            unitinfo = unitconv.parse_unitname(requested_unit)
+            unitinfo = unitconv.parse_unitname(requested_unit, fold_scale_prefix=False)
+            prefixclass = unitconv.prefix_class_for(unitinfo['scale_multiplier'])
+            use_unit = unitinfo['base_unit']
             compatibles = unitconv.determine_compatible_units(**unitinfo)
 
             # rewrite the search term to include all the alternates
             ast = ('match_or',) + tuple(
                 [('match_tag_equality', 'unit', u) for u in compatibles.keys()])
 
-            return ast, [
+            modifiers = [
                 cls.convert_to_requested_unit_applier(compatibles),
-                cls.variable_applier(unit=requested_unit),
+                cls.variable_applier(unit=use_unit)
             ]
+            if prefixclass == 'binary':
+                modifiers.append(cls.graph_config_applier(suffixes=prefixclass))
+            return ast, modifiers
         elif ast[0] in ('match_and', 'match_or'):
             # recurse into subexpressions, in case they have unit=* terms
             # underneath. this won't be totally correct in case there's a way
