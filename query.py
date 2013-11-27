@@ -162,14 +162,16 @@ class Query(dict):
     @classmethod
     def derive_counters(cls, target, _graph_config):
         if target['tags'].get('target_type') == 'counter':
-            cls.apply_derivative_to_target(target)
+            cls.apply_derivative_to_target(target, known_non_negative=True)
 
 
     @classmethod
-    def apply_derivative_to_target(cls, target, scale=1):
+    def apply_derivative_to_target(cls, target, scale=1, known_non_negative=False):
         wraparound = target['tags'].get('wraparound')
         if wraparound is not None:
             cls.apply_graphite_function_to_target(target, 'nonNegativeDerivative', wraparound)
+        elif known_non_negative:
+            cls.apply_graphite_function_to_target(target, 'nonNegativeDerivative')
         else:
             cls.apply_graphite_function_to_target(target, 'derivative')
         cls.apply_graphite_function_to_target(target, 'scaleToSeconds', scale)
