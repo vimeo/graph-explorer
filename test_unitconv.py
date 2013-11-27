@@ -21,9 +21,9 @@ class TestParseUnitname(unittest.TestCase):
     def test_non_fractional(self):
         self.assertDictEqual(
             unitconv.parse_unitname('Kimo'),
-            {'multiplier': 1024 * 2592000, 'unit_class': 'time',
+            {'multiplier': 1024 * 60 * 60 * 24 * 30, 'unit_class': 'time',
              'primary_unit': 's', 'base_unit': 'mo',
-             'numer_multiplier': 1024 * 2592000, 'numer_unit_class': 'time',
+             'numer_multiplier': 1024 * 60 * 60 * 24 * 30, 'numer_unit_class': 'time',
              'numer_primary_unit': 's', 'numer_base_unit': 'mo'})
 
     def test_fractional(self):
