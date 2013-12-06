@@ -2,6 +2,7 @@
 import json
 import os
 import logging
+import urllib2
 from urlparse import urljoin
 
 
@@ -21,20 +22,14 @@ class Backend(object):
         self.logger = logger
 
     def download_metrics_json(self):
-        import urllib2
         url = urljoin(self.config.graphite_url_server, "metrics/index.json")
-        if (self.config.graphite_username is not None and self.config.graphite_password is not None):
-            #user/pass from the config file
+        if self.config.graphite_username is not None and self.config.graphite_password is not None:
             username = self.config.graphite_username
             password = self.config.graphite_password
-            # create the password manager
             passmanager = urllib2.HTTPPasswordMgrWithDefaultRealm()
-            # add the credentials to the password manager
             passmanager.add_password(None, url, username, password)
-            # add the authentication handler
             authhandler = urllib2.HTTPBasicAuthHandler(passmanager)
             opener = urllib2.build_opener(authhandler)
-            # install the authentication handler, all url_open commands will now use it
             urllib2.install_opener(opener)
 
         response = urllib2.urlopen(url)
