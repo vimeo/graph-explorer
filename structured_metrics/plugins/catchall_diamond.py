@@ -13,7 +13,8 @@ class CatchallDiamondPlugin(Plugin):
             'target_type': 'unknown',
             'configure': [
                 lambda self, target: self.add_tag(target, 'what', 'unknown'),
-                lambda self, target: self.add_tag(target, 'source', 'diamond')
+                lambda self, target: self.add_tag(target, 'source', 'diamond'),
+                lambda self, target: self.strip_empty_tags(target)
             ]
         },
     ]

@@ -12,8 +12,9 @@ class CatchallStatsdPlugin(Plugin):
             'match': '^stats\.gauges\.(?P<n1>[^\.]+)\.?(?P<n2>[^\.]*)\.?(?P<n3>[^\.]*)\.?(?P<n4>[^\.]*)\.?(?P<n5>[^\.]*)\.?(?P<n6>[^\.]*)\.?(?P<n7>[^\.]*)$',
             'target_type': 'gauge',
             'configure': [
-                lambda self, target: self.add_tag(target, 'what', 'unknown'),
-                lambda self, target: self.add_tag(target, 'source', 'statsd')
+                lambda self, target: self.add_tag(target, 'unit', 'unknown'),
+                lambda self, target: self.add_tag(target, 'source', 'statsd'),
+                lambda self, target: self.strip_empty_tags(target)
             ]
         },
         {
@@ -22,7 +23,8 @@ class CatchallStatsdPlugin(Plugin):
             'target_type': 'gauge',
             'configure': [
                 lambda self, target: self.add_tag(target, 'what', 'ms'),
-                lambda self, target: self.add_tag(target, 'source', 'statsd')
+                lambda self, target: self.add_tag(target, 'source', 'statsd'),
+                lambda self, target: self.strip_empty_tags(target)
             ]
         },
         {
@@ -34,7 +36,8 @@ class CatchallStatsdPlugin(Plugin):
             'target_type': 'gauge',
             'configure': [
                 lambda self, target: self.add_tag(target, 'what', 'freq_abs'),
-                lambda self, target: self.add_tag(target, 'source', 'statsd')
+                lambda self, target: self.add_tag(target, 'source', 'statsd'),
+                lambda self, target: self.strip_empty_tags(target)
             ]
 
         },
