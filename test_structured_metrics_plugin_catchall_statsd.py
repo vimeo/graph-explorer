@@ -2,6 +2,42 @@ import copy
 import structured_metrics
 
 
+def test_parse_count_and_rate():
+    s_metrics = structured_metrics.StructuredMetrics()
+    s_metrics.load_plugins()
+    tags_base = {
+        'n1': 'foo',
+        'n2': 'req',
+        'plugin': 'catchall_statsd',
+        'source': 'statsd',
+    }
+
+    def get_proto2(key, updates, target_type='gauge'):
+        expected = {
+            'id': key,
+            'tags': copy.deepcopy(tags_base),
+            'target_type': target_type
+        }
+        expected['tags']['target_type'] = target_type
+        expected['tags'].update(updates)
+        return expected
+
+    key = "stats.foo.req"
+    expected = get_proto2(key, {'unit': 'unknown/s'}, 'rate')
+    real = s_metrics.list_metrics([key])
+    assert len(real) == 1
+    from pprint import pprint
+    pprint(expected)
+    pprint(real.values()[0])
+    assert expected == real.values()[0]
+
+    key = "stats_counts.foo.req"
+    expected = get_proto2(key, {'unit': 'unknown'}, 'count')
+    real = s_metrics.list_metrics([key])
+    assert len(real) == 1
+    assert expected == real.values()[0]
+
+
 def test_parse_timers():
     s_metrics = structured_metrics.StructuredMetrics()
     s_metrics.load_plugins()
