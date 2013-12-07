@@ -216,7 +216,6 @@ class StructuredMetrics(object):
     def list_metrics(self, metrics):
         for plugin in self.plugins:
             (plugin_name, plugin_object) = plugin
-            plugin_object.reset_target_yield_counters()
         targets = {}
         plugin_stats = {}
         for plugin in self.plugins:

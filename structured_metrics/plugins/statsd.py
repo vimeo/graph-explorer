@@ -20,16 +20,16 @@ class StatsdPlugin(Plugin):
         # received".  so i guess a way to define "meta" metrics based on a
         # query (because you may also want to type queries such as "sum(timers
         # unit=packets received)" yourself in the query interface
-        {
-            'match': '^stats\.timers',
-            'limit': 1,
-            'target_type': 'count',
-            'configure': [
-                lambda self, target: {'target': 'sumSeries(%s)' % ','.join(['stats.timers.%s.count' % infix for infix in ['*', '*.*', '*.*.*', '*.*.*.*', '*.*.*.*.*']])},
-                lambda self, target: self.add_tag(target, 'what', 'packets'),
-                lambda self, target: self.add_tag(target, 'type', 'received_timer'),
-            ]
-        }
+        #{
+        #    'match': '^stats\.timers',
+        #    'limit': 1,
+        #    'target_type': 'count',
+        #    'configure': [
+        #        lambda self, target: {'target': 'sumSeries(%s)' % ','.join(['stats.timers.%s.count' % infix for infix in ['*', '*.*', '*.*.*', '*.*.*.*', '*.*.*.*.*']])},
+        #        lambda self, target: self.add_tag(target, 'what', 'packets'),
+        #        lambda self, target: self.add_tag(target, 'type', 'received_timer'),
+        #    ]
+        #}
     ]
 
     def sanitize(self, target):

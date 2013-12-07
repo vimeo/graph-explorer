@@ -98,11 +98,6 @@ class Plugin(object):
     def __init__(self):
         self.targets = self.get_targets()
 
-    # track how many times targets have been yielded, for limit setting
-    def reset_target_yield_counters(self):
-        for target in self.targets:
-            target['yielded'] = 0
-
     @staticmethod
     def get_target_id(target):
         target_key = ['targets']
@@ -155,8 +150,6 @@ class Plugin(object):
         """
         # for every target config, see if the metric meets all criteria
         for target in self.targets:
-            if 'limit' in target and target['limit'] == target['yielded']:
-                continue
             # metric must not match any of the no_match objects
             yield_metric = True
             for no_match_object in target.get('no_match_object', []):
@@ -175,7 +168,6 @@ class Plugin(object):
                     target = self.__configure_target(target)
                     del target['config']  # not needed beyond this point
                     self.targets_found += 1
-                    target['yielded'] += 1
                     return (self.get_target_id(target), target)
         return None
 
