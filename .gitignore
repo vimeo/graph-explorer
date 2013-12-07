@@ -2,3 +2,4 @@
 *.pyo
 *.log
 metrics.json
+tags
