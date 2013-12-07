@@ -9,42 +9,42 @@ class CatchallStatsdPlugin(Plugin):
 
     targets = [
         {
-            'match': '^stats\.gauges\.(?P<n1>[^\.]+)\.?(?P<n2>[^\.]*)\.?(?P<n3>[^\.]*)\.?(?P<n4>[^\.]*)\.?(?P<n5>[^\.]*)\.?(?P<n6>[^\.]*)\.?(?P<n7>[^\.]*)$',
+            'match': '^stats\.gauges\.(?P<tosplit>.*)',
             'target_type': 'gauge',
             'configure': [
                 lambda self, target: self.add_tag(target, 'unit', 'unknown'),
                 lambda self, target: self.add_tag(target, 'source', 'statsd'),
-                lambda self, target: self.strip_empty_tags(target)
+                lambda self, target: self.autosplit(target)
             ]
         },
         {
-            'match': '^stats\.timers\.(?P<tmp>.*)',
+            'match': '^stats\.timers\.(?P<tosplit>.*)',
             'target_type': 'gauge',
             'configure': lambda self, target: self.parse_timer(target)
         },
         {
-            'match': '^stats\.(?P<n1>[^\.]+)\.?(?P<n2>[^\.]*)\.?(?P<n3>[^\.]*)\.?(?P<n4>[^\.]*)\.?(?P<n5>[^\.]*)\.?(?P<n6>[^\.]*)\.?(?P<n7>[^\.]*)$',
+            'match': '^stats\.(?P<tosplit>.*)',
             'target_type': 'rate',
             'configure': [
                 lambda self, target: self.add_tag(target, 'unit', 'unknown/s'),
                 lambda self, target: self.add_tag(target, 'source', 'statsd'),
-                lambda self, target: self.strip_empty_tags(target)
+                lambda self, target: self.autosplit(target)
             ]
         },
         {
-            'match': '^stats_counts\.(?P<n1>[^\.]+)\.?(?P<n2>[^\.]*)\.?(?P<n3>[^\.]*)\.?(?P<n4>[^\.]*)\.?(?P<n5>[^\.]*)\.?(?P<n6>[^\.]*)\.?(?P<n7>[^\.]*)$',
+            'match': '^stats_counts\.(?P<tosplit>.*)',
             'target_type': 'count',
             'configure': [
                 lambda self, target: self.add_tag(target, 'unit', 'unknown'),
                 lambda self, target: self.add_tag(target, 'source', 'statsd'),
-                lambda self, target: self.strip_empty_tags(target)
+                lambda self, target: self.autosplit(target)
             ]
         },
     ]
 
     def parse_timer(self, target):
         # see if we can get info from the end of the metric string
-        nodes = target['tags']['tmp'].split('.')
+        nodes = target['tags']['tosplit'].split('.')
         target['target_type'] = 'gauge'
         if len(nodes) > 2 and nodes[-1].startswith('bin_') and nodes[-2] == 'histogram':
             # graphite uses '.' as node delimiters, so decimal numbers use '_' instead of '.'
@@ -65,12 +65,9 @@ class CatchallStatsdPlugin(Plugin):
                 target['target_type'] = 'count'
                 target['tags']['unit'] = 'Pckt'
                 nodes = nodes[:-1]
-        for n, val in enumerate(nodes):
-            # put the remainders in n1, n2, .. tags
-            target['tags']['n%d' % (n + 1)] = val
+        self.autosplit(target, nodes=nodes)
 
         target['tags']['source'] = 'statsd'
         target['tags']['target_type'] = target['target_type']
-        del target['tags']['tmp']
 
 # vim: ts=4 et sw=4:

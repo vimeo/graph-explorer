@@ -12,12 +12,12 @@ class CatchallPlugin(Plugin):
 
     targets = [
         {
-            'match': '^(?P<n1>[^\.=]+)\.?(?P<n2>[^\.=]*)\.?(?P<n3>[^\.=]*)\.?(?P<n4>[^\.=]*)\.?(?P<n5>[^\.=]*)\.?(?P<n6>[^\.=]*)\.?(?P<n7>[^\.=]*)$',
+            'match': '^(?P<tosplit>[^=]*)$',
             'target_type': 'unknown',
             'configure': [
                 lambda self, target: self.add_tag(target, 'what', 'unknown'),
                 lambda self, target: self.add_tag(target, 'source', 'unknown'),
-                lambda self, target: self.strip_empty_tags(target)
+                lambda self, target: self.autosplit(target)
             ]
         },
     ]

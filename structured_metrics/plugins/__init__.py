@@ -46,18 +46,17 @@ class Plugin(object):
         target['tags'][key] = val
 
     @staticmethod
-    def strip_empty_tags(target, exceptions=['unit']):
+    def autosplit(target, nodes=None):
         '''
-        some plugins (notably catchall plugins) can do their work in a simpler way
-        by defining match expressions with tags that may stay empty if they don't
-        match anything.  It's good practice to clean them back up because they serve
-        no purpose and clutter the db and UI.
-        Unit is a good default exception, because a unit tag is mandatory, and sometimes
-        a unit just is empty, in which case it's still meaningfull.
+        for catchall plugins, automatically sets n1, n2, ... tags
+        for those nodes that we don't know what they mean
         '''
-        for (k, v) in target['tags'].items():
-            if v == '' and v not in exceptions:
-                del target['tags'][k]
+        if nodes is None:
+            nodes = target['tags']['tosplit'].split('.')
+        for n, val in enumerate(nodes):
+            # put the remainders in n1, n2, .. tags
+            target['tags']['n%d' % (n + 1)] = val
+        del target['tags']['tosplit']
 
     def get_targets(self):
         # "denormalize" dense configuration list into a new list of full-blown configs

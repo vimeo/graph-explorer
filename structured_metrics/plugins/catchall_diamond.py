@@ -9,12 +9,12 @@ class CatchallDiamondPlugin(Plugin):
 
     targets = [
         {
-            'match': '^servers\.(?P<server>[^\.]+)\.(?P<n1>[^\.]+)\.?(?P<n2>[^\.]*)\.?(?P<n3>[^\.]*)\.?(?P<n4>[^\.]*)$',
+            'match': '^servers\.(?P<server>[^\.]+)\.(?P<tosplit>.*)',
             'target_type': 'unknown',
             'configure': [
                 lambda self, target: self.add_tag(target, 'what', 'unknown'),
                 lambda self, target: self.add_tag(target, 'source', 'diamond'),
-                lambda self, target: self.strip_empty_tags(target)
+                lambda self, target: self.autosplit(target)
             ]
         },
     ]
