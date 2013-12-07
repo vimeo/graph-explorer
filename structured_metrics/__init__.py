@@ -214,6 +214,7 @@ class StructuredMetrics(object):
         return sorted(plugins, key=lambda t: t[1].priority, reverse=True), errors
 
     def list_metrics(self, metrics):
+        self.logger.debug("list_metrics with %d plugins and %d metrics", len(self.plugins), len(metrics))
         for plugin in self.plugins:
             (plugin_name, plugin_object) = plugin
         targets = {}
@@ -221,10 +222,12 @@ class StructuredMetrics(object):
         for plugin in self.plugins:
             plugin_stats[plugin[0]] = 0
         for metric in metrics:
+            found = False
             for plugin in self.plugins:
                 (plugin_name, plugin_object) = plugin
                 proto2_metric = plugin_object.upgrade_metric(metric)
                 if proto2_metric is not None:
+                    found = True
                     (k, v) = proto2_metric
                     tags = v['tags']
                     if 'target_type' not in tags or ('unit' not in tags and 'what' not in tags):
@@ -249,6 +252,8 @@ class StructuredMetrics(object):
                         targets[k] = v
                         plugin_stats[plugin_name] += 1
                         break
+            if not found:
+                self.logger.warn("metric '%s' is not recognized by any of your plugins. this is very unusual", metric)
         for plugin in self.plugins:
             plugin_name = plugin[0]
             self.logger.debug("plugin %20s upgraded %10d metrics to proto2", plugin_name, plugin_stats[plugin_name])
