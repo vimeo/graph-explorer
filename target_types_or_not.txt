@@ -44,5 +44,9 @@ so what is not necessarily the intrinsic thing we're monitoring, but what we're 
   * counter we could do with special=inc (for keeps increasing)
   * timestamp would only be a target_type so that we could detect we could turn it into an age. but we could express this differently. (unit=s, type/what=timestamp)
 
+
+2) timeouts, disconnects are 'whats' for which it can make sense to graph them together. maybe as 'events'? but how to define this configuration? (see swift_proxy_server)
+    -> postprocess with rules to add more tags?
+
 related future problems:
  * how to express metrics that have a function applied? load has 5M and 15M exp. averages
