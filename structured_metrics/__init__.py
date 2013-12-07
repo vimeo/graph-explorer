@@ -152,10 +152,11 @@ def build_es_query(ast):
 
 class StructuredMetrics(object):
 
-    def __init__(self, config, logger=logging):
+    def __init__(self, config=None, logger=logging):
         self.plugins = []
-        es_host = config.es_host.replace('http://', '').replace('https://', '')
-        self.es = Elasticsearch([{"host": es_host, "port": config.es_port}])
+        if hasattr(config, 'es_host') and hasattr(config, 'es_port'):
+            es_host = config.es_host.replace('http://', '').replace('https://', '')
+            self.es = Elasticsearch([{"host": es_host, "port": config.es_port}])
         self.logger = logger
         self.config = config
 
@@ -375,7 +376,7 @@ class StructuredMetrics(object):
         else:
             # no aggregation, so fetching $limit targets is enough
             limit_es = query['limit_targets']
-        limit_es = min(self.config.limit_es_metrics, limit_es)
+        limit_es = min(getattr(self.config, 'limit_es_metrics', limit_es), limit_es)
         self.logger.debug("querying up to %d metrics from ES...", limit_es)
         my_es_query = build_es_query(query['ast'])
         metrics = self.get_metrics(my_es_query, limit_es)
