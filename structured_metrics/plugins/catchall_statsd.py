@@ -52,6 +52,13 @@ class CatchallStatsdPlugin(Plugin):
             target['tags']['unit'] = 'freq_abs'
             target['tags']['orig_unit'] = 'ms'
             nodes = nodes[:-2]
+        # this is a workaround for buggy metric names like "stats.timers.foo.bar.histogram.bin_0.5"
+        # i.e. where the decimal '.' is not replaced by a '_'
+        elif len(nodes) > 3 and nodes[-2].startswith('bin_') and nodes[-3] == 'histogram':
+            target['tags']['bin_upper'] = "%s.%s" % (nodes[-2].replace('bin_', ''), nodes[-1])
+            target['tags']['unit'] = 'freq_abs'
+            target['tags']['orig_unit'] = 'ms'
+            nodes = nodes[:-3]
         elif len(nodes) > 1:
             if nodes[-1] in ('lower', 'mean', 'mean_90', 'median', 'std', 'sum', 'sum_90', 'upper', 'upper_90'):
                 target['tags']['type'] = nodes[-1]
