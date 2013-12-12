@@ -45,7 +45,7 @@ class CatchallStatsdPlugin(Plugin):
     def parse_timer(self, target):
         # see if we can get info from the end of the metric string
         nodes = target['tags']['tosplit'].split('.')
-        target['target_type'] = 'gauge'
+        target['tags']['target_type'] = 'gauge'
         if len(nodes) > 2 and nodes[-1].startswith('bin_') and nodes[-2] == 'histogram':
             # graphite uses '.' as node delimiters, so decimal numbers use '_' instead of '.'
             target['tags']['bin_upper'] = nodes[-1].replace('bin_', '').replace('_', '.', 1)
@@ -65,16 +65,15 @@ class CatchallStatsdPlugin(Plugin):
                 target['tags']['unit'] = 'ms'
                 nodes = nodes[:-1]
             elif nodes[-1] == 'count_ps':
-                target['target_type'] = 'rate'
+                target['tags']['target_type'] = 'rate'
                 target['tags']['unit'] = 'Pckt/s'
                 nodes = nodes[:-1]
             elif nodes[-1] == 'count':
-                target['target_type'] = 'count'
+                target['tags']['target_type'] = 'count'
                 target['tags']['unit'] = 'Pckt'
                 nodes = nodes[:-1]
         self.autosplit(target, nodes=nodes)
 
         target['tags']['source'] = 'statsd'
-        target['tags']['target_type'] = target['target_type']
 
 # vim: ts=4 et sw=4:
