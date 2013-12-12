@@ -26,3 +26,9 @@ es_host = "localhost"
 es_port = 9200
 # irrespective of 'limit', never get more metrics than this from ES:
 limit_es_metrics = 10000
+
+# if metrics stored in graphite already look like proto2 (they contain a '='),
+# should we still actively update them in ES?
+# change to False if you already have them up to date in ES,
+# for example when you use something like carbon-tagger.
+process_native_proto2 = True

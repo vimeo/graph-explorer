@@ -3,3 +3,4 @@
 *.log
 metrics.json
 *.egg-info/
+tags

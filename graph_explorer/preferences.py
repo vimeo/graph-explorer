@@ -1,15 +1,6 @@
 count_interval = 60  # counts are in buckets of <size>s seconds; i.e. statsd flushInterval
 timezone = "America/New_York"
 
-# match on target properties (before matching) and apply settings accordingly
-# this option doesn't actually work yet
-target_options = [
-    [
-        {'server': 'df.*'},  # match
-        {'env': 'production'}  # set option
-    ]
-]
-
 from preferences_color import apply_colors
 # match on graph properties (after targets are matched and graph is built)
 # and apply options accordingly.
@@ -19,7 +10,7 @@ from preferences_color import apply_colors
 # multiple matches can occur, they are performed in order.
 graph_options = [
     [
-        {'plugin': ['diskspace', 'memory'], 'what': 'bytes'},  # match
+        {'plugin': ['diskspace', 'memory'], 'unit': 'B'},  # match
         {'state': 'stacked', 'suffixes': 'binary'}  # set option
     ],
     [
@@ -27,11 +18,11 @@ graph_options = [
         {'state': 'stacked'}
     ],
     [
-        {'what': 'freq_rel'},
+        {'unit': 'freq_rel'},
         {'state': 'stacked'}
     ],
     [
-        {'unit': 'P' },  # probabilities between 0 and 1
+        {'unit': 'P'},  # probabilities between 0 and 1
         {'yaxis': {'max': 1}}
     ],
     [
@@ -39,4 +30,3 @@ graph_options = [
         apply_colors
     ]
 ]
-

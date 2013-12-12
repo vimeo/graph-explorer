@@ -45,6 +45,19 @@ class Plugin(object):
         '''
         target['tags'][key] = val
 
+    @staticmethod
+    def autosplit(target, nodes=None):
+        '''
+        for catchall plugins, automatically sets n1, n2, ... tags
+        for those nodes that we don't know what they mean
+        '''
+        if nodes is None:
+            nodes = target['tags']['tosplit'].split('.')
+        for n, val in enumerate(nodes):
+            # put the remainders in n1, n2, .. tags
+            target['tags']['n%d' % (n + 1)] = val
+        del target['tags']['tosplit']
+
     def get_targets(self):
         # "denormalize" dense configuration list into a new list of full-blown configs
         pre_merge_targets = []
@@ -95,13 +108,9 @@ class Plugin(object):
 
         return targets
 
-    def __init__(self):
+    def __init__(self, config=None):
         self.targets = self.get_targets()
-
-    # track how many times targets have been yielded, for limit setting
-    def reset_target_yield_counters(self):
-        for target in self.targets:
-            target['yielded'] = 0
+        self.config = config
 
     @staticmethod
     def get_target_id(target):
@@ -155,8 +164,6 @@ class Plugin(object):
         """
         # for every target config, see if the metric meets all criteria
         for target in self.targets:
-            if 'limit' in target and target['limit'] == target['yielded']:
-                continue
             # metric must not match any of the no_match objects
             yield_metric = True
             for no_match_object in target.get('no_match_object', []):
@@ -175,7 +182,6 @@ class Plugin(object):
                     target = self.__configure_target(target)
                     del target['config']  # not needed beyond this point
                     self.targets_found += 1
-                    target['yielded'] += 1
                     return (self.get_target_id(target), target)
         return None
 

@@ -152,10 +152,11 @@ def build_es_query(ast):
 
 class StructuredMetrics(object):
 
-    def __init__(self, config, logger=logging):
+    def __init__(self, config=None, logger=logging):
         self.plugins = []
-        es_host = config.es_host.replace('http://', '').replace('https://', '')
-        self.es = Elasticsearch([{"host": es_host, "port": config.es_port}])
+        if hasattr(config, 'es_host') and hasattr(config, 'es_port'):
+            es_host = config.es_host.replace('http://', '').replace('https://', '')
+            self.es = Elasticsearch([{"host": es_host, "port": config.es_port}])
         self.logger = logger
         self.config = config
 
@@ -172,13 +173,13 @@ class StructuredMetrics(object):
         for plugin_dir in plugin_dirs:
             if plugin_dir == '**builtins**':
                 plugin_dir = os.path.dirname(plugins.__file__)
-            newplugins, newerrors = self.load_plugins_from(plugin_dir, plugins)
+            newplugins, newerrors = self.load_plugins_from(plugin_dir, plugins, self.config)
             self.plugins.extend(newplugins)
             errors.extend(newerrors)
         return errors
 
     @staticmethod
-    def load_plugins_from(plugin_dir, package):
+    def load_plugins_from(plugin_dir, package, config):
         # import in sorted order to let it be predictable; lets user plugins import
         # pieces of other plugins imported earlier
         plugins = []
@@ -202,7 +203,7 @@ class StructuredMetrics(object):
             for item in vars(module).itervalues():
                 if isclass(item) and item != Plugin and issubclass(item, Plugin):
                     try:
-                        plugins.append((mname, item()))
+                        plugins.append((mname, item(config)))
                     # regex error is too vague to stand on its own
                     except sre_constants.error, e:
                         e = "error problem parsing matching regex: %s" % e
@@ -213,21 +214,31 @@ class StructuredMetrics(object):
         return sorted(plugins, key=lambda t: t[1].priority, reverse=True), errors
 
     def list_metrics(self, metrics):
+        self.logger.debug("list_metrics with %d plugins and %d metrics", len(self.plugins), len(metrics))
         for plugin in self.plugins:
             (plugin_name, plugin_object) = plugin
-            plugin_object.reset_target_yield_counters()
         targets = {}
-        plugin_stats = {}
+        stats = {}
         for plugin in self.plugins:
-            plugin_stats[plugin[0]] = 0
+            stats[plugin[0]] = {
+                'ok': 0,
+                'bad': 0,
+                'ign': 0
+            }
         for metric in metrics:
+            found = False
             for plugin in self.plugins:
                 (plugin_name, plugin_object) = plugin
                 proto2_metric = plugin_object.upgrade_metric(metric)
                 if proto2_metric is not None:
+                    found = True
+                    if not proto2_metric:
+                        stats[plugin_name]['ign'] += 1
+                        break
                     (k, v) = proto2_metric
                     tags = v['tags']
                     if 'target_type' not in tags or ('unit' not in tags and 'what' not in tags):
+                        stats[plugin_name]['bad'] += 1
                         self.logger.warn("metric '%s' doesn't have the mandatory tags "
                                          "('target_type' and either 'unit' or 'what').  "
                                          "ignoring it...", v)
@@ -247,11 +258,14 @@ class StructuredMetrics(object):
                                 v['tags']['unit'] = unit
                             del v['tags']['what']
                         targets[k] = v
-                        plugin_stats[plugin_name] += 1
+                        stats[plugin_name]['ok'] += 1
                         break
+            if not found:
+                self.logger.warn("metric '%s' is not recognized by any of your plugins. this is very unusual", metric)
+        self.logger.debug("%20s %20s %20s %20s", "plugin name", "metrics upgrade ok", "metrics upgrade bad", "metrics ignored")
         for plugin in self.plugins:
             plugin_name = plugin[0]
-            self.logger.debug("plugin %20s upgraded %10d metrics to proto2", plugin_name, plugin_stats[plugin_name])
+            self.logger.debug("%20s %20d %20d %20d", plugin_name, stats[plugin_name]['ok'], stats[plugin_name]['bad'], stats[plugin_name]['ign'])
         return targets
 
     def es_bulk(self, bulk_list):
@@ -375,7 +389,7 @@ class StructuredMetrics(object):
         else:
             # no aggregation, so fetching $limit targets is enough
             limit_es = query['limit_targets']
-        limit_es = min(self.config.limit_es_metrics, limit_es)
+        limit_es = min(getattr(self.config, 'limit_es_metrics', limit_es), limit_es)
         self.logger.debug("querying up to %d metrics from ES...", limit_es)
         my_es_query = build_es_query(query['ast'])
         metrics = self.get_metrics(my_es_query, limit_es)

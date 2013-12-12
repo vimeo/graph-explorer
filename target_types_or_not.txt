@@ -1,0 +1,52 @@
+# Leveraging this for configurationless automatic rollups
+
+* stat=upper -> highest
+* target_type=counter -> value with timestamp closest to new timestamp
+* target_type=count -> sum
+* target_type=gauge -> value with timestamp closest to new timestamp
+
+
+# uses of target_types:
+* 'gauge' doesn't convey any useful information
+* 'rate' is redundant because you can look at the unit tag
+* 'counter' describes going up and wrapping at an [un]known point.  in GE also means 'want to have this non-negative-derived by default'
+* wraparound tag means NND  (for counter or not), but does not NND by default
+* gauge + wraparound is basically a counter, but not derived by default
+
+
+
+metric "expansions":
+ * counter/gauge -> rate & vice versa with derivatives and integrals
+
+ * if 'target_type': 'timestamp', you can get age
+   # this requires:
+   # https://github.com/graphite-project/graphite-web/pull/133
+   # https://github.com/graphite-project/graphite-web/pull/135/
+   # the keepLastValue is a workaround for https://github.com/graphite-project/graphite-web/pull/91
+       'target_type': 'gauge', unit seconds
+       'configure': lambda self, target: {'target': 'diffSeries(identity("a"),keepLastValue(%s))' % target['target']}
+
+ * freq_abs can become 'freq_rel'
+lambda self, target: {'target': 'divideSeries(%s,%s)' % (target['target'],target['target'].replace(target['tags']['upper_limit'],'count'))}
+
+
+
+problems:
+1) graphiteStats.last_exception can be rendered as "unix timestamp in seconds" and "age in seconds"
+what: "last_exception age" ? no cause it should be on the same graph as last_flush age (same "what") so maybe what is "age in seconds" en what_extra last_expcetion?
+so what is not necessarily the intrinsic thing we're monitoring, but what we're displaying on the graph
+=>
+* i want to do away with target_type's because they are about different things.
+  * rate is redundant wrt unit
+  * count should basically be never used (it's a rate, really, i.e. see unit). well not sure, being a number not divided by a time could be useful sometimes?
+    but practically we can ignore counts because either you use graphite and then you do as i say, or use statsd which ships the rate anyway
+  * gauge is just 'nothing' special
+  * counter we could do with special=inc (for keeps increasing)
+  * timestamp would only be a target_type so that we could detect we could turn it into an age. but we could express this differently. (unit=s, type/what=timestamp)
+
+
+2) timeouts, disconnects are 'whats' for which it can make sense to graph them together. maybe as 'events'? but how to define this configuration? (see swift_proxy_server)
+    -> postprocess with rules to add more tags?
+
+related future problems:
+ * how to express metrics that have a function applied? load has 5M and 15M exp. averages

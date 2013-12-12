@@ -9,67 +9,71 @@ class CatchallStatsdPlugin(Plugin):
 
     targets = [
         {
-            'match': '^stats\.gauges\.(?P<n1>[^\.]+)\.?(?P<n2>[^\.]*)\.?(?P<n3>[^\.]*)\.?(?P<n4>[^\.]*)\.?(?P<n5>[^\.]*)\.?(?P<n6>[^\.]*)\.?(?P<n7>[^\.]*)$',
+            'match': '^stats\.gauges\.(?P<tosplit>.*)',
             'target_type': 'gauge',
             'configure': [
-                lambda self, target: self.add_tag(target, 'what', 'unknown'),
-                lambda self, target: self.add_tag(target, 'source', 'statsd')
+                lambda self, target: self.add_tag(target, 'unit', 'unknown'),
+                lambda self, target: self.add_tag(target, 'source', 'statsd'),
+                lambda self, target: self.autosplit(target)
             ]
         },
         {
-            'match': '^stats\.timers\.(?P<n1>[^\.]+)\.?(?P<n2>[^\.]*)\.?(?P<n3>[^\.]*)\.?(?P<n4>[^\.]*)\.?(?P<n5>[^\.]*)\.?(?P<n6>[^\.]*)\.?(?P<n7>[^\.]*)\.(?P<type>[^\.]+)$',
-            'no_match': ['\.count$', '\.bin_[^\.]+$'],
+            'match': '^stats\.timers\.(?P<tosplit>.*)',
             'target_type': 'gauge',
-            'configure': [
-                lambda self, target: self.add_tag(target, 'what', 'ms'),
-                lambda self, target: self.add_tag(target, 'source', 'statsd')
-            ]
+            'configure': lambda self, target: self.parse_timer(target)
         },
         {
-            # we could of course do \.bin_(?P<upper_limit>[^\.]+)$ at the end
-            # (and no no_match), but that's slow :( computation time from 2 ->
-            # 6 minutes
-            'match': '^stats\.timers\.(?P<n1>[^\.]+)\.?(?P<n2>[^\.]*)\.?(?P<n3>[^\.]*)\.?(?P<n4>[^\.]*)\.?(?P<n5>[^\.]*)\.?(?P<n6>[^\.]*)\.?(?P<n7>[^\.]*)\.(?P<upper_limit>[^\.]+)$',
-            'no_match': '\.(count|lower|mean|mean_90|std|sum|sum_90|upper|upper_90)$',
-            'target_type': 'gauge',
-            'configure': [
-                lambda self, target: self.add_tag(target, 'what', 'freq_abs'),
-                lambda self, target: self.add_tag(target, 'source', 'statsd')
-            ]
-
-        },
-        {
-            # TODO: for some reason the 'count' at the end makes this regex quite slow
-            # you can see this in StructuredMetrics.list_metrics if you print
-            # something for every metric. timers will be very slowly. if you
-            # make it (?P<type>[^\.]+) it becomes fast again, but we need to
-            # match on only the ones ending on count :(
-            'match': '^stats\.timers\.(?P<n1>[^\.]+)\.?(?P<n2>[^\.]*)\.?(?P<n3>[^\.]*)\.?(?P<n4>[^\.]*)\.?(?P<n5>[^\.]*)\.?(?P<n6>[^\.]*)\.?(?P<n7>[^\.]*)\.count$',
-            'target_type': 'count',
-            'configure': [
-                lambda self, target: self.add_tag(target, 'what', 'packets'),
-                lambda self, target: self.add_tag(target, 'type', 'timer'),
-                lambda self, target: self.add_tag(target, 'source', 'statsd')
-            ]
-        },
-        {
-            'match': '^stats\.(?P<n1>[^\.]+)\.?(?P<n2>[^\.]*)\.?(?P<n3>[^\.]*)\.?(?P<n4>[^\.]*)\.?(?P<n5>[^\.]*)\.?(?P<n6>[^\.]*)\.?(?P<n7>[^\.]*)$',
-            'no_match': '^stats\.timers\.',
+            'match': '^stats\.(?P<tosplit>.*)',
             'target_type': 'rate',
             'configure': [
-                lambda self, target: self.add_tag(target, 'what', 'unknown'),
-                lambda self, target: self.add_tag(target, 'source', 'statsd')
+                lambda self, target: self.add_tag(target, 'unit', 'unknown/s'),
+                lambda self, target: self.add_tag(target, 'source', 'statsd'),
+                lambda self, target: self.autosplit(target)
             ]
         },
         {
-            'match': '^stats_counts\.(?P<n1>[^\.]+)\.?(?P<n2>[^\.]*)\.?(?P<n3>[^\.]*)\.?(?P<n4>[^\.]*)\.?(?P<n5>[^\.]*)\.?(?P<n6>[^\.]*)\.?(?P<n7>[^\.]*)$',
+            'match': '^stats_counts\.(?P<tosplit>.*)',
             'target_type': 'count',
             'configure': [
-                lambda self, target: self.add_tag(target, 'what', 'unknown'),
-                lambda self, target: self.add_tag(target, 'source', 'statsd')
+                lambda self, target: self.add_tag(target, 'unit', 'unknown'),
+                lambda self, target: self.add_tag(target, 'source', 'statsd'),
+                lambda self, target: self.autosplit(target)
             ]
         },
     ]
 
+    def parse_timer(self, target):
+        # see if we can get info from the end of the metric string
+        nodes = target['tags']['tosplit'].split('.')
+        target['tags']['target_type'] = 'gauge'
+        if len(nodes) > 2 and nodes[-1].startswith('bin_') and nodes[-2] == 'histogram':
+            # graphite uses '.' as node delimiters, so decimal numbers use '_' instead of '.'
+            target['tags']['bin_upper'] = nodes[-1].replace('bin_', '').replace('_', '.', 1)
+            target['tags']['unit'] = 'freq_abs'
+            target['tags']['orig_unit'] = 'ms'
+            nodes = nodes[:-2]
+        # this is a workaround for buggy metric names like "stats.timers.foo.bar.histogram.bin_0.5"
+        # i.e. where the decimal '.' is not replaced by a '_'
+        elif len(nodes) > 3 and nodes[-2].startswith('bin_') and nodes[-3] == 'histogram':
+            target['tags']['bin_upper'] = "%s.%s" % (nodes[-2].replace('bin_', ''), nodes[-1])
+            target['tags']['unit'] = 'freq_abs'
+            target['tags']['orig_unit'] = 'ms'
+            nodes = nodes[:-3]
+        elif len(nodes) > 1:
+            if nodes[-1] in ('lower', 'mean', 'mean_90', 'median', 'std', 'sum', 'sum_90', 'upper', 'upper_90'):
+                target['tags']['type'] = nodes[-1]
+                target['tags']['unit'] = 'ms'
+                nodes = nodes[:-1]
+            elif nodes[-1] == 'count_ps':
+                target['tags']['target_type'] = 'rate'
+                target['tags']['unit'] = 'Pckt/s'
+                nodes = nodes[:-1]
+            elif nodes[-1] == 'count':
+                target['tags']['target_type'] = 'count'
+                target['tags']['unit'] = 'Pckt'
+                nodes = nodes[:-1]
+        self.autosplit(target, nodes=nodes)
+
+        target['tags']['source'] = 'statsd'
 
 # vim: ts=4 et sw=4:

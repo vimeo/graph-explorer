@@ -73,7 +73,7 @@ def apply_colors(graph):
             'promoted_constants': {'type': 'update_time', 'plugin': 'carbon'},
             'from': '-24hours',
             'until': 'now',
-            'constants': {'what': 'ms', 'target_type': 'gauge'},
+            'constants': {'unit': 'ms', 'target_type': 'gauge'},
             'targets': [
                 {
                     'id': u'carbon.agents.dfvimeographite2-a.avgUpdateTime',
