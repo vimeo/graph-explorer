@@ -1,4 +1,4 @@
-import copy
+import testhelpers
 import structured_metrics
 
 
@@ -8,20 +8,13 @@ def test_simple():
     tags_base = {
         'plugin': 'catchall',
         'source': 'unknown',
-        'target_type': 'unknown',
-        'unit': 'unknown'
     }
 
-    def get_proto2(key, updates):
-        expected = {
-            'id': key,
-            'tags': copy.deepcopy(tags_base)
-        }
-        expected['tags'].update(updates)
-        return expected
+    def get_proto2(key, target_type, unit, updates={}):
+        return testhelpers.get_proto2(key, tags_base, target_type, unit, updates)
 
     key = "foo.bar"
-    expected = get_proto2(key, {'n1': 'foo', 'n2': 'bar'})
+    expected = get_proto2(key, 'unknown', 'unknown', {'n1': 'foo', 'n2': 'bar'})
     real = s_metrics.list_metrics([key])
     assert len(real) == 1
     assert expected == real.values()[0]
