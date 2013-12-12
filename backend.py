@@ -89,7 +89,7 @@ def make_config(config):
 def get_action_on_rules_match(rules, subject):
     '''
     rules being a a list of tuples, and each tuple having 2 elements, like:
-    {'plugin': ['diskspace', 'memory'], 'what': 'bytes'},
+    {'plugin': ['diskspace', 'memory'], 'unit': 'B'},
     action
 
     the dict is a list of conditions that must match (and). if the value is an iterable, those count as OR

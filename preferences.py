@@ -10,7 +10,7 @@ from preferences_color import apply_colors
 # multiple matches can occur, they are performed in order.
 graph_options = [
     [
-        {'plugin': ['diskspace', 'memory'], 'what': 'bytes'},  # match
+        {'plugin': ['diskspace', 'memory'], 'unit': 'B'},  # match
         {'state': 'stacked', 'suffixes': 'binary'}  # set option
     ],
     [
@@ -18,7 +18,7 @@ graph_options = [
         {'state': 'stacked'}
     ],
     [
-        {'what': 'freq_rel'},
+        {'unit': 'freq_rel'},
         {'state': 'stacked'}
     ],
     [

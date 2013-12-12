@@ -256,14 +256,14 @@ class Query(dict):
         # prepare higher performing query structure, to later match objects
         """
         if patterns looks like so:
-        ['target_type=', 'what=', '!tag_k=not_equals_thistag', 'tag_k:match_this_val', 'arbitrary', 'words']
+        ['target_type=', 'unit=', '!tag_k=not_equals_thistag', 'tag_k:match_this_val', 'arbitrary', 'words']
 
         then the AST will look like so:
         ('match_and',
          ('!tag_k=not_equals_thistag', ('match_negate',
                                          ('match_tag_equality', 'tag_k', 'not_equals_thistag'))),
          ('target_type=',              ('match_tag_exists', 'target_type')),
-         ('what=',                     ('match_tag_exists', 'what')),
+         ('unit=',                     ('match_tag_exists', 'unit')),
          ('tag_k:match_this_val',      ('match_tag_regex', 'tag_k', 'match_this_val')),
          ('words',                     ('match_id_regex', 'words')),
          ('arbitrary',                 ('match_id_regex', 'arbitrary'))
