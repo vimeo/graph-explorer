@@ -108,8 +108,9 @@ class Plugin(object):
 
         return targets
 
-    def __init__(self):
+    def __init__(self, config=None):
         self.targets = self.get_targets()
+        self.config = config
 
     @staticmethod
     def get_target_id(target):

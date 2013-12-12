@@ -173,13 +173,13 @@ class StructuredMetrics(object):
         for plugin_dir in plugin_dirs:
             if plugin_dir == '**builtins**':
                 plugin_dir = os.path.dirname(plugins.__file__)
-            newplugins, newerrors = self.load_plugins_from(plugin_dir, plugins)
+            newplugins, newerrors = self.load_plugins_from(plugin_dir, plugins, self.config)
             self.plugins.extend(newplugins)
             errors.extend(newerrors)
         return errors
 
     @staticmethod
-    def load_plugins_from(plugin_dir, package):
+    def load_plugins_from(plugin_dir, package, config):
         # import in sorted order to let it be predictable; lets user plugins import
         # pieces of other plugins imported earlier
         plugins = []
@@ -203,7 +203,7 @@ class StructuredMetrics(object):
             for item in vars(module).itervalues():
                 if isclass(item) and item != Plugin and issubclass(item, Plugin):
                     try:
-                        plugins.append((mname, item()))
+                        plugins.append((mname, item(config)))
                     # regex error is too vague to stand on its own
                     except sre_constants.error, e:
                         e = "error problem parsing matching regex: %s" % e
@@ -218,9 +218,13 @@ class StructuredMetrics(object):
         for plugin in self.plugins:
             (plugin_name, plugin_object) = plugin
         targets = {}
-        plugin_stats = {}
+        stats = {}
         for plugin in self.plugins:
-            plugin_stats[plugin[0]] = 0
+            stats[plugin[0]] = {
+                'ok': 0,
+                'bad': 0,
+                'ign': 0
+            }
         for metric in metrics:
             found = False
             for plugin in self.plugins:
@@ -228,9 +232,13 @@ class StructuredMetrics(object):
                 proto2_metric = plugin_object.upgrade_metric(metric)
                 if proto2_metric is not None:
                     found = True
+                    if not proto2_metric:
+                        stats[plugin_name]['ign'] += 1
+                        break
                     (k, v) = proto2_metric
                     tags = v['tags']
                     if 'target_type' not in tags or ('unit' not in tags and 'what' not in tags):
+                        stats[plugin_name]['bad'] += 1
                         self.logger.warn("metric '%s' doesn't have the mandatory tags "
                                          "('target_type' and either 'unit' or 'what').  "
                                          "ignoring it...", v)
@@ -250,13 +258,14 @@ class StructuredMetrics(object):
                                 v['tags']['unit'] = unit
                             del v['tags']['what']
                         targets[k] = v
-                        plugin_stats[plugin_name] += 1
+                        stats[plugin_name]['ok'] += 1
                         break
             if not found:
                 self.logger.warn("metric '%s' is not recognized by any of your plugins. this is very unusual", metric)
+        self.logger.debug("%20s %20s %20s %20s", "plugin name", "metrics upgrade ok", "metrics upgrade bad", "metrics ignored")
         for plugin in self.plugins:
             plugin_name = plugin[0]
-            self.logger.debug("plugin %20s upgraded %10d metrics to proto2", plugin_name, plugin_stats[plugin_name])
+            self.logger.debug("%20s %20d %20d %20d", plugin_name, stats[plugin_name]['ok'], stats[plugin_name]['bad'], stats[plugin_name]['ign'])
         return targets
 
     def es_bulk(self, bulk_list):
