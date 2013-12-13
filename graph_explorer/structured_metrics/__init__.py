@@ -6,8 +6,6 @@ from inspect import isclass
 import sre_constants
 import logging
 import json
-sys.path.append("%s/%s" % (os.path.dirname(os.path.realpath(__file__)), 'elasticsearch-py'))
-sys.path.append("%s/%s" % (os.path.dirname(os.path.realpath(__file__)), 'urllib3'))
 
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import TransportError
