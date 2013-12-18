@@ -3,12 +3,41 @@ import copy
 import unittest
 
 
+def test_build_buckets_one_no_buckets():
+    assert Query.build_buckets("foo") == {'foo': ['']}
+
+
+def test_build_buckets_two_no_buckets():
+    assert Query.build_buckets("foo,bar") == {'foo': [''], 'bar': ['']}
+
+
+def test_build_buckets_two_with_buckets():
+    assert Query.build_buckets("n3:bucketmatch1|bucketmatch2,othertag") == {
+        'n3': ['bucketmatch1', 'bucketmatch2', ''],
+        'othertag': ['']
+    }
+
+
+def test_build_buckets_two_with_buckets_group_by_style():
+    # for 'group by', there can be '=' in there.
+    assert Query.build_buckets('target_type=,region:us-east|us-west|') == {
+        'target_type=': [''],
+        'region': ['us-east', 'us-west', '']
+    }
+
+
 class _QueryTestBase(unittest.TestCase):
     maxDiff = None
 
     @staticmethod
     def dummyQuery(**dummydict):
         dummy = copy.deepcopy(Query.default)
+        # minimal form of prepare() (syntactic sugar processing)
+        # we do it this way so we know how the data structure looks like
+        dummy.update({
+            'patterns': ['target_type=', 'unit='],
+            'group_by': {'target_type': [''], 'unit': [''], 'server': ['']}
+        })
         dummy.update(dummydict)
         return dummy
 
@@ -65,9 +94,9 @@ class TestQueryAdvanced(_QueryTestBase):
         query = Query("octo -20hours unit=b/s memory group by foo avg by barsum by baz")
         dummy = self.dummyQuery(
             avg_by={'barsum': ['']},
-            group_by={'target_type=': [''], 'unit=': [''], 'foo': ['']},
+            group_by={'target_type': [''], 'unit': [''], 'foo': ['']},
             patterns=['target_type=', 'unit=', 'octo', '-20hours', 'unit=b/s',
-                      'memory', 'by', 'baz'],
+                      'memory', 'by', 'baz']
         )
         del dummy['target_modifiers']
         self.assertDictContainsSubset(dummy, query)
@@ -115,6 +144,27 @@ class TestQueryAdvanced(_QueryTestBase):
             'to': '-10hours',
             'min': '100',
             'max': '200',
-            'sum_by': {'foo': ['bucket1', 'bucket2'], 'bar': ['']},
+            'sum_by': {'foo': ['bucket1', 'bucket2', ''], 'bar': ['']},
+            'target_modifiers': [Query.derive_counters],
+        }))
+
+    def test_group_by_advanced(self):
+        query = Query("dfvimeodfs disk srv node used group by mountpoint=:dfs1,server")
+        # note: ideally, the order would be <default group by strong> + user defined group by's
+        # but that was a little hard to implement
+        self.assertQueryMatches(query, self.dummyQuery(**{
+            'ast': (
+                'match_and',
+                ('match_tag_exists', 'mountpoint'),
+                ('match_tag_exists', 'target_type'),
+                ('match_tag_exists', 'unit'),
+                ('match_id_regex', 'dfvimeodfs'),
+                ('match_id_regex', 'disk'),
+                ('match_id_regex', 'srv'),
+                ('match_id_regex', 'node'),
+                ('match_id_regex', 'used')
+            ),
+            'patterns': ['mountpoint=', 'target_type=', 'unit=', 'dfvimeodfs', 'disk', 'srv', 'node', 'used'],
+            'group_by': {'target_type': [''], 'unit': [''], 'mountpoint': ['dfs1', ''], 'server': ['']},
             'target_modifiers': [Query.derive_counters],
         }))
