@@ -62,13 +62,13 @@ class Query(dict):
         (query_str, max_str) = parse_val(query_str, 'max ', '[^ ]+')
         explicit_group_by = {}
         if group_by_str is not None:
-            explicit_group_by = Query.build_buckets(group_by_str)
+            explicit_group_by = Query.build_buckets(group_by_str, False)
             self['group_by'] = explicit_group_by
         elif extra_group_by_str is not None:
             for k in self['group_by'].keys():
                 if not k.endswith('='):
                     del self['group_by'][k]
-            explicit_group_by = Query.build_buckets(extra_group_by_str)
+            explicit_group_by = Query.build_buckets(extra_group_by_str, False)
             self['group_by'].update(explicit_group_by)
         if sum_by_str is not None:
             self['sum_by'] = Query.build_buckets(sum_by_str)
@@ -311,7 +311,7 @@ class Query(dict):
     # avg by n3:bucketmatch1|bucketmatch2|..,othertag
     # group by target_type=,region:us-east|us-west|..
     @classmethod
-    def build_buckets(cls, spec):
+    def build_buckets(cls, spec, default_to_catchall=True):
         # http://stackoverflow.com/questions/480214/how-do-you-remove-duplicates-from-a-list-in-python-whilst-preserving-order
         def uniq_list(seq):
             seen = set()
@@ -320,15 +320,18 @@ class Query(dict):
         tag_specs = spec.split(',')
         struct = {}
         for tag_spec in tag_specs:
+            # explicit buckets listing in spec
             if ':' in tag_spec:
                 tag_spec = tag_spec.split(':', 2)
                 tag = tag_spec[0]
-                buckets = tag_spec[1].split('|')
+                # remove dupes, just to be sure
+                buckets = uniq_list(tag_spec[1].split('|'))
+            # no buckets listed, just do sane defaults.
             else:
                 tag = tag_spec
-                buckets = []
-            # there should always be a fallback ('' bucket), which matches all values
-            # while we're add it, remove dupes
-            buckets.append('')
-            struct[tag] = uniq_list(buckets)
+                if default_to_catchall:
+                    buckets = ['']
+                else:
+                    buckets = []
+            struct[tag] = buckets
         return struct

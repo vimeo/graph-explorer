@@ -15,42 +15,49 @@ class Target(dict):
     # aggregate across different values for these tags)
     # * fall into the same aggregation bucket
     # * have the same variables (key and val), except those vals that
-    # are being aggregated by.
-    # so for every group of aggregation tags and variables we build a
+    # are being aggregated by (i.e. the once for which we found a bucket)
+    # so for every group of buckets and values of remaining tags we build a
     # list of targets that can be aggregated together
 
     # of course it only makes sense to agg by tags that the target
     # actually has, and that are not already constants (meaning
     # every target in the graph has the same value)
 
+    # TODO we might be able to merge below 2 functions
+
     def get_agg_key(self, agg_by_struct):
+        # TODO: there's no need to treat these cases so separately.
+        # buckets will use : and non-buckets = so we can just process all tags and put everything in a dict
+        # and at the end just join the sorted dictkeys+val
 
-        # key with all tag_v:bucket_id for tags in agg_by_struct
-        agg_id = []
-        for agg_tag in sorted(set(agg_by_struct.keys()).intersection(set(self['variables'].keys()))):
+        agg_buckets_id = {}  # stores the bucket ids for those tags that fall into a bucket
+        agg_others_id = {}  # store the tag values for all other tags
+        for agg_tag in set(agg_by_struct.keys()).intersection(set(self['variables'].keys())):
             # find first bucket pattern that maches.
-            # note that there should always be a catchall (''), so bucket_id should always be set
-            bucket_id = next((patt for patt in agg_by_struct[agg_tag] if patt in self['variables'][agg_tag]))
-            agg_id.append("%s:%s" % (agg_tag, bucket_id))
+            # there may not be a matching bucket (not even a catchall) in which case use the tag value so that
+            # it won't get aggregated.
+            bucket_id = next((patt for patt in agg_by_struct[agg_tag] if patt in self['variables'][agg_tag]), None)
+            if bucket_id is None:
+                agg_others_id[agg_tag] = self['variables'][agg_tag]
+            else:
+                agg_buckets_id[agg_tag] = bucket_id
             self['match_buckets'][agg_tag] = bucket_id
-        agg_id_str = ','.join(sorted(agg_id))
+        agg_buckets_id_str = ','.join('%s:%s' % (tag, bucket_id) for tag in sorted(agg_buckets_id.keys()))
 
-        # key with all variable tag_k=tag_v if tag_k not in agg_by_struct
-        variables = []
-        for tag_key in sorted(set(self['variables'].keys()).difference(set(agg_by_struct.keys()))):
+        for tag_key in set(self['variables'].keys()).difference(set(agg_by_struct.keys())):
             val = self['variables'][tag_key]
             # t can be a tuple if it's an aggregated tag
             if not isinstance(val, basestring):
                 val = val[0]
-            variables.append('%s=%s' % (tag_key, val))
-        variables_str = ','.join(variables)
+            agg_others_id[tag_key] = val
+        agg_others_id_str = ','.join('%s=%s' % (tag, val) for tag in sorted(agg_others_id.keys()))
         # some values can be like "'bucket' sumSeries (8 values)" due to an
         # earlier aggregation. if now targets have a different amount
         # values matched, that doesn't matter and they should still
         # be aggregated together if the rest of the conditions are met
-        variables_str = re.sub('\([0-9]+ values\)', '(Xvalues)', variables_str)
+        agg_others_id_str = re.sub('\([0-9]+ values\)', '(Xvalues)', agg_others_id_str)
 
-        return '%s__%s' % (agg_id_str, variables_str)
+        return '%s__%s' % (agg_buckets_id_str, agg_others_id_str)
 
     def get_graph_info(self, group_by):
         constants = {}
@@ -58,14 +65,16 @@ class Target(dict):
         self['variables'] = {}
         for (tag_name, tag_value) in self['tags'].items():
             if tag_name in group_by:
-                if len(group_by[tag_name]) == 1:
-                    assert group_by[tag_name][0] == ''
-                    # only the fallback bucket, we know this will be a constant
+                if len(group_by[tag_name]) == 0:
+                    # we know this will be a constant
                     constants[tag_name] = tag_value
                     graph_key.append("%s=%s" % (tag_name, tag_value))
                 else:
-                    bucket_id = next((patt for patt in group_by[tag_name] if patt in tag_value))
-                    graph_key.append("%s:%s" % (tag_name, bucket_id))
+                    bucket_id = next((patt for patt in group_by[tag_name] if patt in tag_value), None)
+                    if bucket_id is None:
+                        graph_key.append("%s=%s" % (tag_name, tag_value))
+                    else:
+                        graph_key.append("%s:%s" % (tag_name, bucket_id))
                     self['variables'][tag_name] = tag_value
             else:
                 self['variables'][tag_name] = tag_value
