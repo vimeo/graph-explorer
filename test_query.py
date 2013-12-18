@@ -149,14 +149,22 @@ class TestQueryAdvanced(_QueryTestBase):
         }))
 
     def test_group_by_advanced(self):
-        query = Query("dfvimeodfs disk srv node unit=B used group by mountpoint=:dfs1,server")
+        query = Query("dfvimeodfs disk srv node used group by mountpoint=:dfs1,server")
+        # note: ideally, the order would be <default group by strong> + user defined group by's
+        # but that was a little hard to implement
         self.assertQueryMatches(query, self.dummyQuery(**{
             'ast': (
                 'match_and',
+                ('match_tag_exists', 'mountpoint'),
                 ('match_tag_exists', 'target_type'),
                 ('match_tag_exists', 'unit'),
-                ('match_tag_exists', 'mountpoint')
+                ('match_id_regex', 'dfvimeodfs'),
+                ('match_id_regex', 'disk'),
+                ('match_id_regex', 'srv'),
+                ('match_id_regex', 'node'),
+                ('match_id_regex', 'used')
             ),
-            'patterns': ['target_type=', 'unit=', 'mountpoint=', 'dfvimeodfs', 'disk', 'srv', 'node', 'used'],
-            'group_by': {'mountpoint': ['dfs1', '']}
+            'patterns': ['mountpoint=', 'target_type=', 'unit=', 'dfvimeodfs', 'disk', 'srv', 'node', 'used'],
+            'group_by': {'target_type': [''], 'unit': [''], 'mountpoint': ['dfs1', ''], 'server': ['']},
+            'target_modifiers': [Query.derive_counters],
         }))
