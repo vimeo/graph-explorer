@@ -28,8 +28,9 @@ class Target(dict):
         # key with all tag_v:bucket_id for tags in agg_by_struct
         agg_id = []
         for agg_tag in sorted(set(agg_by_struct.keys()).intersection(set(self['variables'].keys()))):
-            # find first bucket pattern that maches, or '' as fallback (catchall)
-            bucket_id = next((patt for patt in agg_by_struct[agg_tag] if patt in self['variables'][agg_tag]), '')
+            # find first bucket pattern that maches.
+            # note that there should always be a catchall (''), so bucket_id should always be set
+            bucket_id = next((patt for patt in agg_by_struct[agg_tag] if patt in self['variables'][agg_tag]))
             agg_id.append("%s:%s" % (agg_tag, bucket_id))
             self['match_buckets'][agg_tag] = bucket_id
         agg_id_str = ','.join(sorted(agg_id))
@@ -56,18 +57,14 @@ class Target(dict):
         graph_key = []
         self['variables'] = {}
         for (tag_name, tag_value) in self['tags'].items():
-            in_group_by = None
             if tag_name in group_by:
-                in_group_by = tag_name
-            elif '%s=' % tag_name in group_by:
-                in_group_by = '%s=' % tag_name
-            if in_group_by:
-                if len(group_by[in_group_by]) == 1:
+                if len(group_by[tag_name]) == 1:
+                    assert group_by[tag_name][0] == ''
                     # only the fallback bucket, we know this will be a constant
                     constants[tag_name] = tag_value
                     graph_key.append("%s=%s" % (tag_name, tag_value))
                 else:
-                    bucket_id = next((patt for patt in group_by[in_group_by] if patt in tag_value), '')
+                    bucket_id = next((patt for patt in group_by[tag_name] if patt in tag_value))
                     graph_key.append("%s:%s" % (tag_name, bucket_id))
                     self['variables'][tag_name] = tag_value
             else:
