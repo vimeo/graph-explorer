@@ -92,14 +92,18 @@ class Query(dict):
                 if tag_check in self['group_by'] and tag_check not in explicit_group_by.keys():
                     del self['group_by'][tag_check]
 
-        sum_individual_keys = len(self['group_by']) + len(self['sum_by']) + len(self['avg_by'])
-        sum_unique_keys = len(set(self['group_by'].keys() + self['sum_by'].keys() + self['avg_by'].keys()))
-        if sum_individual_keys != sum_unique_keys:
-            raise Exception("'group by' (%s), 'sum by (%s)' and 'avg by (%s)' "
-                            "cannot list the same tag keys" %
-                            (', '.join(self['group_by'].keys()),
-                             ', '.join(self['sum_by'].keys()),
-                             ', '.join(self['avg_by'].keys())))
+        # doing this sanity check would now be tricky: basically you can have the same keys in more than 1 of sum/avg/group by,
+        # it now depends on the bucket configuration.  since i can't wrap my head around it anymore, let's just leave it be for now.
+        # it's up to people to construct sane queries, and if they do a stupid query, then at least GE shouldn't crash or anything.
+        # sum_individual_keys = len(self['group_by']) + len(self['sum_by']) + len(self['avg_by'])
+        # sum_unique_keys = len(set(self['group_by'].keys() + self['sum_by'].keys() + self['avg_by'].keys()))
+        # if sum_individual_keys != sum_unique_keys:
+        #     raise Exception("'group by' (%s), 'sum by (%s)' and 'avg by (%s)' "
+        #                     "cannot list the same tag keys" %
+        #                     (', '.join(self['group_by'].keys()),
+        #                      ', '.join(self['sum_by'].keys()),
+        #                      ', '.join(self['avg_by'].keys())))
+
         if avg_over_str is not None:
             # avg_over_str should be something like 'h', '10M', etc
             avg_over = re.match(avg_over_match, avg_over_str)
