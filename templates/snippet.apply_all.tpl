@@ -1,5 +1,7 @@
+% setdefault('default_value', '')
 <form action="javascript:void(0);">
-  Apply to all: <input type="text" id="apply_all" name="apply_all"><br>
+  Apply to all: <input type="text" id="apply_all" name="apply_all" value="{{default_value}}"/><br>
+</form>
 <script>
 overriding_things = [
     "avg over [^ ]+",
@@ -12,8 +14,8 @@ overriding_things = [
     "to [^ ]+",
     "limit [^ ]+"
 ];
-$( "#apply_all" ).change(function(a) {
-    apply = ' ' + a.target.value;
+$(function() {
+function apply (to_apply) {
     $('.query_input').each(function(i, inp) {
         key = inp.id.replace('query_', '');
         inp = $(inp);
@@ -24,15 +26,19 @@ $( "#apply_all" ).change(function(a) {
         // and the query already has such a statement, we have to remove the old statement first
         $(overriding_things).each(function(i, thing) {
             patt = new RegExp(thing);
-            if (new_q.match(patt) && apply.match(patt)) {
+            if (new_q.match(patt) && to_apply.match(patt)) {
                 console.log("both match");
                 new_q = new_q.replace(patt, "");
                 console.log("new_q is now " + new_q);
             }
         });
-        inp.val(new_q + apply);
+        inp.val(new_q + to_apply);
         update_dash_entry(key);
     });
+}
+apply(' {{default_value}}');
+$("#apply_all").change(function(a) {
+    apply(' ' + a.target.value);
+});
 });
 </script>
-</form>
