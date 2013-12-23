@@ -52,6 +52,7 @@
 		    legend: {container: '#legend_flot_{{graph_id}}', noColumns: 1, labelFormatter: labelFormatter },
             hover_details: true,
             zoneFileBasePath: '../timeserieswidget/tz',
+            drawNullAsZero: true,
             tz: "{{preferences.timezone}}",
 		};
 		var graph_flot_{{graph_id}} = $.extend({}, defaults, graph_data);
