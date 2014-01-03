@@ -24,6 +24,8 @@ class Target(dict):
     # every target in the graph has the same value)
 
     def get_agg_key(self, agg_by_struct):
+        if not agg_by_struct:
+            return False
 
         # key with all tag_v:bucket_id for tags in agg_by_struct
         agg_id = []

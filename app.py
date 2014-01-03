@@ -202,9 +202,10 @@ def build_graphs_from_targets(targets, query):
 
             for target in graph_config['targets']:
                 sum_id = target.get_agg_key(sum_by)
-                if sum_id not in graph_config['targets_sum_candidates']:
-                    graphs[graph_key]['targets_sum_candidates'][sum_id] = []
-                graph_config['targets_sum_candidates'][sum_id].append(target)
+                if sum_id:
+                    if sum_id not in graph_config['targets_sum_candidates']:
+                        graphs[graph_key]['targets_sum_candidates'][sum_id] = []
+                    graph_config['targets_sum_candidates'][sum_id].append(target)
 
             for (sum_id, targets) in graph_config['targets_sum_candidates'].items():
                 if len(targets) > 1:
@@ -219,9 +220,10 @@ def build_graphs_from_targets(targets, query):
                 # than avg(foo)+avg(bar)+avg(baz)
                 # aggregate targets (whether those are sums or regular ones)
                 avg_id = target.get_agg_key(avg_by)
-                if avg_id not in graph_config['targets_avg_candidates']:
-                    graph_config['targets_avg_candidates'][avg_id] = []
-                graph_config['targets_avg_candidates'][avg_id].append(target)
+                if avg_id:
+                    if avg_id not in graph_config['targets_avg_candidates']:
+                        graph_config['targets_avg_candidates'][avg_id] = []
+                    graph_config['targets_avg_candidates'][avg_id].append(target)
 
             for (avg_id, targets) in graph_config['targets_avg_candidates'].items():
                 if len(targets) > 1:
