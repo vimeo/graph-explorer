@@ -122,6 +122,7 @@ def graphite_func_aggregate(targets, agg_by_tags, aggfunc):
     for t in targets:
         for agg_by_tag in agg_by_tags.keys():
             differentiators[agg_by_tag] = differentiators.get(agg_by_tag, [])
+            assert agg_by_tag in t['variables'], "Cannot aggregate target by tag %s. target: %s" % (agg_by_tag, t)
             differentiators[agg_by_tag].append(t['variables'][agg_by_tag])
         differentiators[agg_by_tag].sort()
     tdict = {
