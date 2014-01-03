@@ -115,31 +115,59 @@ def graphs_limit_targets(nolimit_graphs, limit):
 
 
 def graphite_func_aggregate(targets, agg_by_tags, aggfunc):
+
+    aggfunc_abbrev = {
+        "averageSeries": "avg",
+        "sumSeries": "sum"
+    }
+
+    agg = Target({
+        'target': '%s(%s)' % (aggfunc, ','.join([t['target'] for t in targets])),
+        'id': [t['id'] for t in targets],
+        'variables': targets[0]['variables'],
+        'tags': targets[0]['tags']
+    })
+
+    # set the tags that we're aggregating by to their special values
+
     # differentiators is a list of tag values that set the contributing targets apart
     # this will be used later in the UI
     differentiators = {}
-    agg_by_tag = None
-    for t in targets:
-        for agg_by_tag in agg_by_tags.keys():
+
+    # in principle every target that came in will have the same match_bucket for the given tag
+    # (that's the whole point of bucketing)
+    # however, some targets may end up in the aggregation without actually having the tag
+    # so only set it when we find it
+    bucket_id = '<none>'
+
+    for agg_by_tag in agg_by_tags.keys():
+
+        for t in targets:
+            if agg_by_tag in t['match_buckets']:
+                bucket_id = t['match_buckets'][agg_by_tag]
             differentiators[agg_by_tag] = differentiators.get(agg_by_tag, [])
-            assert agg_by_tag in t['variables'], "Cannot aggregate target by tag %s. target: %s" % (agg_by_tag, t)
-            differentiators[agg_by_tag].append(t['variables'][agg_by_tag])
+            differentiators[agg_by_tag].append(t['variables'].get(agg_by_tag, '<missing>'))
         differentiators[agg_by_tag].sort()
-    tdict = {
-        'target': '%s(%s)' % (aggfunc, ','.join([t['target'] for t in targets])),
-        'id': [t['id'] for t in targets],
-        'variables': targets[0]['variables']
-    }
-    bucket_id = targets[0]['match_buckets'][agg_by_tag]
-    bucket_id_str = ''
-    if bucket_id:
-        bucket_id_str = "'%s' " % bucket_id
-    tdict['tags'] = targets[0]['tags']
-    for agg_by_tag in agg_by_tags:
-        tag_val = ('%s%s (%s values)' % (bucket_id_str, aggfunc, len(targets)), differentiators[agg_by_tag])
-        tdict['variables'][agg_by_tag] = tag_val
-        tdict['tags'][agg_by_tag] = tag_val
-    return Target(tdict)
+
+        bucket_id_str = ''
+        # note, bucket_id can be an empty string (catchall bucket),
+        # in which case don't mention it explicitly
+        if bucket_id:
+            bucket_id_str = "'%s' " % bucket_id
+
+        tag_val = (
+            '%s%s (%d vals, %d uniqs)' % (
+                bucket_id_str,
+                aggfunc_abbrev.get(aggfunc, aggfunc),
+                len(differentiators[agg_by_tag]),
+                len(set(differentiators[agg_by_tag]))
+            ),
+            differentiators[agg_by_tag]
+        )
+        agg['variables'][agg_by_tag] = tag_val
+        agg['tags'][agg_by_tag] = tag_val
+
+    return agg
 
 
 def build_graphs_from_targets(targets, query):

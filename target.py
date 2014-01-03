@@ -46,13 +46,22 @@ class Target(dict):
                 val = val[0]
             variables.append('%s=%s' % (tag_key, val))
         variables_str = ','.join(variables)
-        # some values can be like "'bucket' sumSeries (8 values)" due to an
+        # some values can be like "'bucket' sum (23 vals, 2 uniqs)" due to an
         # earlier aggregation. if now targets have a different amount
         # values matched, that doesn't matter and they should still
         # be aggregated together if the rest of the conditions are met
-        variables_str = re.sub('\([0-9]+ values\)', '(Xvalues)', variables_str)
+        variables_str = re.sub('\([0-9]+ vals, [0-9]+ uniqs\)', '(deets)', variables_str)
 
-        return '%s__%s' % (agg_id_str, variables_str)
+        # does this target miss one or more of the agg_by_struct keys?
+        # i.e. 'sum by n1,n6' and this target only has the n1 tag.
+        # put the ones that have the same missing tags together
+        # and later aggregate them without that tag
+        missing = []
+        for tag_key in sorted(set(agg_by_struct.keys()).difference(set(self['variables'].keys()))):
+            missing.append(tag_key)
+        missing_str = ','.join(sorted(missing))
+
+        return 'agg_id_found:%s__agg_id_missing:%s__variables:%s' % (agg_id_str, missing_str, variables_str)
 
     def get_graph_info(self, group_by):
         constants = {}

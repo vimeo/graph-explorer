@@ -92,14 +92,6 @@ class Query(dict):
                 if tag_check in self['group_by'] and tag_check not in explicit_group_by.keys():
                     del self['group_by'][tag_check]
 
-        # for all tags included in sum_by and avg_by, add them as patterns to make sure the targets actually have them
-        # later we might actually support the case where some targets don't have those, but that would complicate the
-        # get_agg_key and graphite_func_aggregate logic (because if you do sum by n1,n6 but it doesn't have n6 it would still
-        # aggregate by n1 etc).  so for now I think the assumption that this simplified logic is enough will go a long way.
-        # because you're usually only looking for 1 main information need.
-        self['patterns'].extend(self['sum_by'].keys())
-        self['patterns'].extend(self['avg_by'].keys())
-
         # doing this sanity check would now be tricky: basically you can have the same keys in more than 1 of sum/avg/group by,
         # it now depends on the bucket configuration.  since i can't wrap my head around it anymore, let's just leave it be for now.
         # it's up to people to construct sane queries, and if they do a stupid query, then at least GE shouldn't crash or anything.
