@@ -61,7 +61,13 @@ class Target(dict):
             missing.append(tag_key)
         missing_str = ','.join(sorted(missing))
 
-        return 'agg_id_found:%s__agg_id_missing:%s__variables:%s' % (agg_id_str, missing_str, variables_str)
+        agg_key = 'agg_id_found:%s__agg_id_missing:%s__variables:%s' % (agg_id_str, missing_str, variables_str)
+        #from pprint import pformat
+        #print "get_agg_key"
+        #print "    self:", pformat(self, 8, 100)
+        #print "    struct:", agg_by_struct
+        #print "    resulting key:", agg_key
+        return agg_key
 
     def get_graph_info(self, group_by):
         constants = {}
