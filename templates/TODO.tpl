@@ -24,3 +24,8 @@ Ponderings:
 <li>interactively dragging targets from one graph to another</li>
 <li>interactive slider akin to 'avg over' (rickshaw has this)</li>
 </ul>
+fix the warnings that show on update_metrics
+better datapoint inspection popup that just shows the tags for that target, not the full targetstring
+zoom sometimes doesn't work
+reset zoom button
+fix stack/line
