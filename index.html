@@ -41,7 +41,7 @@
           GE uses a multi-dimensional metric database so that your metrics like
             <p>
           <pre><code>servers.dfvimeodfs1.diskspace._srv_node_dfs10.byte_used</code></pre>
-            become structured, tag-indexed metrics:
+            become structured, self-describing, tagged metrics:
           <pre><code>{
     server=dfvimeodfs1
     plugin=diskspace
@@ -56,8 +56,12 @@
             <p><img src="https://raw.github.com/vimeo/graph-explorer/master/screenshots/screenshot_query.png" alt="Screenshot query"></p>
             Shown above: powerfull pattern search with tag filtering, regexes, equality checks, negation, etc.
             <h1>Units</h1>
-            Every metric gets a standardized unit tag, so you know what you're looking at.  Graph-Explorer can also convert units for you.
-            E.g. it will happily render a metric in B/s as an amount of TB per day, if you ask nicely.
+            Every metric gets a standardized unit tag, so:
+            <ul>
+                <li>you always know exactly what you're looking at</li>
+                <li>Graph-Explorer converts units for you and derives as needed. E.g. it can render a metric in B(ytes) as an amount of TB, bytes per day, Gibibits per hour, ...</li>
+                <li>Because every metric self-describes its type it knows that for example counters are most useful when derived by default</li>
+            </ul>
             <p><img src="https://raw.github.com/vimeo/graph-explorer/master/screenshots/screenshot_unit_detail.png" alt="Screenshot units"></p>
             <h1>Online aggregation</h1>
             Choose one or more tag keys to combine targets by, and represent them as one metric.
