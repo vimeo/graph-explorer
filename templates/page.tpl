@@ -10,6 +10,8 @@
 
     <!-- Le styles -->
     <link href="../assets/css/bootstrap.css" rel="stylesheet">
+<script src="../assets/js/angular/angular.js"></script>
+<script src="../assets/js/graph-explorer-app.js"></script>
     <style type="text/css">
       body {
         padding-top: 60px;
@@ -18,6 +20,12 @@
       .sidebar-nav {
         padding: 9px 0;
       }
+chart{
+    display:block;
+    width:400px;
+    height:200px;
+}
+
     </style>
 
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->

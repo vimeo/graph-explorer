@@ -7024,3 +7024,8 @@ label {
 .affix {
   position: fixed;
 }
+chart{
+    display:block;
+    width:400px;
+    height:200px;
+}

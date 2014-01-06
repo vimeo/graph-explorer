@@ -40,6 +40,8 @@
                 <dt>Total graphs</dt><dd>{{len_graphs_matching_all}}</dd>
                 <dt>Tag legend</dt><dd><span id="tag_legend"></span></dd>
             </dl>
+<div ng-app='App'>
+    <div ng-controller='Ctrl'>
         <div class="span12">
         % for (k,v) in graphs:
             % include templates/snippet.graph config=config, graph_key=k, graph_data=v, preferences=preferences
@@ -50,6 +52,8 @@
             <a href="/inspect/{{targets_list[target_id]['id']}}">{{target_id}}</a></br>
         % end
         </div>
+    </div>
+</div>
     % end
 % else:
     % include templates/snippet.info msg='No query processed.  Nothing to display.'

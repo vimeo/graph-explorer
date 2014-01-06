@@ -63,7 +63,9 @@
                 "<br/>and the network requests debugger in your browser's dev tools");
             console.log("Error: " + err);
         }
-		$("#chart_flot_{{graph_id}}").graphiteFlot(graph_flot_{{graph_id}}, error_cb);
+		//$("#chart_flot_{{graph_id}}").graphiteFlot(graph_flot_{{graph_id}}, error_cb);
 		//$("#chart_flot_{{graph_id}}").graphiteHighcharts(graph_flot_{{graph_id}}, function(err) { console.log(err); });
+        <chart ng-model='data'>
+        </chart>
 	});
         </script>
