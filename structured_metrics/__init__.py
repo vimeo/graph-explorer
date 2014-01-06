@@ -261,7 +261,7 @@ class StructuredMetrics(object):
                         stats[plugin_name]['ok'] += 1
                         break
             if not found:
-                self.logger.warn("metric '%s' is not recognized by any of your plugins. this is very unusual", metric)
+                self.logger.warn("metric '%s' is not succesfully upgraded by any of your plugins. this is very unusual", metric)
         self.logger.debug("%20s %20s %20s %20s", "plugin name", "metrics upgrade ok", "metrics upgrade bad", "metrics ignored")
         for plugin in self.plugins:
             plugin_name = plugin[0]
