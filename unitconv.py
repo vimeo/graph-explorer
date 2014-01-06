@@ -154,8 +154,13 @@ def parse_simple_unitname(unitname, fold_scale_prefix=True):
     True
     """
 
+    # if the unitname is e.g. 'Pckt' we don't want to parse it as peta ckt's.
+    # see https://github.com/vimeo/graph-explorer/wiki/Units-%26-Prefixes
+    # for commonly used/standardized units
+    special_units = ['Pckt', 'Msg', 'Metric', 'Ticket']
+
     for prefix, multiplier in multiplier_prefixes:
-        if unitname.startswith(prefix) and unitname != prefix:
+        if unitname.startswith(prefix) and unitname not in special_units and unitname != prefix:
             base = parse_simple_unitname(unitname[len(prefix):],
                                          fold_scale_prefix=fold_scale_prefix)
             if fold_scale_prefix:
