@@ -104,6 +104,11 @@ especially, check that the http requests to `graphite/render/?<...>` return actu
 
 see section 'Configuration of graphite server' above
 
+* Graph Explorer pulls too much data over the network
+
+This is because graphite 
+<a href="https://github.com/graphite-project/graphite-web/issues/153">doesn't support consolidation on its data API</a> yet.
+
 ## Documentation
 
 [wiki page](https://github.com/vimeo/graph-explorer/wiki)
