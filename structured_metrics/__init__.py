@@ -351,14 +351,11 @@ class StructuredMetrics(object):
     def get_metrics(self, query=None, size=1000):
         self.assure_index()
         self.logger.debug("Sending query to ES: %r", query)
-        try:
-            if query is None:
-                query = query_all
-            return self.es.search(index='graphite_metrics', doc_type='metric', size=size, body={
-                "query": query,
-            })
-        except Exception, e:  # pylint: disable=W0703
-            sys.stderr.write("Could not connect to ElasticSearch: %s" % e)
+        if query is None:
+            query = query_all
+        return self.es.search(index='graphite_metrics', doc_type='metric', size=size, body={
+            "query": query,
+        })
 
     def get_all_metrics(self, query=None, size=200):
         self.assure_index()
@@ -393,8 +390,8 @@ class StructuredMetrics(object):
         self.logger.debug("querying up to %d metrics from ES...", limit_es)
         my_es_query = build_es_query(query['ast'])
         metrics = self.get_metrics(my_es_query, limit_es)
-        self.logger.debug("got %d metrics!", len(metrics))
         results = {}
+        self.logger.debug("got %d metrics!", len(metrics))
         for hit in metrics['hits']['hits']:
             metric = hit_to_metric(hit)
             results[metric['id']] = metric

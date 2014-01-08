@@ -431,6 +431,12 @@ def render_graphs(query, minimal=False, deps=False):
         body = template('templates/snippet.errors', errors=errors)
         return render_page(body)
 
+    # TODO: something goes wrong here.
+    # if you do a query that will give an ES error (say 'foo(')
+    # and then fix the query and hit enter, this code will see the new query
+    # and ES will process the query fine, but for some reason the old error
+    # doesn't clear and sticks instead.
+
     if "match_metrics" in errors:
         del errors["match_metrics"]
     try:
