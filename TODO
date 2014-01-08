@@ -8,7 +8,6 @@ TODO:
 * "global" rules to set extra tags-> everything with server:df.* -> tag env=prod-df, allows user to search on 'env' tag
 * group by scale automatically: if things differ by orders of magnitude, put them on different graphs
 * order by graph_name DESC etc
-* histograms will be better (see http://localhost:8080/index/bin_%20group%20by%20type) after: 1) don't display empty tags in title 2) fix target colors
 * filestat: display percentage as assigned/max ? same idea for disk used and others. maybe a new generic target type thing
 * auto adjust height of graphs based on #targets. with many targets, the legends start to overlap
 * filter by expression (graphite function(s) or simplified). example: "where movingAverage(10h) > 100"

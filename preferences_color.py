@@ -61,6 +61,29 @@ def get_tag_value(graph, target, tag):
         return t[0]
 
 
+def bin_set_color(graph, target):
+    if 'bin_upper' not in target['tags']:
+        return
+    # later we could do a real green-to-red interpolation by looking at
+    # the total range (all bin_uppers in the entire class) and computing
+    # a color, maybe using something like color_variant("#FF0000", -150),
+    # for now, this will have to do
+    bin_upper = target['tags']['bin_upper']
+    colormap = {
+        '0.01': '#2FFF00',
+        '0.05': '#64DD0E',
+        '0.1': '#9CDD0E',
+        '0.5': '#DDCC0E',
+        '1': '#DDB70E',
+        '5': '#FF6200',
+        '10': '#FF3C00',
+        '50': '#FF1E00',
+        'inf': '#FF0000'
+    }
+    if bin_upper in colormap:
+        target['color'] = colormap[bin_upper]
+
+
 def apply_colors(graph):
     '''
     update target colors in a clever, dynamic way. basically it's about defining
@@ -164,6 +187,10 @@ def apply_colors(graph):
                     'update_time': colors['turq'][0]
                 }
             }
+        ],
+        [
+            {'unit': 'freq_abs'},
+            bin_set_color
         ]
     ]
 
@@ -171,10 +198,13 @@ def apply_colors(graph):
         tags = dict(graph['constants'].items() + graph['promoted_constants'].items() + target['variables'].items())
 
         for action in get_action_on_rules_match(rules_unique_tags, tags):
-            for (tag_key, matches) in action.items():
-                t = get_unique_tag_value(graph, target, tag_key)
-                if t is not None and t in matches:
-                    target['color'] = matches[t]
+            if callable(action):  # hasattr(action, '__call__'):
+                action(graph, target)
+            else:
+                for (tag_key, matches) in action.items():
+                    t = get_unique_tag_value(graph, target, tag_key)
+                    if t is not None and t in matches:
+                        target['color'] = matches[t]
 
         for action in get_action_on_rules_match(rules_tags, target):
             for (tag_key, matches) in action.items():

@@ -18,7 +18,7 @@ graph_options = [
         {'state': 'stacked'}
     ],
     [
-        {'unit': 'freq_rel'},
+        {'unit': ['freq_rel', 'freq_abs']},
         {'state': 'stacked'}
     ],
     [
