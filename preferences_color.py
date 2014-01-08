@@ -116,11 +116,11 @@ def apply_colors(graph):
             {},
             {
                 'http_method': {
-                    'GET':       colors['blue'][0],
-                    'HEAD':      colors['yellow'][0],
-                    'PUT':       colors['green'][0],
+                    'GET': colors['blue'][0],
+                    'HEAD': colors['yellow'][0],
+                    'PUT': colors['green'][0],
                     'REPLICATE': colors['brown'][0],
-                    'DELETE':    colors['red'][0]
+                    'DELETE': colors['red'][0]
                 }
             }
         ],
@@ -128,11 +128,11 @@ def apply_colors(graph):
             {'stat': ['upper', 'upper_90']},
             {
                 'http_method': {
-                    'GET':       colors['blue'][1],
-                    'HEAD':      colors['yellow'][1],
-                    'PUT':       colors['green'][1],
+                    'GET': colors['blue'][1],
+                    'HEAD': colors['yellow'][1],
+                    'PUT': colors['green'][1],
                     'REPLICATE': colors['brown'][1],
-                    'DELETE':    colors['red'][1]
+                    'DELETE': colors['red'][1]
                 }
             }
         ],
