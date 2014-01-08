@@ -1,4 +1,4 @@
-%include templates/snippet.apply_all default_value="server=fill_in_servername"
+%include templates/snippet.apply_all default_value=(apply_all_from_url or "server=fill_in_servername")
 % queries = [
 %   'cpu total',
 %   'mem unit=B !total !vmalloc group by type:swap',

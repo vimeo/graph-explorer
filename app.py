@@ -1,5 +1,5 @@
 #!/usr/bin/env python2
-from bottle import route, template, request, static_file, response
+from bottle import route, template, request, static_file, response, hook, BaseTemplate
 import config
 import preferences
 from urlparse import urljoin
@@ -66,8 +66,10 @@ def index(query=''):
 
 
 @route('/dashboard/<dashboard_name>')
-def slash_dashboard(dashboard_name=None):
-    dashboard = template('templates/dashboards/%s' % dashboard_name, errors=errors)
+@route('/dashboard/<dashboard_name>/')
+@route('/dashboard/<dashboard_name>/<apply_all_from_url>', method='GET')
+def slash_dashboard(dashboard_name=None, apply_all_from_url=''):
+    dashboard = template('templates/dashboards/%s' % dashboard_name, errors=errors, apply_all_from_url=apply_all_from_url)
     return render_page(dashboard)
 
 
@@ -398,6 +400,13 @@ def graphs_minimal(query=''):
 @route('/graphs_minimal_deps/<query:path>', method='GET')
 def graphs_minimal_deps(query=''):
     return handle_graphs_minimal(query, True)
+
+
+@hook('before_request')
+def setrootpath():
+    # templates need to know the relative path to get resources from
+    root = '../' * request.path.count('/')
+    BaseTemplate.defaults['root'] = root
 
 
 def handle_graphs_minimal(query, deps):
