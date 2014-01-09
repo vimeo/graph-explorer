@@ -22,13 +22,13 @@
             <div class="control-group">
                 <label class="control-label" for="val_warn">Value warning</label>
                 <div class="controls">
-                    <input type="text" name="val_warn" id="val_warn" placeholder="critical to warn at">
+                    <input type="text" name="val_warn" id="val_warn" placeholder="value to warn at">
                 </div>
             </div>
             <div class="control-group">
                 <label class="control-label" for="val_crit">Value critical</label>
                 <div class="controls">
-                    <input type="text" name="val_crit" id="val_crit" placeholder="value to error at">
+                    <input type="text" name="val_crit" id="val_crit" placeholder="value to trigger critical alert at">
                 </div>
             </div>
             <div class="control-group">
