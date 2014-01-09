@@ -49,6 +49,7 @@ For more information see the [Graph-Explorer Query Language](https://github.com/
 * python2: python2.6 or higher
 * install elasticsearch and run it (super easy, see [docs](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/setup.html) just set a unique cluster name)
 * Graphite 0.9.10 or higher (tested with 0.9.12)
+* python2-pysqlite (if you want to use the alerting feature)
 
 ## Installation
 

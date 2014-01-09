@@ -1,5 +1,5 @@
 #!/usr/bin/env python2
-from bottle import route, template, request, static_file, response, hook, BaseTemplate
+from bottle import route, template, request, static_file, response, hook, BaseTemplate, post
 import config
 import preferences
 from urlparse import urljoin
@@ -13,6 +13,7 @@ from target import Target
 import logging
 import convert
 import traceback
+from alerting import Db, Rule
 
 
 # contains all errors as key:(title,msg) items.
@@ -400,6 +401,54 @@ def graphs_minimal(query=''):
 @route('/graphs_minimal_deps/<query:path>', method='GET')
 def graphs_minimal_deps(query=''):
     return handle_graphs_minimal(query, True)
+
+
+@route('/rules')
+@route('/rules/')
+def rules_list():
+    db = Db(config.alerting_db)
+    if 'rules' in errors:
+        del errors['rules']
+    try:
+        body = template('templates/body.rules', errors=errors, rules=db.get_rules())
+    except Exception, e:
+        errors['rules'] = ("Couldn't list rules: %s" % e, traceback.format_exc())
+    if errors:
+        body = template('templates/snippet.errors', errors=errors)
+        return render_page(body)
+    return render_page(body, 'rules')
+
+
+@route('/rules/add')
+@route('/rules/add/')
+@route('/rules/add/<metric_id>')
+def rules_add(metric_id=''):
+    args = {'errors': errors,
+            'metric_id': metric_id,
+            'config': config
+            }
+    body = template('templates/body.rules_add', args)
+    return render_page(body, 'rules_add')
+
+
+@post('/rules/add')
+def rules_add_submit():
+    metric_id = request.forms.get('metric_id')
+    expr = request.forms.get('expr')
+    val_warn = float(request.forms.get('val_warn'))
+    val_crit = float(request.forms.get('val_crit'))
+    if 'rules_add' in errors:
+        del errors['rules_add']
+    try:
+        rule = Rule(None, metric_id, expr, val_warn, val_crit)
+        db = Db(config.alerting_db)
+        db.add_rule(rule)
+    except Exception, e:  # pylint: disable=W0703
+        errors["rules_add"] = ("Couldn't add rule: %s" % e, traceback.format_exc())
+    if errors:
+        body = template('templates/snippet.errors', errors=errors)
+        return render_page(body)
+    return "ok, rule added"
 
 
 @hook('before_request')

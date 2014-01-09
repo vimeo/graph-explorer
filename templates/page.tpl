@@ -65,6 +65,13 @@
                 % end
             </ul>
           </li>
+          <li class="dropdown" id="preview-menu">
+            <a class="dropdown-toggle" data-toggle="dropdown" href="#">Alerting <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+                  <li><a href="/rules/">Rules</a></li>
+                  <li><a href="/rules/add">Add rule</a></li>
+            </ul>
+          </li>
             <li><a target="_blank" href="https://github.com/vimeo/graph-explorer/wiki">Help</a></li>
             </ul>
           </div><!--/.nav-collapse -->

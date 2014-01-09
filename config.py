@@ -2,6 +2,7 @@ listen_host = '0.0.0.0'  # defaults to "all interfaces"
 listen_port = 8080
 filename_metrics = 'metrics.json'
 log_file = 'graph-explorer.log'
+alerting_db = 'alerting.db'
 
 ## need to connect to graphite
 # the url that the graph-explorer daemon will use to connect to graphite
@@ -13,7 +14,12 @@ graphite_password = None
 
 ## optional, to get annotated events on your graphs
 # (the clientside graph renderer talks directly to it)
+# anthracite_url = "http://anthracite-machine"
 anthracite_url = None
+# url to add events by clicking on graphs. usually this is just an extra /events/add
+# but if you use plugins the path can be different.  None to disable
+# anthracite_add_url = "http://anthracite-machine/events/add"
+anthracite_add_url = None
 
 # load structured_metrics plugins from all of these directories, in order;
 # the magic string "**builtins**" refers to the graph-explorer builtin
