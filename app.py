@@ -1,5 +1,5 @@
 #!/usr/bin/env python2
-from bottle import route, template, request, static_file, response, hook, BaseTemplate, post
+from bottle import route, template, request, static_file, response, hook, BaseTemplate, post, redirect
 import config
 import preferences
 from urlparse import urljoin
@@ -448,7 +448,7 @@ def rules_add_submit():
     if errors:
         body = template('templates/snippet.errors', errors=errors)
         return render_page(body)
-    return "ok, rule added"
+    return redirect('/rules')
 
 
 @hook('before_request')
