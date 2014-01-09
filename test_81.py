@@ -74,9 +74,15 @@ def test_nontrivial_implicit_aggregation():
     # i.e. something like this:
     expected = {
         'targets': {
-            {'id': ['web1.a.a', 'web1.a']},
-            {'id': ['web2.a.a', 'web2.a.b']},
-            {'id': ['web3.a.a', 'web3.b']}
+            'web1.a.a__web1.a': {
+                'id': ['web1.a.a', 'web1.a']
+            },
+            'web2.a.a__web2.a.b': {
+                'id': ['web2.a.a', 'web2.a.b']
+            },
+            'web3.a.a__web3.b': {
+                'id': ['web3.a.a', 'web3.b']
+            }
         }
     }
 
