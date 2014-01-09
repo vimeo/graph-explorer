@@ -1,10 +1,13 @@
 from types import IntType
+import urllib
 import urllib2
 from urlparse import urljoin
 import json
 import time
 import subprocess
 import sqlite3
+from query import Query
+import graphs as g
 
 
 class Rule():
@@ -22,20 +25,29 @@ class Rule():
     def validate(self):
         assert self.val_warn != self.val_crit
 
-    def get_value(self, config):
-        url = urljoin(config.graphite_url_server, "/render/?target=%s&from=-2minutes&format=json" % self.expr)
-        response = urllib2.urlopen(url)
-        json_data = json.load(response)
-        assert len(json_data) < 2
-        if not len(json_data):
-            raise Exception("graphite did not return data for %s" % self.expr)
-        # get the last non-null value
-        last_dp = None
-        for dp in json_data[0]['datapoints']:
-            if dp[0] is not None:
-                last_dp = dp
-        assert last_dp is not None, "couldn't find any non-null datapoints"
-        return last_dp[0]
+    def check_values(self, config, s_metrics, preferences):
+        worst = 0
+        results = []
+        if " " in self.expr:  # looks like a GEQL query
+            query = Query(self.expr)
+            (query, targets_matching) = s_metrics.matching(query)
+            graphs_targets_matching = g.build_from_targets(targets_matching, query, preferences)[0]
+            for graph_id, graph in graphs_targets_matching.items():
+                for target in graph['targets']:
+                    target = target['target']
+                    value = check_graphite(target, config)
+                    code = self.check(value)
+                    results.append((target, value, code))
+                    if code > worst:
+                        worst = code
+        else:
+            target = self.expr
+            value = check_graphite(target, config)
+            code = self.check(value)
+            results.append((target, value, code))
+            if code > worst:
+                worst = code
+        return results, worst
 
     def check(self, value):
         # uses nagios-style codes: 0 ok, 1 warn, 2 crit
@@ -54,7 +66,7 @@ class Rule():
                 return 1
             return 2
 
-    def notify_maybe(self, db, status, msg, config):
+    def notify_maybe(self, db, status, subject, content, config):
         if config.alert_cmd is None:
             return
         now = int(time.time())
@@ -64,14 +76,14 @@ class Rule():
         if last and last['status'] == status:
             return
         data = {
-            'content': msg,
-            'subject': msg,
+            'content': content,
+            'subject': subject,
             'dest': self.dest
         }
         ret = subprocess.call(config.alert_cmd.format(**data), shell=True)
         if ret:
             raise Exception("alert_cmd failed")
-        db.save_notification(self, now, status, msg)
+        db.save_notification(self, now, status)
 
 
 class Db():
@@ -99,7 +111,7 @@ class Db():
             'status': row[1]
         }
 
-    def save_notification(self, rule, timestamp, status, msg):
+    def save_notification(self, rule, timestamp, status):
         self.assure_db()
         self.cursor.execute("INSERT INTO notifications (rule_id, timestamp, status) VALUES (?,?,?)", (rule.row_id, timestamp, status))
         self.conn.commit()
@@ -131,3 +143,22 @@ class Db():
         for row in rows:
             rules.append(Rule(*row))
         return rules
+
+
+def check_graphite(target, config):
+    url = urljoin(config.graphite_url_server, "/render/?from=-2minutes&format=json")
+    values = {'target': target}
+    data = urllib.urlencode(values)
+    req = urllib2.Request(url, data)
+    response = urllib2.urlopen(req)
+    json_data = json.load(response)
+    assert len(json_data) < 2
+    if not len(json_data):
+        raise Exception("graphite did not return data for %s" % target)
+    # get the last non-null value
+    last_dp = None
+    for dp in json_data[0]['datapoints']:
+        if dp[0] is not None:
+            last_dp = dp
+    assert last_dp is not None, "couldn't find any non-null datapoints"
+    return last_dp[0]
