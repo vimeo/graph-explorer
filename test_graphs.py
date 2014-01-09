@@ -1,9 +1,11 @@
 from query import Query
-from app import build_graphs_from_targets
+import graphs as g
 from target import Target
+from dummyprefs import DummyPrefs
 
 
 def test_aggregation():
+    preferences = DummyPrefs()
     # note: uneven aggregation: we only want 1 resulting metric,
     query = Query("")
     query['avg_by'] = {'server': ['']}
@@ -56,7 +58,7 @@ def test_aggregation():
         v = Target(v)
         v.get_graph_info(group_by={})
         targets[k] = v
-    graphs, _query = build_graphs_from_targets(targets, query)
+    graphs, _query = g.build_from_targets(targets, query, preferences)
     # TODO: there should be only 1 graph, containing all 5 items
     print "Graphs:"
     for (k, v) in graphs.items():

@@ -1,9 +1,11 @@
 from query import Query
-from app import build_graphs_from_targets
+import graphs as g
 from target import Target
+from dummyprefs import DummyPrefs
 
 
 def test_nontrivial_implicit_aggregation():
+    preferences = DummyPrefs()
     # we ultimately want 1 graph with 1 line for each server,
     # irrespective of the values of the other tags (n1 and n2)
     # and even whether or not the metrics have those tags at all.
@@ -67,7 +69,7 @@ def test_nontrivial_implicit_aggregation():
         v = Target(v)
         v.get_graph_info(group_by={})
         targets[k] = v
-    graphs, _query = build_graphs_from_targets(targets, query)
+    graphs, _query = g.build_from_targets(targets, query, preferences)
     # TODO: there should be only 1 graph, containing 3 lines, with each 2 targets per server
     # i.e. something like this:
     expected = {
