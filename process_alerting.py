@@ -1,8 +1,13 @@
 #!/usr/bin/python2
 import alerting
-import config
 from backend import make_config
+import os
 
+app_dir = os.path.dirname(__file__)
+if app_dir:
+    os.chdir(app_dir)
+
+import config
 config = make_config(config)
 
 db = alerting.Db(config.alerting_db)
