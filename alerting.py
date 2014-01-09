@@ -91,6 +91,8 @@ class Db():
         query = 'SELECT timestamp, status from notifications where rule_id == ? order by timestamp desc limit 1'
         self.cursor.execute(query, (rule_id,))
         row = self.cursor.fetchone()
+        if row is None:
+            return row
         return {
             'timestamp': row[0],
             'status': row[1]
