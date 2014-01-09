@@ -38,8 +38,13 @@ class Rule():
                     value = check_graphite(target, config)
                     code = self.check(value)
                     results.append((target, value, code))
-                    if code > worst:
+                    # if worst so far is ok and we have an unknown, that takes precedence
+                    if code == 3 and worst == 0:
+                        worst = 3
+                    # if the current code is not unknown and it's worse than whatever we have, update worst
+                    if code != 3 and code > worst:
                         worst = code
+
         else:
             target = self.expr
             value = check_graphite(target, config)
@@ -50,8 +55,10 @@ class Rule():
         return results, worst
 
     def check(self, value):
-        # uses nagios-style codes: 0 ok, 1 warn, 2 crit
-        # the lower the value, the worse
+        if value is None:
+            return 3
+        # uses nagios-style codes: 0 ok, 1 warn, 2 crit, 3 unknown
+        # the higher the value, the worse. except for unknown which is somewhere just below warn.
         if self.val_warn > self.val_crit:
             if value > self.val_warn:
                 return 0
@@ -68,13 +75,13 @@ class Rule():
 
     def notify_maybe(self, db, status, subject, content, config):
         if config.alert_cmd is None:
-            return
+            return False
         now = int(time.time())
         last = db.get_last_notification(self.row_id)
         if last and last['timestamp'] >= now - config.alert_backoff:
-            return
+            return False
         if last and last['status'] == status:
-            return
+            return False
         data = {
             'content': content,
             'subject': subject,
@@ -84,6 +91,7 @@ class Rule():
         if ret:
             raise Exception("alert_cmd failed")
         db.save_notification(self, now, status)
+        return True
 
 
 class Db():
@@ -160,5 +168,6 @@ def check_graphite(target, config):
     for dp in json_data[0]['datapoints']:
         if dp[0] is not None:
             last_dp = dp
-    assert last_dp is not None, "couldn't find any non-null datapoints"
+    if last_dp is None:
+        return None
     return last_dp[0]

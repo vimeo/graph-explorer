@@ -32,12 +32,17 @@ for rule in rules:
         results, worst = rule.check_values(config, s_metrics, preferences)
     except Exception, e:
         print "could not process:", e
-        rule.notify_maybe(db, 3, "Could not process your rule", e, config)
+        content = "\n".join(["Could not process your rule", str(rule), str(e)])
+        rule.notify_maybe(db, 3, "Could not process your rule", content, config)
         continue
     for (target, value, code) in results:
-        line = " * %s %f %s" % (target, value, msg_codes[code])
+        line = " * %s %s %s" % (target, value, msg_codes[code])
         print line
         content.append(line)
 
     subject = "%s is %s" % (rule.expr, msg_codes[worst])
-    rule.notify_maybe(db, worst, subject, "\n".join(content), config)
+    sent = rule.notify_maybe(db, worst, subject, "\n".join(content), config)
+    if sent:
+        print "sent notification!"
+    else:
+        print "no notification"
