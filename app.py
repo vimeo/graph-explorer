@@ -421,10 +421,10 @@ def rules_list():
 
 @route('/rules/add')
 @route('/rules/add/')
-@route('/rules/add/<metric_id>')
-def rules_add(metric_id=''):
+@route('/rules/add/<expr>')
+def rules_add(expr=''):
     args = {'errors': errors,
-            'metric_id': metric_id,
+            'expr': expr,
             'config': config
             }
     body = template('templates/body.rules_add', args)
@@ -433,14 +433,14 @@ def rules_add(metric_id=''):
 
 @post('/rules/add')
 def rules_add_submit():
-    metric_id = request.forms.get('metric_id')
     expr = request.forms.get('expr')
     val_warn = float(request.forms.get('val_warn'))
     val_crit = float(request.forms.get('val_crit'))
+    dest = request.forms.get('dest')
     if 'rules_add' in errors:
         del errors['rules_add']
     try:
-        rule = Rule(None, metric_id, expr, val_warn, val_crit)
+        rule = Rule(None, expr, val_warn, val_crit, dest)
         db = Db(config.alerting_db)
         db.add_rule(rule)
     except Exception, e:  # pylint: disable=W0703

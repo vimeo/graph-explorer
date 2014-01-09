@@ -52,7 +52,7 @@
                  % if config.anthracite_add_url is not None:
                 .find('.add_event').attr('href', '{{config.anthracite_add_url}}/ts=' + unix_timestamp).end()
                 % end
-                .find('.add_rule').attr('href', '/rules/add/' + data['id']).end()
+                .find('.add_rule').attr('href', '/rules/add/' + data['target']).end()
                 .find('.val').text(val).end()
                 .modal('show');
         };

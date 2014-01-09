@@ -40,7 +40,9 @@ process_native_proto2 = True
 
 
 alerting_db = 'alerting.db'
-#alert_cmd = 'echo "{content}" | mail -s "{subject}" your-email@yourdomain.com'
+#content and subject will be filled in automatically
+#dest is a string you'll configure per rule, typically an email address
+alert_cmd = 'echo "{content}" | mail -s "{subject}" {dest}'
 alert_cmd = None
 # how to long to wait in seconds before sending an update, per rule
 alert_backoff = 300

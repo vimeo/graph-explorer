@@ -8,16 +8,16 @@ import sqlite3
 
 
 class Rule():
-    def __init__(self, rowid, metric_id, expr, val_warn, val_crit):
+    def __init__(self, rowid, expr, val_warn, val_crit, dest):
         self.row_id = rowid
-        self.metric_id = metric_id
         self.expr = expr
         self.val_warn = val_warn
         self.val_crit = val_crit
+        self.dest = dest
         self.validate()
 
     def __str__(self):
-        return "Rule id=%d metric_id=%s expr=%s val_warn=%f, val_crit=%f" % (self.row_id, self.metric_id, self.expr, self.val_warn, self.val_crit)
+        return "Rule id=%d expr=%s val_warn=%f, val_crit=%f, dest=%s" % (self.row_id, self.expr, self.val_warn, self.val_crit, self.dest)
 
     def validate(self):
         assert self.val_warn != self.val_crit
@@ -65,7 +65,8 @@ class Rule():
             return
         data = {
             'content': msg,
-            'subject': msg
+            'subject': msg,
+            'dest': self.dest
         }
         ret = subprocess.call(config.alert_cmd.format(**data), shell=True)
         if ret:
@@ -81,7 +82,7 @@ class Db():
 
     def assure_db(self):
         self.cursor.execute("""CREATE TABLE IF NOT EXISTS rules
-                (id integer primary key autoincrement, metric_id text, expr text, val_warn float, val_crit float)""")
+                (id integer primary key autoincrement, expr text, val_warn float, val_crit float, dest text)""")
         self.cursor.execute("""CREATE TABLE IF NOT EXISTS notifications
                 (id integer primary key autoincrement, rule_id integer, timestamp int, status int)""")
         self.exists = True
@@ -108,7 +109,7 @@ class Db():
         can raise sqlite3 exceptions and any other exception means something's wrong with the data
         """
         self.assure_db()
-        self.cursor.execute("INSERT INTO rules (metric_id, expr, val_warn, val_crit) VALUES (?,?,?,?)", (rule.metric_id, rule.expr, rule.val_warn, rule.val_crit))
+        self.cursor.execute("INSERT INTO rules (expr, val_warn, val_crit, dest) VALUES (?,?,?,?)", (rule.expr, rule.val_warn, rule.val_crit, rule.dest))
         self.conn.commit()
         return self.cursor.lastrowid
 
@@ -121,9 +122,9 @@ class Db():
 
     def get_rules(self, metric_id=None):
         self.assure_db()
-        query = 'SELECT id, metric_id, expr, val_warn, val_crit FROM rules'
+        query = 'SELECT id, expr, val_warn, val_crit, dest FROM rules'
         if metric_id is not None:
-            query += " where metric_id =='%s'"
+            query += " where expr like '%%%s%%'"
         self.cursor.execute(query)
         rows = self.cursor.fetchall()
         rules = list()
