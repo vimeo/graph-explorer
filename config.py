@@ -2,7 +2,6 @@ listen_host = '0.0.0.0'  # defaults to "all interfaces"
 listen_port = 8080
 filename_metrics = 'metrics.json'
 log_file = 'graph-explorer.log'
-alerting_db = 'alerting.db'
 
 ## need to connect to graphite
 # the url that the graph-explorer daemon will use to connect to graphite
@@ -38,3 +37,10 @@ limit_es_metrics = 10000
 # change to False if you already have them up to date in ES,
 # for example when you use something like carbon-tagger.
 process_native_proto2 = True
+
+
+alerting_db = 'alerting.db'
+#alert_cmd = 'echo "{content}" | mail -s "{subject}" your-email@yourdomain.com'
+alert_cmd = None
+# how to long to wait in seconds before sending an update, per rule
+alert_backoff = 300
