@@ -77,11 +77,14 @@ class Rule():
         if config.alert_cmd is None:
             return False
         now = int(time.time())
-        last = db.get_last_notification(self.row_id)
-        if last and last['timestamp'] >= now - config.alert_backoff:
-            return False
-        if last and last['status'] == status:
-            return False
+        last = db.get_last_notifications(self.row_id)
+        if last:
+            # don't report what we reported last
+            if last[-1]['status'] == status:
+                return False
+            # don't send any message if we've sent more than 10 in the backoff interval
+            if len(last) == 10 and last[-1]['timestamp'] >= now - config.alert_backoff:
+                return False
         data = {
             'content': content,
             'subject': subject,
@@ -107,17 +110,18 @@ class Db():
                 (id integer primary key autoincrement, rule_id integer, timestamp int, status int)""")
         self.exists = True
 
-    def get_last_notification(self, rule_id):
+    def get_last_notifications(self, rule_id):
         self.assure_db()
-        query = 'SELECT timestamp, status from notifications where rule_id == ? order by timestamp desc limit 1'
+        query = 'SELECT timestamp, status from notifications where rule_id == ? order by timestamp desc limit 10'
         self.cursor.execute(query, (rule_id,))
-        row = self.cursor.fetchone()
-        if row is None:
-            return row
-        return {
-            'timestamp': row[0],
-            'status': row[1]
-        }
+        rows = self.cursor.fetchall()
+        notifications = []
+        for row in rows:
+            notifications.append({
+                'timestamp': row[0],
+                'status': row[1]
+            })
+        return notifications
 
     def save_notification(self, rule, timestamp, status):
         self.assure_db()

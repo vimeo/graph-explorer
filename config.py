@@ -44,5 +44,5 @@ alerting_db = 'alerting.db'
 #dest is a string you'll configure per rule, typically an email address
 #set to None to disable
 alert_cmd = 'echo "{content}" | mail -r "Graph Explorer <graph-explorer@yourcompany.com>" -s "{subject}" {dest}'
-# how long to wait in seconds before sending an update, per rule
+# per rule, max 10 notifications per this many seconds.
 alert_backoff = 30 * 60
