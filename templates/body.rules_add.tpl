@@ -11,6 +11,13 @@
                 <label class="control-label" for="expr">Expression</label>
                 <div class="controls">
                     <textarea name="expr" id="expr" rows=10>{{expr}}</textarea>
+                    <span class="help-block">
+                        <b>Protip:</b>
+                        <br/>when manually entering an expression and you want to make sure it's correct,
+                        load <a href="{{config.graphite_url_client}}/render/?target=EXPRESSION">{{config.graphite_url_client}}/render/?target=EXPRESSION</a>
+                        in your browser.
+                        <br/> You need to see 1 graph with 1 line on it, that will be the value that will be checked.
+                    </span>
                 </div>
             </div>
             <div class="control-group">
