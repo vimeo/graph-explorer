@@ -89,7 +89,6 @@ def inspect_metric(metrics=''):
     metrics = map(s_metrics.load_metric, metrics.split(','))
     args = {'errors': errors,
             'metrics': metrics,
-            'config': config
             }
     body = template('templates/body.inspect', args)
     return render_page(body, 'inspect')
@@ -170,7 +169,6 @@ def rules_list():
 def rules_add(expr=''):
     args = {'errors': errors,
             'expr': expr,
-            'config': config
             }
     body = template('templates/body.rules_add', args)
     return render_page(body, 'rules_add')
@@ -197,10 +195,12 @@ def rules_add_submit():
 
 
 @hook('before_request')
-def setrootpath():
+def seedviews():
     # templates need to know the relative path to get resources from
     root = '../' * request.path.count('/')
     BaseTemplate.defaults['root'] = root
+    BaseTemplate.defaults['config'] = config
+    BaseTemplate.defaults['preferences'] = preferences
 
 
 def handle_graphs_minimal(query, deps):
@@ -274,11 +274,9 @@ def render_graphs(query, minimal=False, deps=False):
 
     args = {'errors': errors,
             'query': query,
-            'config': config,
             'graphs': graphs,
             'targets_list': targets_list,
             'tags': tags,
-            'preferences': preferences
             }
     args.update(stats)
     if minimal:

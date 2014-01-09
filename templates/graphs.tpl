@@ -42,7 +42,7 @@
             </dl>
         <div class="span12">
         % for (k,v) in graphs:
-            % include templates/snippet.graph config=config, graph_key=k, graph_data=v, preferences=preferences
+            % include templates/snippet.graph graph_key=k, graph_data=v
         % end
         % include templates/snippet.expand_labels
         <!-- approximation of get_inspect_url(data, name) that works as long as list mode doesn't support sum by (or other kind of N metrics in 1 target) -->
