@@ -218,7 +218,10 @@ class StructuredMetrics(object):
         for plugin in self.plugins:
             (plugin_name, plugin_object) = plugin
         targets = {}
-        stats = {}
+        stats = {
+            'duplicate_ignored_graphite_bug': 0,
+            'duplicate': 0
+        }
         for plugin in self.plugins:
             stats[plugin[0]] = {
                 'ok': 0,
@@ -257,6 +260,12 @@ class StructuredMetrics(object):
                             else:
                                 v['tags']['unit'] = unit
                             del v['tags']['what']
+                        if k in targets:
+                            if metric + '.' == targets[k]['id'] or targets[k]['id'] + '.' == metric:
+                                stats['duplicate_ignored_graphite_bug'] += 1
+                            else:
+                                stats['duplicate'] += 1
+                                self.logger.warn("proto 2 metric '%s' upgraded from both '%s' and '%s'", k, metric, targets[k]['id'])
                         targets[k] = v
                         stats[plugin_name]['ok'] += 1
                         break
@@ -266,6 +275,8 @@ class StructuredMetrics(object):
         for plugin in self.plugins:
             plugin_name = plugin[0]
             self.logger.debug("%20s %20d %20d %20d", plugin_name, stats[plugin_name]['ok'], stats[plugin_name]['bad'], stats[plugin_name]['ign'])
+        self.logger.debug("duplicate yields ignored due to graphite bug : %d", stats['duplicate_ignored_graphite_bug'])
+        self.logger.debug("real duplicate yields (check your plugins)   : %d", stats['duplicate'])
         return targets
 
     def es_bulk(self, bulk_list):

@@ -7,12 +7,12 @@ class IostatPlugin(Plugin):
     '''
     targets = [
         {
-            'match': '^servers\.(?P<server>[^\.]+)\.iostat\.(?P<device>[^\.]+)\.(?P<wt>.*)$',
-            'target_type': 'gauge',
-        },
-        {
             'match': '^servers\.(?P<server>[^\.]+)\.iostat\.(?P<device>[^\.]+)\.(?P<wt>.*_per_second)$',
             'target_type': 'rate',
+        },
+        {
+            'match': '^servers\.(?P<server>[^\.]+)\.iostat\.(?P<device>[^\.]+)\.(?P<wt>.*)$',
+            'target_type': 'gauge',
         }
     ]
 
@@ -26,15 +26,15 @@ class IostatPlugin(Plugin):
             'await': ('ms', 'iop service time'),
             'concurrent_io': ('iops', 'concurrent'),
             'io': ('io', None),
-            'io_in_progress': ('iops', 'concurrent'),
+            'io_in_progress': ('iops', 'in_progress'),
             'io_milliseconds': ('ms', 'io'),
-            'io_milliseconds_weighted': ('ms', 'io'),
-            'iops': ('iops', 'concurrent'),
+            'io_milliseconds_weighted': ('ms_weighted', 'io'),
+            'iops': ('iops', None),
             'read_await': ('ms', 'read service time'),
             'read_byte': ('bytes', 'read'),
             'read_byte_per_second': ('bytes', 'read'),
-            'read_requests_merged': ('reads', 'merged'),
-            'read_requests_merged_per_second': ('reads', 'merged'),
+            'read_requests_merged': ('read_requests', 'merged'),
+            'read_requests_merged_per_second': ('read_requests', 'merged'),
             'reads': ('reads', None),
             'reads_byte': ('bytes', 'read'),
             'reads_merged': ('reads', 'merged'),
@@ -45,8 +45,8 @@ class IostatPlugin(Plugin):
             'write_await': ('ms', 'write service time'),
             'write_byte': ('bytes', 'written'),
             'write_byte_per_second': ('bytes', 'written'),
-            'write_requests_merged': ('writes', 'merged'),
-            'write_requests_merged_per_second': ('writes', 'merged'),
+            'write_requests_merged': ('write_requests', 'merged'),
+            'write_requests_merged_per_second': ('write_requests', 'merged'),
             'writes': ('writes', None),
             'writes_byte': ('bytes', 'written'),
             'writes_merged': ('writes', 'merged'),
