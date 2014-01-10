@@ -46,3 +46,6 @@ alerting_db = 'alerting.db'
 alert_cmd = 'echo "{content}" | mail -r "Graph Explorer <graph-explorer@yourcompany.com>" -s "{subject}" {dest}'
 # per rule, max 10 notifications per this many seconds.
 alert_backoff = 30 * 60
+
+# whether the StoreRates is set in your collectd write_graphite plugin config
+collectd_StoreRates = True

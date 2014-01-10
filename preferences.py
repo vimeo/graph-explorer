@@ -10,8 +10,12 @@ from preferences_color import apply_colors
 # multiple matches can occur, they are performed in order.
 graph_options = [
     [
-        {'plugin': ['diskspace', 'memory'], 'unit': 'B'},  # match
+        {'where': 'system_memory', 'unit': 'B'},  # match
         {'state': 'stacked', 'suffixes': 'binary'}  # set option
+    ],
+    [
+        {'plugin': 'diskspace', 'unit': 'B'},
+        {'state': 'stacked', 'suffixes': 'binary'}
     ],
     [
         {'plugin': 'cpu'},

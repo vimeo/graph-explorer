@@ -1,68 +1,90 @@
 from . import Plugin
 
+
 class CollectdPlugin(Plugin):
-    collectd_types = {
-        'if_octets': ('bytes', 'rate'),
-        'if_errors': ('errors', 'rate'),
-        'if_packets': ('pkts', 'rate'),
-        'cpu': ('cpu', 'gauge_pct'),
-        'cpufreq': ('hz', 'gauge'),
-        'protocol_counter': ('pkts', 'rate'),
-        'tcp_connections': ('connections', 'gauge'),
-        'load': ('load', 'gauge'),
-        'uptime': ('secs', 'gauge'),
-        'irq': ('interrupts', 'rate'),
-        'vmpage_action': ('actions', 'rate'),
-        'vmpage_io': ('iops', 'rate'),
-        'vmpage_number': ('pages', 'gauge'),
-        'vmpage_faults': ('faults', 'rate'),
-        'disk_ops': ('iops', 'rate'),
-        'disk_octets': ('bytes', 'rate'),
-        'disk_time': ('secs', 'gauge'),
-        'disk_merged': ('iops', 'gauge'),
-        'memory': ('bytes', 'gauge'),
-        'swap': ('swap', 'gauge'),
-        'swap_io': ('iops', 'gauge'),
-        'df_complex': ('bytes', 'gauge'),
-        'ps_state': ('processes', 'gauge'),
-        'ps_count': ('processes', 'gauge'),
-        'ps_disk_ops': ('iops', 'rate'),
-        'ps_disk_octets': ('bytes', 'rate'),
-        'ps_stacksize': ('bytes', 'gauge'),
-        'ps_code': ('bytes', 'gauge'),
-        'ps_rss': ('bytes', 'gauge'),
-        'ps_pagefaults': ('faults', 'rate'),
-        'fork_rate': ('forks', 'rate'),
-        'time_dispersion': ('secs', 'gauge'),
-        'frequency_offset': ('secs', 'gauge'),
-        'delay': ('secs', 'gauge'),
-        'time_offset': ('secs', 'gauge'),
-        'users': ('users', 'gauge'),
-        'contextswitch': ('switches', 'gauge'),
-        'entropy': ('entropy', 'gauge'),
-        'conntrack': ('conntrack', 'gauge'),
-        'counter': ('1', 'rate')
-    }
-    targets = [{
-        'match': '^collectd\.(?P<server>.+?)\.(?P<collectd_plugin>.+?)(?:-(?P<collectd_plugin_instance>.+?))?\.(?P<type>.+?)(?:-(?P<type_instance>.+?))?\.(?P<value>.+)$',
-        'target_type': 'unknown',
-        'configure': [
-            lambda self, target: self.add_tag(target, 'source', 'collectd'),
-            lambda self, target: self.add_tag(target, 'target_type', self.collectd_target_type(target)),
-            lambda self, target: self.add_tag(target, 'what', self.collectd_what(target))
-        ]
-    }]
+    targets = [
+        {
+            'match': '^collectd\.(?P<server>[^\.]+)\.(?P<collectd_plugin>cpu)\.(?P<core>[^\.]+)\.cpu\.(?P<type>[^\.]+)$',
+            'target_type': 'gauge_pct',
+            'configure': lambda self, target: self.add_tag(target, 'unit', 'cpu_state')
+        },
+        {
+            'match': '^collectd\.(?P<server>.+?)\.(?P<collectd_plugin>load)\.load\.(?P<wt>.*)$',
+            'target_type': 'gauge',
+            'configure': lambda self, target: self.fix_load(target)
+        },
+        {
+            'match': '^collectd\.(?P<server>[^\.]+)\.interface\.(?P<interface>[^\.]+)\.if_(?P<wt>[^\.]+)\.(?P<dir>[^\.]+)$',
+            'target_type': 'counter',
+            'configure': [
+                lambda self, target: self.add_tag(target, 'collectd_plugin', 'network'),
+                lambda self, target: self.fix_network(target)
+            ]
+        },
+        {
+            'match': '^collectd\.(?P<server>[^\.]+)\.memory\.memory\.(?P<type>[^\.]+)$',
+            'target_type': 'gauge',
+            'configure': [
+                lambda self, target: self.add_tag(target, 'unit', 'B'),
+                lambda self, target: self.add_tag(target, 'where', 'system_memory')
+            ]
+        },
+        {
+            'match': '^collectd\.(?P<server>[^\.]+)\.(?P<collectd_plugin>disk)\.(?P<device>[^\.]+)\.disk_(?P<wt>[^\.]+)\.(?P<operation>[^\.]+)$',
+            'configure': lambda self, target: self.fix_disk(target)
+        }
+    ]
 
-    @classmethod
-    def collectd_desc(cls, target):
-        return cls.collectd_types.get(target['tags']['type'], (target['tags']['type'], 'gauge'))
+    def fix_disk(self, target):
+        wt = {
+            'merged': {
+                'unit': 'Req',
+                'type': 'merged'
+            },
+            'octets': {
+                'unit': 'B'
+            },
+            'ops': {
+                'unit': 'Req',
+                'type': 'executed'
+            },
+            'time': {
+                'unit': 'ms'
+            }
+        }
+        target['tags'].update(wt[target['tags']['wt']])
 
-    @classmethod
-    def collectd_target_type(cls, target):
-        return cls.collectd_desc(target)[1]
+        if self.config.collectd_StoreRates:
+            target['tags']['target_type'] = 'rate'
+            target['tags']['unit'] = target['tags']['unit'] + "/s"
+        else:
+            target['tags']['target_type'] = 'counter'
 
-    @classmethod
-    def collectd_what(cls, target):
-        return cls.collectd_desc(target)[0]
+        del target['tags']['wt']
+
+    def fix_load(self, target):
+        human_to_computer = {
+            'shortterm': '01',
+            'midterm': '05',
+            'longterm': '15'
+        }
+        target['tags']['unit'] = 'load'
+        target['tags']['type'] = human_to_computer.get(target['tags']['wt'], 'unknown')
+        del target['tags']['wt']
+
+    def fix_network(self, target):
+        dirs = {'rx': 'in', 'tx': 'out'}
+        units = {'packets': 'Pckt', 'errors': 'Err', 'octets': 'B'}
+
+        if self.config.collectd_StoreRates:
+            target['tags']['target_type'] = 'rate'
+            target['tags']['unit'] = units[target['tags']['wt']] + "/s"
+        else:
+            target['tags']['target_type'] = 'counter'
+            target['tags']['unit'] = units[target['tags']['wt']]
+
+        target['tags']['direction'] = dirs[target['tags']['dir']]
+        del target['tags']['wt']
+        del target['tags']['dir']
 
 # vim: ts=4 et sw=4:

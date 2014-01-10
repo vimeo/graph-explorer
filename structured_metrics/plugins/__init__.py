@@ -124,7 +124,11 @@ class Plugin(object):
     @classmethod
     def __create_target(cls, match, target_config):
         tags = match.groupdict()
-        tags.update({'target_type': target_config['target_type'], 'plugin': cls.classname_to_tag()})
+        tags['plugin'] = cls.classname_to_tag()
+        try:
+            tags['target_type'] = target_config['target_type']
+        except:
+            pass
         target = {
             'id': match.string,  # graphite metric
             'config': target_config,
