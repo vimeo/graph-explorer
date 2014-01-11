@@ -49,3 +49,4 @@ alert_backoff = 30 * 60
 
 # whether the StoreRates is set in your collectd write_graphite plugin config
 collectd_StoreRates = True
+collectd_prefix = '^collectd\.'

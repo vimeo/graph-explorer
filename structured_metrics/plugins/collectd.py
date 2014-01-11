@@ -2,38 +2,40 @@ from . import Plugin
 
 
 class CollectdPlugin(Plugin):
-    targets = [
-        {
-            'match': '^collectd\.(?P<server>[^\.]+)\.(?P<collectd_plugin>cpu)\.(?P<core>[^\.]+)\.cpu\.(?P<type>[^\.]+)$',
-            'target_type': 'gauge_pct',
-            'configure': lambda self, target: self.add_tag(target, 'unit', 'cpu_state')
-        },
-        {
-            'match': '^collectd\.(?P<server>.+?)\.(?P<collectd_plugin>load)\.load\.(?P<wt>.*)$',
-            'target_type': 'gauge',
-            'configure': lambda self, target: self.fix_load(target)
-        },
-        {
-            'match': '^collectd\.(?P<server>[^\.]+)\.interface\.(?P<interface>[^\.]+)\.if_(?P<wt>[^\.]+)\.(?P<dir>[^\.]+)$',
-            'target_type': 'counter',
-            'configure': [
-                lambda self, target: self.add_tag(target, 'collectd_plugin', 'network'),
-                lambda self, target: self.fix_network(target)
-            ]
-        },
-        {
-            'match': '^collectd\.(?P<server>[^\.]+)\.memory\.memory\.(?P<type>[^\.]+)$',
-            'target_type': 'gauge',
-            'configure': [
-                lambda self, target: self.add_tag(target, 'unit', 'B'),
-                lambda self, target: self.add_tag(target, 'where', 'system_memory')
-            ]
-        },
-        {
-            'match': '^collectd\.(?P<server>[^\.]+)\.(?P<collectd_plugin>disk)\.(?P<device>[^\.]+)\.disk_(?P<wt>[^\.]+)\.(?P<operation>[^\.]+)$',
-            'configure': lambda self, target: self.fix_disk(target)
-        }
-    ]
+    def __init__(self, config):
+        self.targets = [
+            {
+                'match': config.collectd_prefix + '(?P<server>[^\.]+)\.(?P<collectd_plugin>cpu)\.(?P<core>[^\.]+)\.cpu\.(?P<type>[^\.]+)$',
+                'target_type': 'gauge_pct',
+                'configure': lambda self, target: self.add_tag(target, 'unit', 'cpu_state')
+            },
+            {
+                'match': config.collectd_prefix + '(?P<server>.+?)\.(?P<collectd_plugin>load)\.load\.(?P<wt>.*)$',
+                'target_type': 'gauge',
+                'configure': lambda self, target: self.fix_load(target)
+            },
+            {
+                'match': config.collectd_prefix + '(?P<server>[^\.]+)\.interface\.(?P<interface>[^\.]+)\.if_(?P<wt>[^\.]+)\.(?P<dir>[^\.]+)$',
+                'target_type': 'counter',
+                'configure': [
+                    lambda self, target: self.add_tag(target, 'collectd_plugin', 'network'),
+                    lambda self, target: self.fix_network(target)
+                ]
+            },
+            {
+                'match': config.collectd_prefix + '(?P<server>[^\.]+)\.memory\.memory\.(?P<type>[^\.]+)$',
+                'target_type': 'gauge',
+                'configure': [
+                    lambda self, target: self.add_tag(target, 'unit', 'B'),
+                    lambda self, target: self.add_tag(target, 'where', 'system_memory')
+                ]
+            },
+            {
+                'match': config.collectd_prefix + '(?P<server>[^\.]+)\.(?P<collectd_plugin>disk)\.(?P<device>[^\.]+)\.disk_(?P<wt>[^\.]+)\.(?P<operation>[^\.]+)$',
+                'configure': lambda self, target: self.fix_disk(target)
+            }
+        ]
+        super(CollectdPlugin, self).__init__(config)
 
     def fix_disk(self, target):
         wt = {
