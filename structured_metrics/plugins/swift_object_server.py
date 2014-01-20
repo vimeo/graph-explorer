@@ -5,7 +5,7 @@ class SwiftObjectServerPlugin(Plugin):
 
     targets = [
         {
-            'match': '^stats\.timers\.(?P<server>[^\.]+)\.(?P<swift_type>object)-server\.(?P<http_method>[^\.]+)\.timing\.(?P<autosplit>[^\.]+)$',
+            'match': '^stats\.timers\.(?P<server>[^\.]+)\.(?P<swift_type>object)-server\.(?P<http_method>[^\.]+)\.timing\.(?P<tosplit>[^\.]+)$',
             'configure': lambda self, target: self.parse_statsd_timer(target)
         },
         {
