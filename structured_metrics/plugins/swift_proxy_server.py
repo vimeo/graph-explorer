@@ -5,8 +5,8 @@ class SwiftProxyServerPlugin(Plugin):
     http_methods = ['GET', 'HEAD', 'PUT', 'REPLICATE']
     targets = [
         {
-            'match': '^stats.timers\.(?P<server>[^\.]+)\.proxy-server\.(?P<swift_type>account|container|object)\.(?P<http_method>[^\.]+)\.(?P<http_code>[^\.]+)\.timing\.(?P<what>[^\.]+)$',
-            'target_type': 'timer'
+            'match': '^stats.timers\.(?P<server>[^\.]+)\.proxy-server\.(?P<swift_type>account|container|object)\.(?P<http_method>[^\.]+)\.(?P<http_code>[^\.]+)\.timing\.(?P<tosplit>[^\.]+)$',
+            'configure': lambda self, target: self.parse_statsd_timer(target)
         },
         {
             'match': '^stats_counts\.(?P<server>[^\.]+)\.proxy-server\.?(?P<swift_type>account|container|object)?\.?(?P<http_method>[^\.]*)\.?(?P<http_code>[^\.]*)\.(?P<wt>[^\.]+)$',
