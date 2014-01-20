@@ -3,19 +3,24 @@ from . import Plugin
 
 class CollectdPlugin(Plugin):
     def __init__(self, config):
+        if hasattr(config, 'collectd_prefix'):
+            prefix = config.collectd_prefix
+        else:
+            prefix = '^collectd\.'
+
         self.targets = [
             {
-                'match': config.collectd_prefix + '(?P<server>[^\.]+)\.(?P<collectd_plugin>cpu)\.(?P<core>[^\.]+)\.cpu\.(?P<type>[^\.]+)$',
+                'match': prefix + '(?P<server>[^\.]+)\.(?P<collectd_plugin>cpu)\.(?P<core>[^\.]+)\.cpu\.(?P<type>[^\.]+)$',
                 'target_type': 'gauge_pct',
                 'configure': lambda self, target: self.add_tag(target, 'unit', 'cpu_state')
             },
             {
-                'match': config.collectd_prefix + '(?P<server>.+?)\.(?P<collectd_plugin>load)\.load\.(?P<wt>.*)$',
+                'match': prefix + '(?P<server>.+?)\.(?P<collectd_plugin>load)\.load\.(?P<wt>.*)$',
                 'target_type': 'gauge',
                 'configure': lambda self, target: self.fix_load(target)
             },
             {
-                'match': config.collectd_prefix + '(?P<server>[^\.]+)\.interface\.(?P<interface>[^\.]+)\.if_(?P<wt>[^\.]+)\.(?P<dir>[^\.]+)$',
+                'match': prefix + '(?P<server>[^\.]+)\.interface\.(?P<interface>[^\.]+)\.if_(?P<wt>[^\.]+)\.(?P<dir>[^\.]+)$',
                 'target_type': 'counter',
                 'configure': [
                     lambda self, target: self.add_tag(target, 'collectd_plugin', 'network'),
@@ -23,7 +28,7 @@ class CollectdPlugin(Plugin):
                 ]
             },
             {
-                'match': config.collectd_prefix + '(?P<server>[^\.]+)\.memory\.memory\.(?P<type>[^\.]+)$',
+                'match': prefix + '(?P<server>[^\.]+)\.memory\.memory\.(?P<type>[^\.]+)$',
                 'target_type': 'gauge',
                 'configure': [
                     lambda self, target: self.add_tag(target, 'unit', 'B'),
@@ -31,7 +36,7 @@ class CollectdPlugin(Plugin):
                 ]
             },
             {
-                'match': config.collectd_prefix + '(?P<server>[^\.]+)\.(?P<collectd_plugin>disk)\.(?P<device>[^\.]+)\.disk_(?P<wt>[^\.]+)\.(?P<operation>[^\.]+)$',
+                'match': prefix + '(?P<server>[^\.]+)\.(?P<collectd_plugin>disk)\.(?P<device>[^\.]+)\.disk_(?P<wt>[^\.]+)\.(?P<operation>[^\.]+)$',
                 'configure': lambda self, target: self.fix_disk(target)
             }
         ]
