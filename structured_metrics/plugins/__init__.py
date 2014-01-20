@@ -65,7 +65,7 @@ class Plugin(object):
             nodes = nodes[:-3]
         elif len(nodes) > 0:
             if nodes[-1] in ('lower', 'mean', 'mean_90', 'median', 'std', 'sum', 'sum_90', 'upper', 'upper_90'):
-                target['tags']['type'] = nodes[-1]
+                target['tags']['stat'] = nodes[-1]
                 target['tags']['unit'] = 'ms'
                 nodes = nodes[:-1]
             elif nodes[-1] == 'count_ps':
