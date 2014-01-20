@@ -53,7 +53,7 @@ class StatsdPlugin(Plugin):
                 target['tags']['unit'] = 'timestamp'
                 target['tags']['type'] = 'last_exception'
             else:  # gauge
-                target['tags']['unit'] = 'seconds'
+                target['tags']['unit'] = 's'
                 target['tags']['type'] = 'last_exception age'
         if target['tags']['wtt'] == 'graphiteStats.last_flush':
             if target['tags']['target_type'] == 'counter':

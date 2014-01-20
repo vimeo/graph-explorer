@@ -7,7 +7,7 @@ class DiamondCollectortimePlugin(Plugin):
     """
     targets = [
         {
-            'match': '^servers\.(?P<server>[^\.]+)\.(?P<diamond_plugin>[^\.]+)\.(?P<type>collector_time)_(?P<what>ms)$',
+            'match': '^servers\.(?P<server>[^\.]+)\.(?P<diamond_plugin>[^\.]+)\.(?P<type>collector_time)_(?P<unit>ms)$',
             'target_type': 'gauge',
         }
     ]

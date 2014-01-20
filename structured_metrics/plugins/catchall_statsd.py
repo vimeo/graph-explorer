@@ -19,7 +19,6 @@ class CatchallStatsdPlugin(Plugin):
         },
         {
             'match': '^stats\.timers\.(?P<tosplit>.*)',
-            'target_type': 'gauge',
             'configure': [
                 lambda self, target: self.parse_statsd_timer(target),
                 lambda self, target: self.add_tag(target, 'source', 'statsd'),

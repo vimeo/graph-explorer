@@ -4,7 +4,6 @@ TODO:
 * reset zoom button
 * on graphs and inspect view, point to unit information in text, maybe wiki page
 * some kind of UI feature that suggests tags keys/vals, to make it easier for newbies. in list and graph mode, and whether or not we already have a query
-* fix what/type/target_type for timers in all plugins (already done in catchall_statsd)
 * "global" rules to set extra tags-> everything with server:df.* -> tag env=prod-df, allows user to search on 'env' tag
 * group by scale automatically: if things differ by orders of magnitude, put them on different graphs
 * order by graph_name DESC etc

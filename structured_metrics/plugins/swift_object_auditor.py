@@ -6,8 +6,8 @@ class SwiftObjectAuditorPlugin(Plugin):
 
     targets = [
         {
-            'match': '^stats\.timers\.(?P<server>[^\.]+)\.object-auditor\.(?P<http_method>[^\.]+)\.timing\.(?P<what>[^\.]+)$',
-            'target_type': 'timer'
+            'match': '^stats\.timers\.(?P<server>[^\.]+)\.object-auditor\.(?P<http_method>[^\.]+)\.timing\.(?P<tosplit>[^\.]+)$',
+            'configure': lambda self, target: self.parse_statsd_timer(target)
         },
         {
             'match': '^stats_counts\.(?P<server>[^\.]+)\.object-server\.?(?P<http_method>[^\.]*)\.(?P<what>async_pendings|errors|timeouts)$',
