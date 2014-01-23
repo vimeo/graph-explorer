@@ -2,6 +2,7 @@ listen_host = '0.0.0.0'  # defaults to "all interfaces"
 listen_port = 8080
 filename_metrics = 'metrics.json'
 log_file = 'graph-explorer.log'
+metrics_cache = 'metrics_cache'
 
 ## need to connect to graphite
 # the url that the graph-explorer daemon will use to connect to graphite

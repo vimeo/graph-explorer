@@ -6,6 +6,8 @@ from inspect import isclass
 import sre_constants
 import logging
 import json
+import shelve
+
 sys.path.append("%s/%s" % (os.path.dirname(os.path.realpath(__file__)), 'elasticsearch-py'))
 sys.path.append("%s/%s" % (os.path.dirname(os.path.realpath(__file__)), 'urllib3'))
 
@@ -157,6 +159,11 @@ class StructuredMetrics(object):
         if hasattr(config, 'es_host') and hasattr(config, 'es_port'):
             es_host = config.es_host.replace('http://', '').replace('https://', '')
             self.es = Elasticsearch([{"host": es_host, "port": config.es_port}])
+
+        self.metrics_cache = None
+        if hasattr(config, 'metrics_cache'):
+            self.metrics_cache = config.metrics_cache
+
         self.logger = logger
         self.config = config
 
@@ -213,14 +220,24 @@ class StructuredMetrics(object):
         # sort plugins by their matching priority
         return sorted(plugins, key=lambda t: t[1].priority, reverse=True), errors
 
+    def get_cache_key(self):
+        return "TODO"  # TODO: get mtime of every <module>.__file__ for module in all plugins and config
+
+
     def list_metrics(self, metrics):
         self.logger.debug("list_metrics with %d plugins and %d metrics", len(self.plugins), len(metrics))
+        cache = None
+        if self.metrics_cache:
+            cache_key = self.get_cache_key()
+            # invalidate based on key, store key in the cache.
+            cache = shelve.open(self.metrics_cache, writeback=True)
         for plugin in self.plugins:
             (plugin_name, plugin_object) = plugin
         targets = {}
         stats = {
             'duplicate_ignored_graphite_bug': 0,
-            'duplicate': 0
+            'duplicate': 0,
+            'from_cache': 0
         }
         for plugin in self.plugins:
             stats[plugin[0]] = {
@@ -229,7 +246,16 @@ class StructuredMetrics(object):
                 'ign': 0
             }
         for metric in metrics:
+            metric = str(metric)
+
             found = False
+            if cache and metric in cache:
+                (k, v) = cache[metric]
+                targets[k] = v
+                found = True
+                stats['from_cache'] += 1
+                continue
+
             for plugin in self.plugins:
                 (plugin_name, plugin_object) = plugin
                 proto2_metric = plugin_object.upgrade_metric(metric)
@@ -267,6 +293,8 @@ class StructuredMetrics(object):
                                 stats['duplicate'] += 1
                                 self.logger.warn("proto 2 metric '%s' upgraded from both '%s' and '%s'", k, metric, targets[k]['id'])
                         targets[k] = v
+                        if cache is not None:
+                            cache[metric] = (k, v)
                         stats[plugin_name]['ok'] += 1
                         break
             if not found:
@@ -275,8 +303,11 @@ class StructuredMetrics(object):
         for plugin in self.plugins:
             plugin_name = plugin[0]
             self.logger.debug("%20s %20d %20d %20d", plugin_name, stats[plugin_name]['ok'], stats[plugin_name]['bad'], stats[plugin_name]['ign'])
+        self.logger.debug("metric upgrades from cache                   : %d", stats['from_cache'])
         self.logger.debug("duplicate yields ignored due to graphite bug : %d", stats['duplicate_ignored_graphite_bug'])
         self.logger.debug("real duplicate yields (check your plugins)   : %d", stats['duplicate'])
+        if cache:
+            cache.close()
         return targets
 
     def es_bulk(self, bulk_list):
