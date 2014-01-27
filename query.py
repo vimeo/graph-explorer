@@ -135,7 +135,11 @@ class Query(dict):
 
     @staticmethod
     def apply_graphite_function_to_target(target, funcname, *args):
-        target['target'] = "%s(%s)" % (funcname, ','.join([target['target']] + map(str, args)))
+        def format_arg(arg):
+            if isinstance(arg, basestring):
+                return '"%s"' % arg
+            return str(arg)
+        target['target'] = "%s(%s)" % (funcname, ','.join([target['target']] + map(format_arg, args)))
 
     @classmethod
     def graphite_function_applier(cls, funcname, *args):
@@ -192,7 +196,7 @@ class Query(dict):
     def apply_derivative_to_target(cls, target, scale=1, known_non_negative=False):
         wraparound = target['tags'].get('wraparound')
         if wraparound is not None:
-            cls.apply_graphite_function_to_target(target, 'nonNegativeDerivative', wraparound)
+            cls.apply_graphite_function_to_target(target, 'nonNegativeDerivative', int(wraparound))
         elif known_non_negative:
             cls.apply_graphite_function_to_target(target, 'nonNegativeDerivative')
         else:
