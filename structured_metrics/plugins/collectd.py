@@ -20,7 +20,7 @@ class CollectdPlugin(Plugin):
                 'configure': lambda self, target: self.fix_load(target)
             },
             {
-                'match': prefix + '(?P<server>[^\.]+)\.interface\.(?P<interface>[^\.]+)\.if_(?P<wt>[^\.]+)\.(?P<dir>[^\.]+)$',
+                'match': prefix + '(?P<server>[^\.]+)\.interface\.(?P<device>[^\.]+)\.if_(?P<wt>[^\.]+)\.(?P<dir>[^\.]+)$',
                 'target_type': 'counter',
                 'configure': [
                     lambda self, target: self.add_tag(target, 'collectd_plugin', 'network'),
