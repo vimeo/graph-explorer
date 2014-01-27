@@ -184,7 +184,10 @@ class Query(dict):
                 if scale != 1.0:
                     cls.apply_graphite_function_to_target(target, 'scale', scale)
                 if extra_op == 'integrate':
-                    cls.apply_graphite_function_to_target(target, 'integrate')
+                    # graphite assumes that anything you integrate is per minute.
+                    # hitcount assumes that incoming data is per second.
+                    cls.apply_graphite_function_to_target(target, 'hitcount', '1min')
+                    cls.apply_graphite_function_to_target(target, 'integral')
         return apply_requested_unit
 
     @classmethod

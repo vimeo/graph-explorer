@@ -255,7 +255,7 @@ def compat_simple_units(unitclass, base_unit=None):
 
 def determine_compatible_units(numer_base_unit, numer_unit_class, multiplier=1,
                                denom_base_unit=None, denom_unit_class=None,
-                               allow_derivation=True, allow_integration=False,
+                               allow_derivation=True, allow_integration=True,
                                allow_prefixes_in_denominator=False, **_other):
     """
     Return a dict mapping unit strings to 2-tuples. The keys are all the unit
