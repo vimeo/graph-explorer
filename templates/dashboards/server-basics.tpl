@@ -3,7 +3,7 @@
 %   'cpu total',  # TODO make this work with collectd, who doesn't return a total. we could do sum by core, but that's less efficient for diamond
 %   'mem unit=B !total !vmalloc group by type:swap',
 %   'stack network unit=b/s',
-%   'diskspace unit=B (free|used) group by mountpoint'
+%   'unit=B (free|used) group by =mountpoint'
 % ]
 % for query in queries :
     %include templates/snippet.graphs.minimal dash="server-basics", title=query, query=query

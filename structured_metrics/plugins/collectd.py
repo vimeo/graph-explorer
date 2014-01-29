@@ -36,6 +36,11 @@ class CollectdPlugin(Plugin):
                 ]
             },
             {
+                'match': prefix + '(?P<server>[^\.]+)\.df\.(?P<mountpoint>[^\.]+)\.df_complex\.(?P<type>[^\.]+)$',
+                'target_type': 'gauge',
+                'configure': lambda self, target: self.add_tag(target, 'unit', 'B')
+            },
+            {
                 'match': prefix + '(?P<server>[^\.]+)\.(?P<collectd_plugin>disk)\.(?P<device>[^\.]+)\.disk_(?P<wt>[^\.]+)\.(?P<operation>[^\.]+)$',
                 'configure': lambda self, target: self.fix_disk(target)
             }
