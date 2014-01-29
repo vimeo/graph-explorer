@@ -51,6 +51,12 @@ class OpenstackSwift(Plugin):
             'match': '^stats\.timers\.(?P<server>[^\.]+)\.(?P<service>object-auditor)\.(?P<http_method>[^\.]+)\.timing\.(?P<tosplit>[^\.]+)$',
             'configure': lambda self, target: self.parse_statsd_timer(target)
         },
+        # misc
+        {
+            'match': '^stats\.(?P<server>[^\.]+)\.(?P<service>[^\.]+)\.failures$',
+            'target_type': 'rate',
+            'configure': lambda self, target: self.add_tag(target, 'unit', 'Err/s')
+        }
     ]
 
     def sanitize(self, target):
