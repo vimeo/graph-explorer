@@ -1,7 +1,7 @@
 from . import Plugin
 
 
-class SwiftPlugin(Plugin):
+class DiamondOpenstackSwiftPlugin(Plugin):
 
     targets = [
         {
