@@ -18,7 +18,7 @@ graph_options = [
         {'state': 'stacked', 'suffixes': 'binary'}
     ],
     [
-        {'plugin': 'cpu'},
+        {'unit': 'Jiff'},
         {'state': 'stacked'}
     ],
     [
