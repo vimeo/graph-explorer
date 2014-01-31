@@ -135,6 +135,48 @@ def build_from_targets(targets, query, preferences):
             graph_config['targets_avg_candidates'] = {}
             graph_config['normal_targets'] = []
 
+            # process equivalence rules, see further down.
+            filter_candidates = {}
+            for tag, buckets in sum_by.items():
+
+                # first separate the individuals from the _sum_
+
+                filter_candidates[tag] = {}
+                for target in graph_config['targets']:
+                    # we can use agg_key to find out if they all have the same values
+                    # other than this one particular key
+                    key = target.get_agg_key({tag: buckets})
+                    if key not in filter_candidates[tag]:
+                            filter_candidates[tag][key] = {
+                                'individuals': []
+                            }
+                    if target['tags'].get(tag, '') == '_sum_':
+                        filter_candidates[tag][key]['_sum_'] = target
+                    else:
+                        filter_candidates[tag][key]['individuals'].append(target)
+
+                # for all agg keys that only have the '' bucket,
+                # if targets are identical except that some have tag
+                # foo={bar,baz,0,quux, ...} and one of them has foo=_sum_ and we're
+                # summing by that tag, and we didn't filter on foo,
+                # remove all the ones except the sum one
+
+                if len(buckets) == 1 and buckets[0] == '':
+                    if not Query.filtered_on(query, tag):
+                        for key in filter_candidates[tag].keys():
+                            if '_sum_' in filter_candidates[tag][key]:
+                                for i in filter_candidates[tag][key]['individuals']:
+                                    graph_config['targets'].remove(i)
+
+                # if we are summing, and we have a filter, and we have individual ones and a _sum_, remove the _sum_
+                # irrespective of buckets.  note that this removes the _sum_ target without the user needing to filter it out explicitly
+                # this is the only place we do that, but it makes sense.  we wouldn't want users to specify the _sum_ removal explicitly
+                # all the time, esp for multiple tag keys
+                if Query.filtered_on(query, tag):
+                    for key in filter_candidates[tag].keys():
+                        if '_sum_' in filter_candidates[tag][key]:
+                            graph_config['targets'].remove(filter_candidates[tag][key]['_sum_'])
+
             for target in graph_config['targets']:
                 sum_id = target.get_agg_key(sum_by)
                 if sum_id:

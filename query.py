@@ -266,6 +266,17 @@ class Query(dict):
     ''', re.X)
 
     @classmethod
+    def filtered_on(cls, query, tag):
+        """
+        does the given query filter on given tag? if so return first filter
+        """
+        # ! this assumes the ast is in the simple format without nests etc.
+        for cond in query['ast']:
+            if cond[0].startswith('match_tag') and cond[1] == tag:
+                return cond
+        return False
+
+    @classmethod
     def build_ast(cls, patterns):
         # prepare higher performing query structure, to later match objects
         """

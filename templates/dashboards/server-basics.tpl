@@ -1,6 +1,8 @@
+% # one template to show your server stats. ideally all agents report their metrics in such a way that
+% # the same abstract queries can be used irrespective of plugin used
 %include templates/snippet.apply_all default_value=(apply_all_from_url or "server=fill_in_servername")
 % queries = [
-%   'cpu total',  # TODO make this work with collectd, who doesn't return a total. we could do sum by core, but that's less efficient for diamond
+%   'cpu sum by core',
 %   'mem unit=B !total !vmalloc group by type:swap',
 %   'stack network unit=b/s',
 %   'unit=B (free|used) group by =mountpoint'

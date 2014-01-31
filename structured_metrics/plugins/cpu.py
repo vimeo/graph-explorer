@@ -15,4 +15,8 @@ class CpuPlugin(Plugin):
         }
     ]
 
+    def default_configure_target(self, target):
+        if target['tags']['core'] == 'total':
+            target['tags']['core'] = '_sum_'
+
 # vim: ts=4 et sw=4:
