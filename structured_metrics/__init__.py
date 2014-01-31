@@ -154,9 +154,10 @@ class StructuredMetrics(object):
 
     def __init__(self, config=None, logger=logging):
         self.plugins = []
-        if hasattr(config, 'es_host') and hasattr(config, 'es_port'):
+        if hasattr(config, 'es_host') and hasattr(config, 'es_port') and hasattr(config, 'es_index'):
             es_host = config.es_host.replace('http://', '').replace('https://', '')
             self.es = Elasticsearch([{"host": es_host, "port": config.es_port}])
+            self.es_index = config.es_index
         self.logger = logger
         self.config = config
 
@@ -269,7 +270,7 @@ class StructuredMetrics(object):
         if not len(bulk_list):
             return
         body = '\n'.join(map(json.dumps, bulk_list)) + '\n'
-        self.es.bulk(index='graphite_metrics', doc_type='metric', body=body)
+        self.es.bulk(index=self.es_index, doc_type='metric', body=body)
 
     def assure_index(self):
         body = {
@@ -288,7 +289,7 @@ class StructuredMetrics(object):
         }
         self.logger.debug("making sure index exists..")
         try:
-            self.es.indices.create(index='graphite_metrics', body=body)
+            self.es.indices.create(index=self.es_index, body=body)
         except TransportError, e:
             if 'IndexAlreadyExistsException' in e[1]:
                 pass
@@ -297,7 +298,7 @@ class StructuredMetrics(object):
 
         self.logger.debug("making sure shard is started..")
         # not sure what happens when this times out, an exception maybe?
-        self.es.cluster.health(index='graphite_metrics', wait_for_status='yellow')
+        self.es.cluster.health(index=self.es_index, wait_for_status='yellow')
         self.logger.debug("shard is ready!")
 
     def remove_metrics_not_in(self, metrics):
@@ -342,7 +343,7 @@ class StructuredMetrics(object):
 
     def count_metrics(self):
         self.assure_index()
-        ret = self.es.count(index='graphite_metrics', doc_type='metric')
+        ret = self.es.count(index=self.es_index, doc_type='metric')
         return ret['count']
 
     def get_metrics(self, query=None, size=1000):
@@ -350,7 +351,7 @@ class StructuredMetrics(object):
         self.logger.debug("Sending query to ES: %r", query)
         if query is None:
             query = query_all
-        return self.es.search(index='graphite_metrics', doc_type='metric', size=size, body={
+        return self.es.search(index=self.es_index, doc_type='metric', size=size, body={
             "query": query,
         })
 
@@ -359,7 +360,7 @@ class StructuredMetrics(object):
         try:
             if query is None:
                 query = query_all
-            d = self.es.search(index='graphite_metrics', doc_type='metric', size=size,
+            d = self.es.search(index=self.es_index, doc_type='metric', size=size,
                                search_type='scan', scroll='10m', body={"query": query})
             scroll_id = d['_scroll_id']
             d = None
@@ -372,7 +373,7 @@ class StructuredMetrics(object):
 
     def get(self, metric_id):
         self.assure_index()
-        return self.es.get(index='graphite_metrics', doc_type='metric', id=metric_id)
+        return self.es.get(index=self.es_index, doc_type='metric', id=metric_id)
 
     def matching(self, query):
         self.assure_index()

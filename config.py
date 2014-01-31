@@ -29,6 +29,7 @@ metric_plugin_dirs = ('**builtins**',)
 # you typically run an ES on the same host as GE.
 es_host = "localhost"
 es_port = 9200
+es_index = 'graphite_metrics2'
 # irrespective of 'limit', never get more metrics than this from ES:
 limit_es_metrics = 10000
 
