@@ -240,26 +240,12 @@ class StructuredMetrics(object):
                         break
                     (k, v) = proto2_metric
                     tags = v['tags']
-                    if 'target_type' not in tags or ('unit' not in tags and 'what' not in tags):
+                    if 'target_type' not in tags and 'unit' not in tags:
                         stats[plugin_name]['bad'] += 1
                         self.logger.warn("metric '%s' doesn't have the mandatory tags "
-                                         "('target_type' and either 'unit' or 'what').  "
+                                         "('target_type' and 'unit').  "
                                          "ignoring it...", v)
                     else:
-                        # old style tags: what, target_type
-                        # new style: unit, (and target_type, for now)
-                        # automatically convert
-                        if 'unit' not in tags and 'what' in tags:
-                            convert = {
-                                'bytes': 'B',
-                                'bits': 'b'
-                            }
-                            unit = convert.get(tags['what'], tags['what'])
-                            if tags['target_type'] is 'rate':
-                                v['tags']['unit'] = '%s/s' % unit
-                            else:
-                                v['tags']['unit'] = unit
-                            del v['tags']['what']
                         if k in targets:
                             if metric + '.' == targets[k]['id'] or targets[k]['id'] + '.' == metric:
                                 stats['duplicate_ignored_graphite_bug'] += 1
@@ -271,10 +257,10 @@ class StructuredMetrics(object):
                         break
             if not found:
                 self.logger.warn("metric '%s' is not succesfully upgraded by any of your plugins. this is very unusual", metric)
-        self.logger.debug("%20s %20s %20s %20s", "plugin name", "metrics upgrade ok", "metrics upgrade bad", "metrics ignored")
+        self.logger.debug("%30s %20s %20s %20s", "plugin name", "metrics upgrade ok", "metrics upgrade bad", "metrics ignored")
         for plugin in self.plugins:
             plugin_name = plugin[0]
-            self.logger.debug("%20s %20d %20d %20d", plugin_name, stats[plugin_name]['ok'], stats[plugin_name]['bad'], stats[plugin_name]['ign'])
+            self.logger.debug("%30s %20d %20d %20d", plugin_name, stats[plugin_name]['ok'], stats[plugin_name]['bad'], stats[plugin_name]['ign'])
         self.logger.debug("duplicate yields ignored due to graphite bug : %d", stats['duplicate_ignored_graphite_bug'])
         self.logger.debug("real duplicate yields (check your plugins)   : %d", stats['duplicate'])
         return targets

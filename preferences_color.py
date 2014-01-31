@@ -142,7 +142,7 @@ def apply_colors(graph):
     # with the same tags show up on the same graph
     rules_unique_tags = [
         [
-            {'unit': 'cpu_state'},
+            {'what': 'cpu_usage'},
             {
                 'type': {
                     'idle': colors['green'][0],

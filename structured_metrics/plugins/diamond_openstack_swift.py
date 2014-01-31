@@ -22,7 +22,7 @@ class DiamondOpenstackSwiftPlugin(Plugin):
 
         if 'wt' in target['tags']:
             if target['tags']['wt'] == 'bytes':
-                target['tags']['what'] = 'bytes'
+                target['tags']['unit'] = 'B'
                 target['tags']['type'] = 'used'
             if target['tags']['wt'] == 'objects':
                 target['tags']['what'] = 'objects'

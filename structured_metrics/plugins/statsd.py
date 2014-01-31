@@ -26,7 +26,7 @@ class StatsdPlugin(Plugin):
         #    'target_type': 'count',
         #    'configure': [
         #        lambda self, target: {'target': 'sumSeries(%s)' % ','.join(['stats.timers.%s.count' % infix for infix in ['*', '*.*', '*.*.*', '*.*.*.*', '*.*.*.*.*']])},
-        #        lambda self, target: self.add_tag(target, 'what', 'Pckt'),
+        #        lambda self, target: self.add_tag(target, 'unit', 'Pckt'),
         #        lambda self, target: self.add_tag(target, 'type', 'received_timer'),
         #    ]
         #}

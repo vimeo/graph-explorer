@@ -22,7 +22,7 @@ class IostatPlugin(Plugin):
         # plugin or /proc/diskstats.
         sanitizer = {
             'average_queue_length': ('iops', 'in queue'),
-            'average_request_size_byte': ('bytes', 'iop avg size'),
+            'average_request_size_byte': ('B', 'iop avg size'),
             'await': ('ms', 'iop service time'),
             'concurrent_io': ('iops', 'concurrent'),
             'io': ('io', None),
@@ -31,30 +31,30 @@ class IostatPlugin(Plugin):
             'io_milliseconds_weighted': ('ms_weighted', 'io'),
             'iops': ('iops', None),
             'read_await': ('ms', 'read service time'),
-            'read_byte': ('bytes', 'read'),
-            'read_byte_per_second': ('bytes', 'read'),
+            'read_byte': ('B', 'read'),
+            'read_byte_per_second': ('B', 'read'),
             'read_requests_merged': ('read_requests', 'merged'),
             'read_requests_merged_per_second': ('read_requests', 'merged'),
             'reads': ('reads', None),
-            'reads_byte': ('bytes', 'read'),
+            'reads_byte': ('B', 'read'),
             'reads_merged': ('reads', 'merged'),
             'reads_milliseconds': ('ms', 'spent reading'),
             'reads_per_second': ('reads', None),
             'service_time': ('ms', 'service time'),
             'util_percentage': ('utilisation', None, 'pct'),
             'write_await': ('ms', 'write service time'),
-            'write_byte': ('bytes', 'written'),
-            'write_byte_per_second': ('bytes', 'written'),
+            'write_byte': ('B', 'written'),
+            'write_byte_per_second': ('B', 'written'),
             'write_requests_merged': ('write_requests', 'merged'),
             'write_requests_merged_per_second': ('write_requests', 'merged'),
             'writes': ('writes', None),
-            'writes_byte': ('bytes', 'written'),
+            'writes_byte': ('B', 'written'),
             'writes_merged': ('writes', 'merged'),
             'writes_milliseconds': ('ms', 'spent writing'),
             'writes_per_second': ('writes', None)
         }
         wt = target['tags']['wt']
-        target['tags']['what'] = sanitizer[wt][0]
+        target['tags']['unit'] = sanitizer[wt][0]
         if sanitizer[wt][1] is not None:
             target['tags']['type'] = sanitizer[wt][1]
         if len(sanitizer[wt]) > 2:

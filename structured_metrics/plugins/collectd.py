@@ -12,7 +12,10 @@ class CollectdPlugin(Plugin):
             {
                 'match': prefix + '(?P<server>[^\.]+)\.(?P<collectd_plugin>cpu)\.(?P<core>[^\.]+)\.cpu\.(?P<type>[^\.]+)$',
                 'target_type': 'gauge_pct',
-                'configure': lambda self, target: self.add_tag(target, 'unit', 'Jiff')
+                'configure': [
+                    lambda self, target: self.add_tag(target, 'unit', 'Jiff'),
+                    lambda self, target: self.add_tag(target, 'what', 'cpu_usage')
+                ]
             },
             {
                 'match': prefix + '(?P<server>.+?)\.(?P<collectd_plugin>load)\.load\.(?P<wt>.*)$',

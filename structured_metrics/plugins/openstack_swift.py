@@ -37,12 +37,12 @@ class OpenstackSwift(Plugin):
             ]
         },
         {
-            'match': '^stats_counts\.(?P<server>[^\.]+)\.(?P<service>object-server)\.?(?P<http_method>[^\.]*)\.(?P<what>async_pendings|errors|timeouts)$',
+            'match': '^stats_counts\.(?P<server>[^\.]+)\.(?P<service>object-server)\.?(?P<http_method>[^\.]*)\.(?P<unit>async_pendings|errors|timeouts)$',
             'target_type': 'count',
             'configure': lambda self, target: self.add_tag(target, 'swift_type', 'object')
         },
         {
-            'match': '^stats\.(?P<server>[^\.]+)\.(?P<service>object-server)\.?(?P<http_method>[^\.]*)\.(?P<what>async_pendings|errors|timeouts)$',
+            'match': '^stats\.(?P<server>[^\.]+)\.(?P<service>object-server)\.?(?P<http_method>[^\.]*)\.(?P<unit>async_pendings|errors|timeouts)$',
             'target_type': 'rate',
             'configure': lambda self, target: self.add_tag(target, 'swift_type', 'object')
         },
@@ -63,15 +63,15 @@ class OpenstackSwift(Plugin):
         if 'wt' not in target['tags']:
             return
         sanitizer = {
-            'xfer': ('bytes', 'transferred'),
-            'errors': ('errors', None),
+            'xfer': ('B', 'transferred'),
+            'errors': ('Err', None),
             'handoff_count': ('handoffs', 'node'),
             'handoff_all_count': ('handoffs', 'only hand-off locations'),
             'client_disconnects': ('disconnects', 'client'),
             'client_timeouts': ('timeouts', 'client')
         }
         wt = target['tags']['wt']
-        target['tags']['what'] = sanitizer[wt][0]
+        target['tags']['unit'] = sanitizer[wt][0]
         if sanitizer[wt][1] is not None:
             target['tags']['type'] = sanitizer[wt][1]
         del target['tags']['wt']

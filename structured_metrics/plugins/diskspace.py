@@ -10,10 +10,12 @@ class DiskspacePlugin(Plugin):
     ]
 
     def sanitize(self, target):
-        (what, mtype) = target['tags']['wwt'].split('_')
-        if what == 'byte':
-            what = 'bytes'
-        target['tags']['what'] = what
+        (u, mtype) = target['tags']['wwt'].split('_')
+        units = {
+            'byte': 'B',
+            'inodes': 'Ino'
+        }
+        target['tags']['unit'] = units[u]
         target['tags']['type'] = mtype
         del target['tags']['wwt']
 

@@ -6,17 +6,17 @@ class UdpPlugin(Plugin):
         {
             'targets': [
                 {
-                    'match': '^servers\.(?P<server>[^\.]+)\.(?P<protocol>udp)\.(?P<type>In|Out)(?P<what>Datagrams)$',
-                    'configure': lambda self, target: self.fix_underscores(target, ['type', 'what'])
+                    'match': '^servers\.(?P<server>[^\.]+)\.(?P<protocol>udp)\.(?P<type>In|Out)(?P<unit>Datagrams)$',
+                    'configure': lambda self, target: self.fix_underscores(target, ['type', 'unit'])
                 },
                 {
-                    'match': '^servers\.(?P<server>[^\.]+)\.(?P<protocol>udp)\.(?P<type>[^\.]+)(?P<what>Errors)$',
-                    'configure': lambda self, target: self.fix_underscores(target, ['type', 'what'])
+                    'match': '^servers\.(?P<server>[^\.]+)\.(?P<protocol>udp)\.(?P<type>[^\.]+)(?P<unit>Errors)$',
+                    'configure': lambda self, target: self.fix_underscores(target, ['type', 'unit'])
                 },
                 {
                     'match': '^servers\.(?P<server>[^\.]+)\.(?P<protocol>udp)\.(?P<type>NoPorts)$',
                     'configure': [
-                        lambda self, target: self.add_tag(target, 'what', 'udp_events'),
+                        lambda self, target: self.add_tag(target, 'unit', 'Event'),
                         lambda self, target: self.fix_underscores(target, 'type')
                     ]
                 }

@@ -8,7 +8,7 @@ class TcpPlugin(Plugin):
             'target_type': 'rate',
             'configure': [
                 lambda self, target: self.fix_underscores(target, 'type'),
-                lambda self, target: self.add_tag(target, 'what', 'events'),
+                lambda self, target: self.add_tag(target, 'unit', 'Event'),
             ]
         }
     ]
