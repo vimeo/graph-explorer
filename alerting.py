@@ -158,13 +158,12 @@ class Db():
 
 
 def check_graphite(target, config):
-    url = urljoin(config.graphite_url_server, "/render/?from=-2minutes&format=json")
+    url = urljoin(config.graphite_url_server, "/render/?from=-3minutes&format=json")
     values = {'target': target}
     data = urllib.urlencode(values)
     req = urllib2.Request(url, data)
     response = urllib2.urlopen(req)
     json_data = json.load(response)
-    assert len(json_data) < 2
     if not len(json_data):
         raise Exception("graphite did not return data for %s" % target)
     # get the last non-null value
