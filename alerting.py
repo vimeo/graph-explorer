@@ -80,7 +80,7 @@ class Rule():
         last = db.get_last_notifications(self.row_id)
         if last:
             # don't report what we reported last
-            if last[-1]['status'] == status:
+            if last[0]['status'] == status:
                 return False
             # don't send any message if we've sent more than 10 in the backoff interval
             if len(last) == 10 and last[-1]['timestamp'] >= now - config.alert_backoff:
