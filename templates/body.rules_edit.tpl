@@ -1,9 +1,11 @@
+% setdefault('expr', '')
 %from urlparse import urljoin
 <div class="container-fluid">
     %include templates/snippet.errors errors=errors
     <div class="row">
-        <h2>Add Rule</h2>
-        <form class="form-horizontal span6" action="/rules/add" method="post">
+        <h2>Edit Rule</h2>
+        <form class="form-horizontal span6" action="/rules/edit" method="post">
+            {{!form.Id()}}
             %include templates/input form=form, field='alias'
             %include templates/input form=form, field='expr', args={'rows': 10}
             %include templates/input form=form, field='val_warn', args={'placeholder': 'value to trigger warning at'}

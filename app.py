@@ -1,6 +1,8 @@
 #!/usr/bin/env python2
 from bottle import route, template, request, static_file, response, hook, BaseTemplate, post, redirect
 import config
+import sys
+import os
 import preferences
 from urlparse import urljoin
 import structured_metrics
@@ -12,7 +14,8 @@ from query import Query
 
 import logging
 import traceback
-from alerting import Db, Rule
+from alerting import Db, rule_from_form
+sys.path.append("%s/%s" % (os.path.dirname(os.path.realpath(__file__)), 'wtforms'))
 
 
 # contains all errors as key:(title,msg) items.
@@ -146,6 +149,21 @@ def graphs_minimal(query=''):
 def graphs_minimal_deps(query=''):
     return handle_graphs_minimal(query, True)
 
+from wtforms import Form, BooleanField, StringField, validators, DecimalField, TextAreaField, HiddenField
+
+
+class RuleAddForm(Form):
+    alias = StringField('Alias')
+    expr = TextAreaField('Expression', [validators.Length(min=5)])
+    val_warn = DecimalField('Value warning')
+    val_crit = DecimalField('Value critical')  # TODO at some point validate that val_warn != val_crit
+    active = BooleanField('Active')
+    dest = StringField('Destination (e.g. email address)', [validators.Length(min=2)])
+
+
+class RuleEditForm(RuleAddForm):
+    Id = HiddenField()
+
 
 @route('/rules')
 @route('/rules/')
@@ -163,31 +181,72 @@ def rules_list():
     return render_page(body, 'rules')
 
 
+@route('/rules/edit/<Id>')
+@post('/rules/edit')
+def rules_edit(Id=None):
+    db = Db(config.alerting_db)
+    if Id is not None:
+        rule = db.get_rule(int(Id))
+    else:
+        rule = db.get_rule(int(request.forms['Id']))
+    form = RuleEditForm(request.forms, rule)
+    if request.method == 'POST' and form.validate():
+        try:
+            if 'rules_add' in errors:
+                del errors['rules_add']
+            form.populate_obj(rule)
+            db = Db(config.alerting_db)
+            db.edit_rule(rule)
+        except Exception, e:  # pylint: disable=W0703
+            errors["rules_add"] = ("Couldn't add rule: %s" % e, traceback.format_exc())
+        return redirect('/rules')
+    args = {'errors': errors,
+            'form': form
+            }
+    body = template('templates/body.rules_edit', args)
+    return render_page(body, 'rules_edit')
+
+
 @route('/rules/add')
 @route('/rules/add/')
 @route('/rules/add/<expr>')
+@post('/rules/add')
 def rules_add(expr=''):
+    form = RuleAddForm(request.forms)
+    if request.method == 'GET':
+        form.expr.data = expr
+    if request.method == 'POST' and form.validate():
+        try:
+            if 'rules_add' in errors:
+                del errors['rules_add']
+            rule = rule_from_form(form)
+            db = Db(config.alerting_db)
+            db.add_rule(rule)
+        except Exception, e:  # pylint: disable=W0703
+            errors["rules_add"] = ("Couldn't add rule: %s" % e, traceback.format_exc())
+        return redirect('/rules')
     args = {'errors': errors,
-            'expr': expr,
+            'form': form
             }
     body = template('templates/body.rules_add', args)
     return render_page(body, 'rules_add')
 
 
-@post('/rules/add')
-def rules_add_submit():
-    expr = request.forms.get('expr')
-    val_warn = float(request.forms.get('val_warn'))
-    val_crit = float(request.forms.get('val_crit'))
-    dest = request.forms.get('dest')
-    if 'rules_add' in errors:
-        del errors['rules_add']
+@route('/rules/view/<Id>')
+def rules_view(Id):
+    db = Db(config.alerting_db)
+    rule = db.get_rule(int(Id))
+    body = template('templates/body.rule', errors=errors, rule=rule)
+    return render_page(body)
+
+
+@route('/rules/delete/<Id>')
+def rules_delete(Id):
+    db = Db(config.alerting_db)
     try:
-        rule = Rule(None, expr, val_warn, val_crit, dest)
-        db = Db(config.alerting_db)
-        db.add_rule(rule)
+        db.delete_rule(int(Id))
     except Exception, e:  # pylint: disable=W0703
-        errors["rules_add"] = ("Couldn't add rule: %s" % e, traceback.format_exc())
+        errors["rules_delete"] = ("Couldn't delete rule: %s" % e, traceback.format_exc())
     if errors:
         body = template('templates/snippet.errors', errors=errors)
         return render_page(body)

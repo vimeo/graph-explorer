@@ -11,19 +11,28 @@ import graphs as g
 
 
 class Rule():
-    def __init__(self, rowid, expr, val_warn, val_crit, dest):
-        self.row_id = rowid
+    def __init__(self, Id, alias, expr, val_warn, val_crit, dest, active):
+        self.Id = Id
+        self.alias = alias
         self.expr = expr
         self.val_warn = val_warn
         self.val_crit = val_crit
         self.dest = dest
-        self.validate()
+        self.active = active
 
     def __str__(self):
-        return "Rule id=%d expr=%s val_warn=%f, val_crit=%f, dest=%s" % (self.row_id, self.expr, self.val_warn, self.val_crit, self.dest)
+        return "Rule %s (id %d)" % (self.name(), self.Id)
 
-    def validate(self):
-        assert self.val_warn != self.val_crit
+    def name(self):
+        return self.alias if self.alias else self.expr
+
+    def is_geql(self):
+        return " " in self.expr
+
+    def clean_form(self):
+        self.Id = int(self.Id)
+        self.val_warn = float(self.val_warn)
+        self.val_crit = float(self.val_crit)
 
     def check_values(self, config, s_metrics, preferences):
         worst = 0
@@ -77,7 +86,7 @@ class Rule():
         if config.alert_cmd is None:
             return False
         now = int(time.time())
-        last = db.get_last_notifications(self.row_id)
+        last = db.get_last_notifications(self.Id)
         if last:
             # don't report what we reported last
             if last[0]['status'] == status:
@@ -125,28 +134,37 @@ class Db():
 
     def save_notification(self, rule, timestamp, status):
         self.assure_db()
-        self.cursor.execute("INSERT INTO notifications (rule_id, timestamp, status) VALUES (?,?,?)", (rule.row_id, timestamp, status))
+        self.cursor.execute("INSERT INTO notifications (rule_id, timestamp, status) VALUES (?,?,?)", (rule.Id, timestamp, status))
         self.conn.commit()
 
     def add_rule(self, rule):
-        """
-        can raise sqlite3 exceptions and any other exception means something's wrong with the data
-        """
         self.assure_db()
-        self.cursor.execute("INSERT INTO rules (expr, val_warn, val_crit, dest) VALUES (?,?,?,?)", (rule.expr, rule.val_warn, rule.val_crit, rule.dest))
+        self.cursor.execute(
+            "INSERT INTO rules (alias, expr, val_warn, val_crit, active, dest) VALUES (?,?,?,?,?,?)",
+            (rule.alias, rule.expr, rule.val_warn, rule.val_crit, rule.active, rule.dest)
+        )
         self.conn.commit()
         return self.cursor.lastrowid
 
-    def delete_rule(self, rule_id):
+    def delete_rule(self, Id):
         # note, this doesn't check if the rule existed in the first place..
-        assert type(rule_id) is IntType or rule_id.isdigit(), "rule_id must be an integer: %r" % rule_id
+        assert type(Id) is IntType or Id.isdigit(), "Id must be an integer: %r" % Id
         self.assure_db()
-        self.cursor.execute("DELETE FROM rules WHERE ROWID == " + str(rule_id))
+        self.cursor.execute("DELETE FROM rules WHERE ROWID == " + str(Id))
+        self.conn.commit()
+
+    def edit_rule(self, rule):
+        self.assure_db()
+        rule.clean_form()
+        self.cursor.execute(
+            "UPDATE rules SET alias = ?, expr = ?, val_warn = ?, val_crit = ?, active = ?, dest = ? WHERE id = ?",
+            (rule.alias, rule.expr, rule.val_warn, rule.val_crit, rule.active, rule.dest, rule.Id)
+        )
         self.conn.commit()
 
     def get_rules(self, metric_id=None):
         self.assure_db()
-        query = 'SELECT id, expr, val_warn, val_crit, dest FROM rules'
+        query = 'SELECT id, alias, expr, val_warn, val_crit, dest, active FROM rules'
         if metric_id is not None:
             query += " where expr like '%%%s%%'"
         self.cursor.execute(query)
@@ -155,6 +173,25 @@ class Db():
         for row in rows:
             rules.append(Rule(*row))
         return rules
+
+    def get_rule(self, Id):
+        self.assure_db()
+        query = 'SELECT id, alias, expr, val_warn, val_crit, dest, active FROM rules where id = ?'
+        self.cursor.execute(query, (Id,))
+        row = self.cursor.fetchone()
+        rule = Rule(*row)
+        return rule
+
+
+def rule_from_form(form):
+    alias = form.alias.data
+    expr = form.expr.data
+    val_warn = float(form.val_warn.data)
+    val_crit = float(form.val_crit.data)
+    active = form.active.data
+    dest = form.dest.data
+    rule = Rule(None, alias, expr, val_warn, val_crit, dest, active)
+    return rule
 
 
 def check_graphite(target, config):

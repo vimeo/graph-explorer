@@ -33,6 +33,7 @@
     <link rel="apple-touch-icon-precomposed" href="{{root}}assets/ico/apple-touch-icon-57-precomposed.png">
     <script src="{{root}}assets/js/jquery-1.7.2.js"></script>
     <script src="{{root}}assets/js/bootstrap.js"></script>
+    <script src="{{root}}assets/js/bootbox.js"></script>
 %include templates/snippet.graph-deps
   </head>
 
