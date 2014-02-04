@@ -21,10 +21,10 @@ msg_codes = ['OK', 'WARN', 'CRITICAL', 'UNKNOWN']
 
 for rule in rules:
     content = [
-        "==== %s ====" % rule.expr,
+        "==== %s ====" % rule.name(),
         " val_warn: %f" % rule.val_warn,
         " val_crit: %f" % rule.val_crit,
-        " dest    : %s" % rule.dest
+        "\nCurrent value(s):\n"
     ]
     print "\n".join(content)
 
@@ -36,11 +36,13 @@ for rule in rules:
         rule.notify_maybe(db, 3, "Could not process your rule", content, config)
         continue
     for (target, value, code) in results:
-        line = " * %s %s %s" % (target, value, msg_codes[code])
+        line = " * %s value %s --> status %s" % (target, value, msg_codes[code])
         print line
         content.append(line)
 
-    subject = "%s is %s" % (rule.expr, msg_codes[worst])
+    content.append("\n\nThis email is sent to %s" % rule.dest)
+
+    subject = "%s is %s" % (rule.name(), msg_codes[worst])
     sent = rule.notify_maybe(db, worst, subject, "\n".join(content), config)
     if sent:
         print "sent notification!"
