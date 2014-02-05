@@ -1,4 +1,5 @@
 post v1.2.0 upgrade:
 (this is harmless to run, so when in doubt just run it to be safe)
 echo "alter table rules add column active bool not null default 0;" | sqlite3 alerting.db
+echo "alter table rules add column warn_on_null bool not null default 0;" | sqlite3 alerting.db
 echo "alter table rules add column alias text not null default '';" | sqlite3 alerting.db

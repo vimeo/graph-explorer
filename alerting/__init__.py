@@ -13,7 +13,7 @@ msg_codes = ['OK', 'WARN', 'CRITICAL', 'UNKNOWN']
 
 
 class Rule():
-    def __init__(self, Id, alias, expr, val_warn, val_crit, dest, active):
+    def __init__(self, Id, alias, expr, val_warn, val_crit, dest, active, warn_on_null):
         self.Id = Id
         self.alias = alias
         self.expr = expr
@@ -21,6 +21,7 @@ class Rule():
         self.val_crit = val_crit
         self.dest = dest
         self.active = active
+        self.warn_on_null = warn_on_null
         self.results = None
 
     def __str__(self):
@@ -99,6 +100,8 @@ class Result():
         self.body = []
 
     def to_report(self):
+        if self.status == 3 and not self.rule.warn_on_null:
+            return False
         last = self.db.get_last_notifications(self.rule.Id)
         if last:
             # don't report what we reported last
@@ -126,10 +129,13 @@ class Db():
                 (id integer primary key autoincrement, rule_id integer, timestamp int, status int)""")
         self.exists = True
 
-    def get_last_notifications(self, rule_id):
+    def get_last_notifications(self, rule):
         self.assure_db()
-        query = 'SELECT timestamp, status from notifications where rule_id == ? order by timestamp desc limit 10'
-        self.cursor.execute(query, (rule_id,))
+        not_null = ''
+        if not rule.warn_on_null:
+            not_null = 'and status != 3'
+        query = 'SELECT timestamp, status from notifications where rule_id == ? %s order by timestamp desc limit 10' % not_null
+        self.cursor.execute(query, (rule.Id,))
         rows = self.cursor.fetchall()
         notifications = []
         for row in rows:
@@ -150,8 +156,8 @@ class Db():
     def add_rule(self, rule):
         self.assure_db()
         self.cursor.execute(
-            "INSERT INTO rules (alias, expr, val_warn, val_crit, active, dest) VALUES (?,?,?,?,?,?)",
-            (rule.alias, rule.expr, rule.val_warn, rule.val_crit, rule.active, rule.dest)
+            "INSERT INTO rules (alias, expr, val_warn, val_crit, dest, active, warn_on_null) VALUES (?,?,?,?,?,?,?)",
+            (rule.alias, rule.expr, rule.val_warn, rule.val_crit, rule.dest, rule.active, rule.warn_on_null)
         )
         self.conn.commit()
         return self.cursor.lastrowid
@@ -167,14 +173,14 @@ class Db():
         self.assure_db()
         rule.clean_form()
         self.cursor.execute(
-            "UPDATE rules SET alias = ?, expr = ?, val_warn = ?, val_crit = ?, active = ?, dest = ? WHERE id = ?",
-            (rule.alias, rule.expr, rule.val_warn, rule.val_crit, rule.active, rule.dest, rule.Id)
+            "UPDATE rules SET alias = ?, expr = ?, val_warn = ?, val_crit = ?, dest = ?, active = ?, warn_on_null = ? WHERE id = ?",
+            (rule.alias, rule.expr, rule.val_warn, rule.val_crit, rule.dest, rule.active, rule.warn_on_null, rule.Id)
         )
         self.conn.commit()
 
     def get_rules(self, metric_id=None):
         self.assure_db()
-        query = 'SELECT id, alias, expr, val_warn, val_crit, dest, active FROM rules'
+        query = 'SELECT id, alias, expr, val_warn, val_crit, dest, active, warn_on_null FROM rules'
         if metric_id is not None:
             query += " where expr like '%%%s%%'"
         self.cursor.execute(query)
@@ -186,7 +192,7 @@ class Db():
 
     def get_rule(self, Id):
         self.assure_db()
-        query = 'SELECT id, alias, expr, val_warn, val_crit, dest, active FROM rules where id = ?'
+        query = 'SELECT id, alias, expr, val_warn, val_crit, dest, active, warn_on_null FROM rules where id = ?'
         self.cursor.execute(query, (Id,))
         row = self.cursor.fetchone()
         rule = Rule(*row)
@@ -198,9 +204,10 @@ def rule_from_form(form):
     expr = form.expr.data
     val_warn = float(form.val_warn.data)
     val_crit = float(form.val_crit.data)
-    active = form.active.data
     dest = form.dest.data
-    rule = Rule(None, alias, expr, val_warn, val_crit, dest, active)
+    active = form.active.data
+    warn_on_null = form.warn_on_null.data
+    rule = Rule(None, alias, expr, val_warn, val_crit, dest, active, warn_on_null)
     return rule
 
 

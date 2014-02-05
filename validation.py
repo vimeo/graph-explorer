@@ -86,8 +86,9 @@ class RuleAddForm(Form):
     expr = TextAreaField('Expression', [validators.Length(min=5)])
     val_warn = DecimalField('Value warning')
     val_crit = DecimalField('Value critical')  # TODO at some point validate that val_warn != val_crit
-    active = BooleanField('Active')
     dest = StringField('Destination (e.g. email address)', [validators.Length(min=2)])
+    active = BooleanField('Active')
+    warn_on_null = BooleanField('Warn on null')
 
 
 class RuleEditForm(RuleAddForm):

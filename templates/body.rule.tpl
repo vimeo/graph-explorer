@@ -17,10 +17,11 @@
                 <dt>Edit</dt><dd><a href="{{root}}rules/edit/{{rule.Id}}"><i class="icon-pencil icon-white"></i></a></dd>
                 <dt>Alias</dt><dd>{{rule.alias}}&nbsp;</dd>
                 <dt>Expr</dt><dd>{{rule.expr}}</dd>
-                <dt>Active</dt><dd>{{'Y' if rule.active else 'N'}}</dd>
                 <dt>Value warn</dt><dd>{{rule.val_warn}}</dd>
                 <dt>Value crit</dt><dd>{{rule.val_crit}}</dd>
                 <dt>Destination</dt><dd>{{rule.dest}}</dd>
+                <dt>Active</dt><dd>{{'Y' if rule.active else 'N'}}</dd>
+                <dt>Warn on null</dt><dd>{{'Y' if rule.warn_on_null else 'N'}}</dd>
             </dl>
             <div class="dl-horizontal span12">
                     % if rule.is_geql():
