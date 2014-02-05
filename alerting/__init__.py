@@ -4,10 +4,12 @@ import urllib2
 from urlparse import urljoin
 import json
 import time
-import subprocess
 import sqlite3
 from query import Query
 import graphs as g
+
+
+msg_codes = ['OK', 'WARN', 'CRITICAL', 'UNKNOWN']
 
 
 class Rule():
@@ -19,6 +21,7 @@ class Rule():
         self.val_crit = val_crit
         self.dest = dest
         self.active = active
+        self.results = None
 
     def __str__(self):
         return "Rule %s (id %d)" % (self.name(), self.Id)
@@ -61,6 +64,7 @@ class Rule():
             results.append((target, value, code))
             if code > worst:
                 worst = code
+        self.results = results
         return results, worst
 
     def check(self, value):
@@ -82,28 +86,31 @@ class Rule():
                 return 1
             return 2
 
-    def notify_maybe(self, db, status, subject, content, config):
-        if config.alert_cmd is None:
-            return False
-        now = int(time.time())
-        last = db.get_last_notifications(self.Id)
+
+class Result():
+
+    def __init__(self, db, config, title, status, rule):
+        self.db = db
+        self.config = config
+        self.title = title
+        self.status = status
+        self.code = msg_codes[status]
+        self.rule = rule
+        self.body = []
+
+    def to_report(self):
+        last = self.db.get_last_notifications(self.rule.Id)
         if last:
             # don't report what we reported last
-            if last[0]['status'] == status:
+            if last[0]['status'] == self.status:
                 return False
             # don't send any message if we've sent more than 10 in the backoff interval
-            if len(last) == 10 and last[-1]['timestamp'] >= now - config.alert_backoff:
+            if len(last) == 10 and last[-1]['timestamp'] >= time.time() - self.config.alert_backoff:
                 return False
-        data = {
-            'content': content,
-            'subject': subject,
-            'dest': self.dest
-        }
-        ret = subprocess.call(config.alert_cmd.format(**data), shell=True)
-        if ret:
-            raise Exception("alert_cmd failed")
-        db.save_notification(self, now, status)
         return True
+
+    def log(self):
+        return "%s is %s: %s\n%s" % (self.rule.name(), self.code, self.title, "\n".join(self.body))
 
 
 class Db():
@@ -132,9 +139,12 @@ class Db():
             })
         return notifications
 
-    def save_notification(self, rule, timestamp, status):
+    def save_notification(self, result):
         self.assure_db()
-        self.cursor.execute("INSERT INTO notifications (rule_id, timestamp, status) VALUES (?,?,?)", (rule.Id, timestamp, status))
+        self.cursor.execute(
+            "INSERT INTO notifications (rule_id, timestamp, status) VALUES (?,?,?)",
+            (result.rule.Id, time.time(), result.code)
+        )
         self.conn.commit()
 
     def add_rule(self, rule):
@@ -211,3 +221,21 @@ def check_graphite(target, config):
     if last_dp is None:
         return None
     return last_dp[0]
+
+
+def get_png(targets, config, width=800):
+    url = urljoin(config.graphite_url_server, "/render/?from=-8hours&width=%d" % width)
+    # TODO: for some reason sending as POST somehow gets the same graph in multiple
+    # subsequent alerts. yeah wtf.
+    #data = urllib.urlencode([('target', target) for target in targets])
+    data = None
+    # so for now use GET and hope/assume the url won't get too long (it could)
+    for target in targets:
+        url += "&target=" + target
+    req = urllib2.Request(url, data)
+    response = urllib2.urlopen(req)
+    return response.read()
+
+
+class Output():
+    pass

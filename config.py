@@ -40,14 +40,15 @@ limit_es_metrics = 10000
 process_native_proto2 = True
 
 
+## for users of the alerting service
+alerting = True
 alerting_db = 'alerting.db'
-#content and subject will be filled in automatically
-#dest is a string you'll configure per rule, typically an email address
-#set to None to disable
-alert_cmd = 'echo "{content}" | mail -r "Graph Explorer <graph-explorer@yourcompany.com>" -s "{subject}" {dest}'
+alerting_from = 'Graph Explorer <graph-explorer@yourcompany.com>'
 # per rule, max 10 notifications per this many seconds.
 alert_backoff = 30 * 60
 
+
+## for users of collectd
 # whether the StoreRates is set in your collectd write_graphite plugin config
 collectd_StoreRates = True
 collectd_prefix = '^collectd\.'

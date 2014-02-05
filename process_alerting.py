@@ -1,5 +1,6 @@
 #!/usr/bin/python2
-import alerting
+from alerting import msg_codes, Db, Result
+from alerting.emailoutput import EmailOutput
 from backend import make_config
 import os
 import structured_metrics
@@ -12,39 +13,42 @@ import config
 config = make_config(config)
 import preferences
 
-s_metrics = structured_metrics.StructuredMetrics(config)
+if not config.alerting:
+    print "alerting disabled in config"
+    os.exit(0)
 
-db = alerting.Db(config.alerting_db)
+s_metrics = structured_metrics.StructuredMetrics(config)
+db = Db(config.alerting_db)
 rules = db.get_rules()
 
-msg_codes = ['OK', 'WARN', 'CRITICAL', 'UNKNOWN']
+output = EmailOutput(config)
 
-for rule in rules:
-    content = [
-        "==== %s ====" % rule.name(),
-        " val_warn: %f" % rule.val_warn,
-        " val_crit: %f" % rule.val_crit,
-        "\nCurrent value(s):\n"
-    ]
-    print "\n".join(content)
 
-    try:
-        results, worst = rule.check_values(config, s_metrics, preferences)
-    except Exception, e:
-        print "could not process:", e
-        content = "\n".join(["Could not process your rule", str(rule), str(e)])
-        rule.notify_maybe(db, 3, "Could not process your rule", content, config)
-        continue
-    for (target, value, code) in results:
-        line = " * %s value %s --> status %s" % (target, value, msg_codes[code])
-        print line
-        content.append(line)
-
-    content.append("\n\nThis email is sent to %s" % rule.dest)
-
-    subject = "%s is %s" % (rule.name(), msg_codes[worst])
-    sent = rule.notify_maybe(db, worst, subject, "\n".join(content), config)
-    if sent:
+def submit_maybe(result):
+    if result.to_report():
+        output.submit(result)
+        db.save_notification(result)
         print "sent notification!"
     else:
         print "no notification"
+
+
+for rule in rules:
+    print " >>> ", rule.name()
+    if not rule.active:
+        print "inactive. skipping..."
+        continue
+    try:
+        results, worst = rule.check_values(config, s_metrics, preferences)
+    except Exception, e:
+        result = Result(db, config, "Could not process your rule", 3, rule)
+        result.body = ["Could not process your rule", str(e)]
+        print result.log()
+        submit_maybe(result)
+        continue
+    result = Result(db, config, "%s is %s" % (rule.name(), msg_codes[worst]), worst, rule)
+    for (target, value, code) in results:
+        line = " * %s value %s --> status %s" % (target, value, msg_codes[code])
+        result.body.append(line)
+    print result.log()
+    submit_maybe(result)
