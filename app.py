@@ -1,8 +1,6 @@
 #!/usr/bin/env python2
 from bottle import route, template, request, static_file, response, hook, BaseTemplate, post, redirect
 import config
-import sys
-import os
 import preferences
 from urlparse import urljoin
 import structured_metrics
@@ -11,11 +9,11 @@ import graphs as g
 from backend import Backend, make_config
 from simple_match import filter_matching
 from query import Query
+from validation import RuleEditForm, RuleAddForm
 
 import logging
 import traceback
 from alerting import Db, rule_from_form
-sys.path.append("%s/%s" % (os.path.dirname(os.path.realpath(__file__)), 'wtforms'))
 
 
 # contains all errors as key:(title,msg) items.
@@ -148,21 +146,6 @@ def graphs_minimal(query=''):
 @route('/graphs_minimal_deps/<query:path>', method='GET')
 def graphs_minimal_deps(query=''):
     return handle_graphs_minimal(query, True)
-
-from wtforms import Form, BooleanField, StringField, validators, DecimalField, TextAreaField, HiddenField
-
-
-class RuleAddForm(Form):
-    alias = StringField('Alias')
-    expr = TextAreaField('Expression', [validators.Length(min=5)])
-    val_warn = DecimalField('Value warning')
-    val_crit = DecimalField('Value critical')  # TODO at some point validate that val_warn != val_crit
-    active = BooleanField('Active')
-    dest = StringField('Destination (e.g. email address)', [validators.Length(min=2)])
-
-
-class RuleEditForm(RuleAddForm):
-    Id = HiddenField()
 
 
 @route('/rules')
