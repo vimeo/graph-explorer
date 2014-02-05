@@ -26,7 +26,7 @@
                     % if rule.is_geql():
                         <div id="graph"></div>
                         <script lang="javascript">
-                            $("#graph").load("http://localhost:8080/graphs_minimal_deps/" + encodeURIComponent("{{rule.expr}}"));
+                            $("#graph").load("{{root}}graphs_minimal_deps/" + encodeURIComponent("{{rule.expr}}"));
                         </script>
                     % else:
                         <img src="{{url}}&width=800"></img>
