@@ -11,11 +11,10 @@ class EmailOutput(Output):
 
     def submit(self, result):
         content = [
-            "==== %s ====" % result.rule.name(),
+            "<b>%s</b>" % result.rule.name(),
             " val_warn: %f" % result.rule.val_warn,
             " val_crit: %f" % result.rule.val_crit,
-            "\nResult:\n%s" % "\n".join(result.body),
-            "\n\nThis email is sent to %s" % result.rule.dest
+            "\nResult:\n%s" % "\n".join(result.body)
         ]
         msg = MIMEMultipart()
         msg["To"] = result.rule.dest
