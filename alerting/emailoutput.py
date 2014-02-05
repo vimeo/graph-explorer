@@ -25,7 +25,7 @@ class EmailOutput(Output):
 
         msgText = MIMEText('%s<br><img src="cid:graph-%s.png">' % ("\n".join(content).replace("\n", "\n<br>"), time.time()), 'html')
         msg.attach(msgText)
-        targets = [target for (target, value, code) in result.rule.results]
+        targets = [target for (target, value, status) in result.rule.results]
         img = MIMEImage(get_png(targets, self.config, 400))
         msg.attach(img)
 

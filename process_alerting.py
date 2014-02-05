@@ -47,8 +47,8 @@ for rule in rules:
         submit_maybe(result)
         continue
     result = Result(db, config, "%s is %s" % (rule.name(), msg_codes[worst]), worst, rule)
-    for (target, value, code) in results:
-        line = " * %s value %s --> status %s" % (target, value, msg_codes[code])
+    for (target, value, status) in results:
+        line = " * %s value %s --> status %s" % (target, value, msg_codes[status])
         result.body.append(line)
     print result.log()
     submit_maybe(result)

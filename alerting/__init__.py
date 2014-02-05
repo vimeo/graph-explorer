@@ -48,29 +48,29 @@ class Rule():
                 for target in graph['targets']:
                     target = target['target']
                     value = check_graphite(target, config)
-                    code = self.check(value)
-                    results.append((target, value, code))
+                    status = self.check(value)
+                    results.append((target, value, status))
                     # if worst so far is ok and we have an unknown, that takes precedence
-                    if code == 3 and worst == 0:
+                    if status == 3 and worst == 0:
                         worst = 3
-                    # if the current code is not unknown and it's worse than whatever we have, update worst
-                    if code != 3 and code > worst:
-                        worst = code
+                    # if the current status is not unknown and it's worse than whatever we have, update worst
+                    if status != 3 and status > worst:
+                        worst = status
 
         else:
             target = self.expr
             value = check_graphite(target, config)
-            code = self.check(value)
-            results.append((target, value, code))
-            if code > worst:
-                worst = code
+            status = self.check(value)
+            results.append((target, value, status))
+            if status > worst:
+                worst = status
         self.results = results
         return results, worst
 
     def check(self, value):
         if value is None:
             return 3
-        # uses nagios-style codes: 0 ok, 1 warn, 2 crit, 3 unknown
+        # uses nagios-style statuses: 0 ok, 1 warn, 2 crit, 3 unknown
         # the higher the value, the worse. except for unknown which is somewhere just below warn.
         if self.val_warn > self.val_crit:
             if value > self.val_warn:
@@ -94,7 +94,7 @@ class Result():
         self.config = config
         self.title = title
         self.status = status
-        self.code = msg_codes[status]
+        self.status_str = msg_codes[status]
         self.rule = rule
         self.body = []
 
@@ -105,12 +105,12 @@ class Result():
             if last[0]['status'] == self.status:
                 return False
             # don't send any message if we've sent more than 10 in the backoff interval
-            if len(last) == 10 and last[-1]['timestamp'] >= time.time() - self.config.alert_backoff:
+            if len(last) == 10 and last[-1]['timestamp'] >= int(time.time()) - self.config.alert_backoff:
                 return False
         return True
 
     def log(self):
-        return "%s is %s: %s\n%s" % (self.rule.name(), self.code, self.title, "\n".join(self.body))
+        return "%s is %s: %s\n%s" % (self.rule.name(), self.status_str, self.title, "\n".join(self.body))
 
 
 class Db():
@@ -143,7 +143,7 @@ class Db():
         self.assure_db()
         self.cursor.execute(
             "INSERT INTO notifications (rule_id, timestamp, status) VALUES (?,?,?)",
-            (result.rule.Id, time.time(), result.code)
+            (result.rule.Id, int(time.time()), result.status)
         )
         self.conn.commit()
 
