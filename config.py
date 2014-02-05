@@ -46,6 +46,8 @@ alerting_db = 'alerting.db'
 alerting_from = 'Graph Explorer <graph-explorer@yourcompany.com>'
 # per rule, max 10 notifications per this many seconds.
 alert_backoff = 30 * 60
+# base location of graph-explorer, in emails we'll refer to this + '/rules/view/id'
+alerting_base_uri = 'http://graph-explorer:8080'
 
 
 ## for users of collectd

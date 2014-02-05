@@ -76,6 +76,7 @@ class ConfigValidator(Form):
     # note: validation.Email() doesn't recognize strings like 'Graph Explorer <graph-explorer@yourcompany.com>'
     alerting_from = StringField('alerting_from', [String_and(validators.Length(min=2))])
     alert_backoff = IntegerField('alerting_backoff', [validators.NumberRange(1, 99999)])
+    alerting_base_uri = StringField('alerting_base_uri', [String_and(validators.Length(min=2))])
     collectd_StoreRates = Field('collectd_StoreRates', [isBool])
     collectd_prefix = StringField('collectd_prefix', [String_and(validators.Length(min=2))])
 
