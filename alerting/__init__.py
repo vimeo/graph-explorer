@@ -102,7 +102,7 @@ class Result():
     def to_report(self):
         if self.status == 3 and not self.rule.warn_on_null:
             return False
-        last = self.db.get_last_notifications(self.rule.Id)
+        last = self.db.get_last_notifications(self.rule)
         if last:
             # don't report what we reported last
             if last[0]['status'] == self.status:
@@ -230,13 +230,15 @@ def check_graphite(target, config):
     return last_dp[0]
 
 
-def get_png(targets, config, width=800):
+def get_png(targets, warn, crit, config, width=800):
     url = urljoin(config.graphite_url_server, "/render/?from=-8hours&width=%d" % width)
     # TODO: for some reason sending as POST somehow gets the same graph in multiple
     # subsequent alerts. yeah wtf.
     #data = urllib.urlencode([('target', target) for target in targets])
     data = None
     # so for now use GET and hope/assume the url won't get too long (it could)
+    targets.append("color(constantLine(%s),'orange')" % warn)
+    targets.append("color(constantLine(%s),'red')" % crit)
     for target in targets:
         url += "&target=" + target
     req = urllib2.Request(url, data)

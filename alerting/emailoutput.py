@@ -29,7 +29,7 @@ class EmailOutput(Output):
             }
             </style></head>""" % result.title,
             "<body>",
-            "<b>%s</b>" % result.rule.name(),
+            "<center><b>%s</b></center>" % result.title,
             "<br/>val_warn: %f" % result.rule.val_warn,
             "<br/>val_crit: %f" % result.rule.val_crit,
             "<br/>Result:",
@@ -46,7 +46,9 @@ class EmailOutput(Output):
         msgText = MIMEText("\n".join(content), 'html')
         msg.attach(msgText)
         targets = [target for (target, value, status) in result.rule.results]
-        img = MIMEImage(get_png(targets, self.config, 400))
+        img = MIMEImage(get_png(targets, result.rule.val_warn, result.rule.val_crit, self.config, 400))
+        img.add_header('Content-ID', '<graph.png>')
+
         msg.attach(img)
 
         s = smtplib.SMTP('localhost')
