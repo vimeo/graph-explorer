@@ -14,6 +14,7 @@
                    <a href="{{url}}"><i class="icon-picture"></i></a>
                 % end
                 </dd>
+                <dt>Edit</dt><dd><a href="{{root}}rules/edit/{{rule.Id}}"><i class="icon-pencil icon-white"></i></a></dd>
                 <dt>Alias</dt><dd>{{rule.alias}}&nbsp;</dd>
                 <dt>Expr</dt><dd>{{rule.expr}}</dd>
                 <dt>Active</dt><dd>{{'Y' if rule.active else 'N'}}</dd>
