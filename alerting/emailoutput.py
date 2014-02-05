@@ -13,7 +13,12 @@ class EmailOutput(Output):
     def submit(self, result):
         manage_uri = urljoin(self.config.alerting_base_uri, "/rules/view/%d" % result.rule.Id)
         content = [
-            """<head><style>
+            """\
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"/>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>%s</title><style type="text/css" >
             body {
                 background-color: rgb(18, 20, 23);
                 color: rgb(173, 175, 174);
@@ -22,16 +27,16 @@ class EmailOutput(Output):
                 text-decoration: none;
                 color: rgb(51, 181, 229);
             }
-            </style></head>""",
+            </style></head>""" % result.title,
             "<body>",
             "<b>%s</b>" % result.rule.name(),
-            "<br>val_warn: %f" % result.rule.val_warn,
-            "<br>val_crit: %f" % result.rule.val_crit,
-            "<br>Result:",
-            "<br>%s" % "\n<br>".join(result.body),
-            '<br><img src="cid:graph.png">',
-            '<br><a href="%s">Manage alert</a>' % manage_uri,
-            "</body>"
+            "<br/>val_warn: %f" % result.rule.val_warn,
+            "<br/>val_crit: %f" % result.rule.val_crit,
+            "<br/>Result:",
+            "<br/>%s" % "\n<br/>".join(result.body),
+            '<br/><img src="cid:graph.png" alt="graph" type="image/png" />',
+            '<br/><a href="%s">Manage alert</a>' % manage_uri,
+            "</body></html>"
         ]
         msg = MIMEMultipart()
         msg["To"] = result.rule.dest
