@@ -99,7 +99,8 @@ if yes, check for any errors in the javascript console, (in firefox you need fir
 
 also check all network requests in the network tab, and make sure they return http 200 or 304
 especially, check that the http requests to `graphite/render/?<...>` return actual data.
-(if not, there's something wrong with the request uri/targets.  you may be suffering from [this graphite bug](https://github.com/graphite-project/graphite-web/issues/289)) or maybe your graphite version is too old.
+you may be suffering from [this graphite bug](https://github.com/graphite-project/graphite-web/issues/289)) 
+or [this graphite bug](https://github.com/graphite-project/graphite-web/issues/576)) or maybe your graphite version is too old.
 
 * i get some error wrt graphite/apache cors access restriction
 
