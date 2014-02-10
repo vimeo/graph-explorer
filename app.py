@@ -8,10 +8,10 @@ from graphs import Graphs
 import graphs as g
 from backend import Backend, make_config
 from simple_match import filter_matching
+from log import make_logger
 from query import Query
 from validation import RuleEditForm, RuleAddForm
 
-import logging
 import traceback
 from alerting import Db, rule_from_form
 
@@ -25,16 +25,7 @@ last_update = None
 
 config = make_config(config)
 
-logger = logging.getLogger('app')
-logger.setLevel(logging.DEBUG)
-chandler = logging.StreamHandler()
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-chandler.setFormatter(formatter)
-logger.addHandler(chandler)
-if config.log_file:
-    fhandler = logging.FileHandler(config.log_file)
-    fhandler.setFormatter(formatter)
-    logger.addHandler(fhandler)
+logger = make_logger('app', config)
 
 logger.debug('app starting')
 backend = Backend(config, logger)

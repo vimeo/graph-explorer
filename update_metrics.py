@@ -1,26 +1,17 @@
 #!/usr/bin/env python2
 import os
 import sys
-import logging
 
 import config
 from backend import Backend, make_config
+from log import make_logger
 import structured_metrics
 
 config = make_config(config)
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-logger = logging.getLogger('update_metrics')
-logger.setLevel(logging.DEBUG)
-chandler = logging.StreamHandler()
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-chandler.setFormatter(formatter)
-logger.addHandler(chandler)
-if config.log_file:
-    fhandler = logging.FileHandler(config.log_file)
-    fhandler.setFormatter(formatter)
-    logger.addHandler(fhandler)
+logger = make_logger('update_metrics', config)
 
 try:
     backend = Backend(config, logger)
