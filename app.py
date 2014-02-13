@@ -36,13 +36,11 @@ graphs_all = graphs_manager.list_graphs()
 
 
 @route('<path:re:/assets/.*>')
-@route('<path:re:/timeserieswidget/.*js>')
-@route('<path:re:/timeserieswidget/.*css>')
+@route('<path:re:/timeserieswidget/.*(js|css)>')
 @route('<path:re:/timeserieswidget/timezone-js/src/.*js>')
 @route('<path:re:/timeserieswidget/tz/.*>')
 @route('<path:re:/DataTables/media/js/.*js>')
-@route('<path:re:/DataTablesPlugins/integration/bootstrap/.*js>')
-@route('<path:re:/DataTablesPlugins/integration/bootstrap/.*css>')
+@route('<path:re:/DataTablesPlugins/integration/bootstrap/.*(js|css)>')
 def static(path):
     return static_file(path, root='.')
 
