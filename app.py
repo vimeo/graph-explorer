@@ -84,6 +84,51 @@ def inspect_metric(metrics=''):
     return render_page(body, 'inspect')
 
 
+@route('/api/<query:path>', method='GET')
+def api(query=''):
+    try:
+        query = Query(query)
+        (query, targets_matching) = s_metrics.matching(query)
+    except Exception, e:  # pylint: disable=W0703
+        return e
+
+    tags = set()
+    for target in targets_matching.values():
+        for tag_name in target['tags'].keys():
+            tags.add(tag_name)
+    graphs_matching = filter_matching(query['ast'], graphs_all)
+    graphs_matching = g.build(graphs_matching, query)
+    stats = {'len_targets_all': s_metrics.count_metrics(),
+             'len_graphs_all': len(graphs_all),
+             'len_targets_matching': len(targets_matching),
+             'len_graphs_matching': len(graphs_matching),
+             }
+    graphs = []
+    targets_list = {}
+    if query['statement'] in ('graph', 'lines', 'stack'):
+        graphs_targets_matching = g.build_from_targets(targets_matching, query, preferences)[0]
+        stats['len_graphs_targets_matching'] = len(graphs_targets_matching)
+        graphs_matching.update(graphs_targets_matching)
+        stats['len_graphs_matching_all'] = len(graphs_matching)
+        for key in sorted(graphs_matching.iterkeys()):
+            graphs.append((key, graphs_matching[key]))
+    elif query['statement'] == 'list':
+        # for now, only supports targets, not graphs
+        targets_list = targets_matching
+        stats['len_graphs_targets_matching'] = 0
+        stats['len_graphs_matching_all'] = 0
+
+    del query['target_modifiers']  # callback functions that are not serializable
+    args = {'errors': errors,
+            'query': query,
+            'graphs': graphs,
+            'targets_list': targets_list,
+            'tags': list(tags),
+            }
+    args.update(stats)
+    return args
+
+
 @route('/graphs/', method='POST')
 @route('/graphs/<query:path>', method='GET')  # used for manually testing
 def graphs_nodeps(query=''):
