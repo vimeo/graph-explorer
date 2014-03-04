@@ -74,18 +74,19 @@ class Plugin(object):
             del target['tags']['tosplit']
 
     @staticmethod
-    def autosplit(target, nodes=None):
+    def autosplit(target):
         '''
         for catchall plugins, automatically sets n1, n2, ... tags
         for those nodes that we don't know what they mean
         '''
-        if nodes is None and 'tosplit' in target['tags']:
-            nodes = target['tags']['tosplit'].split('.')
-        if nodes:
-            for n, val in enumerate(nodes):
-                # put the remainders in n1, n2, .. tags
-                target['tags']['n%d' % (n + 1)] = val
+        if 'tosplit' not in target['tags']:
+            return target
+        nodes = target['tags']['tosplit'].split('.')
+        for n, val in enumerate(nodes):
+            # put the remainders in n1, n2, .. tags
+            target['tags']['n%d' % (n + 1)] = val
         del target['tags']['tosplit']
+        return target
 
     def get_targets(self):
         # "denormalize" dense configuration list into a new list of full-blown configs
@@ -184,6 +185,13 @@ class Plugin(object):
                 target.update(out)
         return target
 
+    def __finish_target(self, target):
+        # this deals with any 'tosplit' tags left in target['tags']
+        # it's important we do this at the end, so that configure functions like
+        # parse_statsd_timer had their chance to do things based on what's in
+        # autosplit, assign some tags, and provide a modified tosplit set.
+        return self.autosplit(target)
+
     def sanitize(self, _target):  # pylint: disable=R0201
         return None
 
@@ -215,6 +223,7 @@ class Plugin(object):
                     target = self.__create_target(match, target)
                     target = self.__sanitize_target(target)
                     target = self.__configure_target(target)
+                    target = self.__finish_target(target)
                     del target['config']  # not needed beyond this point
                     self.targets_found += 1
                     return (self.get_target_id(target), target)

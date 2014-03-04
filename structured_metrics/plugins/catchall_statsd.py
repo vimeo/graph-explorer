@@ -14,18 +14,14 @@ class CatchallStatsdPlugin(Plugin):
             'tags': {
                 'unit': 'unknown',
                 'source': 'statsd'
-            },
-            'configure': lambda self, target: self.autosplit(target)
+            }
         },
         {
             'match': '^stats\.timers\.(?P<tosplit>.*)',
             'tags': {
                 'source': 'statsd'
             },
-            'configure': [
-                lambda self, target: self.parse_statsd_timer(target),
-                lambda self, target: self.autosplit(target)
-            ]
+            'configure': lambda self, target: self.parse_statsd_timer(target)
         },
         {
             'match': '^stats\.(?P<tosplit>.*)',
@@ -33,8 +29,7 @@ class CatchallStatsdPlugin(Plugin):
             'tags': {
                 'unit': 'unknown/s',
                 'source': 'statsd'
-            },
-            'configure': lambda self, target: self.autosplit(target)
+            }
         },
         {
             'match': '^stats_counts\.(?P<tosplit>.*)',
@@ -42,8 +37,7 @@ class CatchallStatsdPlugin(Plugin):
             'tags': {
                 'unit': 'unknown',
                 'source': 'statsd'
-            },
-            'configure': lambda self, target: self.autosplit(target)
+            }
         },
     ]
 

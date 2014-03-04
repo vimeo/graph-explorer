@@ -14,8 +14,7 @@ class CatchallDiamondPlugin(Plugin):
             'tags': {
                 'unit': 'unknown',
                 'source': 'diamond'
-            },
-            'configure': lambda self, target: self.autosplit(target)
+            }
         },
     ]
 

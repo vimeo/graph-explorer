@@ -17,8 +17,7 @@ class CatchallPlugin(Plugin):
             'tags': {
                  'unit': 'unknown',
                  'source': 'unknown'
-            },
-            'configure': self.autosplit(target)
+            }
         },
     ]
 
