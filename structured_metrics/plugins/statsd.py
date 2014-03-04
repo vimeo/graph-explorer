@@ -37,9 +37,9 @@ class StatsdPlugin(Plugin):
             target['tags']['unit'] = 'Pckt/s'
             target['tags']['direction'] = 'in'
         if target['tags']['wtt'] == 'bad_lines_seen':
-            target['tags']['unit'] = 'Metric/s'
+            target['tags']['unit'] = 'Err/s'
             target['tags']['direction'] = 'in'
-            target['tags']['type'] = 'bad'
+            target['tags']['type'] = 'invalid_line'
         if target['tags']['wtt'] == 'numStats':
             target['tags']['unit'] = 'Metric'
             target['tags']['direction'] = 'out'
