@@ -12,8 +12,11 @@ class NativeProto2Plugin(Plugin):
                 tags = {}
                 for (i, node) in enumerate(nodes):
                     if '=' in node:
-                        node = node.split('=', 1)
-                        tags[node[0]] = node[1]
+                        (key, val) = node.split('=', 1)
+                        # graphite fix -> Mbps -> Mb/s
+                        if key == 'unit' and val.endswith('ps'):
+                            val = val[:-2] + "/s"
+                        tags[key] = val
                     else:
                         tags["n%d" % (i + 1)] = node
                 target = {
