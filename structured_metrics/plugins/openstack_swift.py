@@ -21,30 +21,28 @@ class OpenstackSwift(Plugin):
         {
             'match': '^stats\.(?P<server>[^\.]+)\.(?P<service>tempauth)\.AUTH_\.(?P<type>[^\.]+)$',
             'target_type': 'rate',
-            'configure': lambda self, target: self.add_tag(target, 'unit', 'Req/s')
+            'tags': {'unit': 'Req/s'}
         },
         {
             'match': '^stats_counts\.(?P<server>[^\.]+)\.(?P<service>tempauth)\.AUTH_\.(?P<type>[^\.]+)$',
             'target_type': 'count',
-            'configure': lambda self, target: self.add_tag(target, 'unit', 'Req')
+            'tags': {'unit': 'Req'}
         },
         # object-server
         {
             'match': '^stats\.timers\.(?P<server>[^\.]+)\.(?P<service>object-server)\.(?P<http_method>[^\.]+)\.timing\.(?P<tosplit>[^\.]+)$',
-            'configure': [
-                lambda self, target: self.parse_statsd_timer(target),
-                lambda self, target: self.add_tag(target, 'swift_type', 'object')
-            ]
+            'tags': {'swift_type': 'object'},
+            'configure': lambda self, target: self.parse_statsd_timer(target),
         },
         {
             'match': '^stats_counts\.(?P<server>[^\.]+)\.(?P<service>object-server)\.?(?P<http_method>[^\.]*)\.(?P<unit>async_pendings|errors|timeouts)$',
             'target_type': 'count',
-            'configure': lambda self, target: self.add_tag(target, 'swift_type', 'object')
+            'tags': {'swift_type': 'object'}
         },
         {
             'match': '^stats\.(?P<server>[^\.]+)\.(?P<service>object-server)\.?(?P<http_method>[^\.]*)\.(?P<unit>async_pendings|errors|timeouts)$',
             'target_type': 'rate',
-            'configure': lambda self, target: self.add_tag(target, 'swift_type', 'object')
+            'tags': {'swift_type': 'object'}
         },
         # object-auditor
         {
@@ -55,7 +53,7 @@ class OpenstackSwift(Plugin):
         {
             'match': '^stats\.(?P<server>[^\.]+)\.(?P<service>[^\.]+)\.failures$',
             'target_type': 'rate',
-            'configure': lambda self, target: self.add_tag(target, 'unit', 'Err/s')
+            'tags': {'unit': 'Err/s'}
         }
     ]
 

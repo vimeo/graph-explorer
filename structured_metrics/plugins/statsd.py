@@ -7,14 +7,15 @@ class StatsdPlugin(Plugin):
     assumes that if you use prefixStats, it's of the format statsd.<statsd_server> , adjust as needed.
     '''
     targets = [
-        Plugin.gauge('^statsd\.?(?P<server>[^\.]*)\.(?P<wtt>numStats)'),
-        Plugin.gauge('^stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>processing_time)$'),
-        Plugin.rate('^stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>[^\.]+)$'),  # packets_received, bad_lines_seen
-        Plugin.gauge('^stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>graphiteStats\.calculationtime)$'),
-        Plugin.gauge('^stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>graphiteStats\.flush_[^\.]+)$'),  # flush_length, flush_time
+        Plugin.gauge('^statsd\.?(?P<server>[^\.]*)\.(?P<wtt>numStats)', {'service': 'statsd'}),
+        Plugin.gauge('^stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>processing_time)$', {'service': 'statsd'}),
+        Plugin.rate('^stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>[^\.]+)$', {'service': 'statsd'}),  # packets_received, bad_lines_seen
+        Plugin.gauge('^stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>graphiteStats\.calculationtime)$', {'service': 'statsd'}),
+        Plugin.gauge('^stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>graphiteStats\.flush_[^\.]+)$', {'service': 'statsd'}),  # flush_length, flush_time
         {
             'match': 'stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>graphiteStats\.last_[^\.]+)$',  # last_flush, last_exception. unix timestamp
-            'target_type': 'counter'
+            'target_type': 'counter',
+            'tags': { 'service': 'statsd' }
         },
         # TODO: a new way to have a metric that denotes "all timer packets
         # received".  so i guess a way to define "meta" metrics based on a
@@ -24,11 +25,8 @@ class StatsdPlugin(Plugin):
         #    'match': '^stats\.timers',
         #    'limit': 1,
         #    'target_type': 'count',
-        #    'configure': [
-        #        lambda self, target: {'target': 'sumSeries(%s)' % ','.join(['stats.timers.%s.count' % infix for infix in ['*', '*.*', '*.*.*', '*.*.*.*', '*.*.*.*.*']])},
-        #        lambda self, target: self.add_tag(target, 'unit', 'Pckt'),
-        #        lambda self, target: self.add_tag(target, 'type', 'received_timer'),
-        #    ]
+        #    'tags': { 'unit': 'Pckt', 'type': 'received_timer'},
+        #    'configure': lambda self, target: {'target': 'sumSeries(%s)' % ','.join(['stats.timers.%s.count' % infix for infix in ['*', '*.*', '*.*.*', '*.*.*.*', '*.*.*.*.*']])},
         #}
     ]
 

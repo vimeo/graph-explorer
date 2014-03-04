@@ -38,14 +38,6 @@ class Plugin(object):
             target['tags'][keys] = camel_to_underscore(target['tags'][keys])
 
     @staticmethod
-    def add_tag(target, key, val):
-        '''
-        add tag to existing set of tags
-        overiddes any tag with the same name
-        '''
-        target['tags'][key] = val
-
-    @staticmethod
     def parse_statsd_timer(target):
         # see if we can get info from the end of the metric string
         nodes = target['tags']['tosplit'].split('.')
@@ -161,6 +153,8 @@ class Plugin(object):
     @classmethod
     def __create_target(cls, match, target_config):
         tags = match.groupdict()
+        if 'tags' in target_config:
+            tags.update(target_config['tags'])
         tags['plugin'] = cls.classname_to_tag()
         try:
             tags['target_type'] = target_config['target_type']
@@ -237,52 +231,59 @@ class Plugin(object):
     # experimental shortcut functions to easily define targets.
     # some of these would be better provided by the plugins themselves
     @staticmethod
-    def gauge(match):
+    def gauge(match, tags={}):
         return {
             'match': match,
-            'target_type': 'gauge'
+            'target_type': 'gauge',
+            'tags': tags
         }
 
     @staticmethod
-    def count(match):
+    def count(match, tags={}):
         return {
             'match': match,
-            'target_type': 'count'
+            'target_type': 'count',
+            'tags': tags
         }
 
     @staticmethod
-    def rate(match):
+    def rate(match, tags={}):
         return {
             'match': match,
-            'target_type': 'rate'
+            'target_type': 'rate',
+            'tags': tags
         }
 
     @staticmethod
-    def counter(match):
+    def counter(match, tags={}):
         return {
             'match': match,
-            'target_type': 'counter'
+            'target_type': 'counter',
+            'tags': tags
         }
 
     @staticmethod
-    def statsd_gauge(match):
+    def statsd_gauge(match, tags={}):
         return {
             'match': '^stats.gauges\.%s' % match,
-            'target_type': 'gauge'
+            'target_type': 'gauge',
+            'tags': tags
         }
 
     @staticmethod
-    def statsd_count(match):
+    def statsd_count(match, tags={}):
         return {
             'match': '^stats_counts\.%s' % match,
-            'target_type': 'count'
+            'target_type': 'count',
+            'tags': tags
         }
 
     @staticmethod
-    def statsd_rate(match):
+    def statsd_rate(match, tags={}):
         return {
             'match': '^stats\.%s' % match,
-            'target_type': 'rate'
+            'target_type': 'rate',
+            'tags': tags
         }
 
 # vim: ts=4 et sw=4:

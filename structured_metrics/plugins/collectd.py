@@ -12,10 +12,10 @@ class CollectdPlugin(Plugin):
             {
                 'match': prefix + '(?P<server>[^\.]+)\.(?P<collectd_plugin>cpu)\.(?P<core>[^\.]+)\.cpu\.(?P<type>[^\.]+)$',
                 'target_type': 'gauge_pct',
-                'configure': [
-                    lambda self, target: self.add_tag(target, 'unit', 'Jiff'),
-                    lambda self, target: self.add_tag(target, 'what', 'cpu_usage')
-                ]
+                'tags': {
+                    'unit': 'Jiff',
+                    'what': 'cpu_usage'
+                }
             },
             {
                 'match': prefix + '(?P<server>.+?)\.(?P<collectd_plugin>load)\.load\.(?P<wt>.*)$',
@@ -25,23 +25,21 @@ class CollectdPlugin(Plugin):
             {
                 'match': prefix + '(?P<server>[^\.]+)\.interface\.(?P<device>[^\.]+)\.if_(?P<wt>[^\.]+)\.(?P<dir>[^\.]+)$',
                 'target_type': 'counter',
-                'configure': [
-                    lambda self, target: self.add_tag(target, 'collectd_plugin', 'network'),
-                    lambda self, target: self.fix_network(target)
-                ]
+                'tags': {'collectd_plugin': 'network'},
+                'configure': lambda self, target: self.fix_network(target)
             },
             {
                 'match': prefix + '(?P<server>[^\.]+)\.memory\.memory\.(?P<type>[^\.]+)$',
                 'target_type': 'gauge',
-                'configure': [
-                    lambda self, target: self.add_tag(target, 'unit', 'B'),
-                    lambda self, target: self.add_tag(target, 'where', 'system_memory')
-                ]
+                'tags': {
+                    'unit': 'B',
+                    'where': 'system_memory'
+                }
             },
             {
                 'match': prefix + '(?P<server>[^\.]+)\.df\.(?P<mountpoint>[^\.]+)\.df_complex\.(?P<type>[^\.]+)$',
                 'target_type': 'gauge',
-                'configure': lambda self, target: self.add_tag(target, 'unit', 'B')
+                'tags': {'unit': 'B'}
             },
             {
                 'match': prefix + '(?P<server>[^\.]+)\.(?P<collectd_plugin>disk)\.(?P<device>[^\.]+)\.disk_(?P<wt>[^\.]+)\.(?P<operation>[^\.]+)$',

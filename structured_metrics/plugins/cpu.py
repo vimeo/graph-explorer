@@ -11,10 +11,10 @@ class CpuPlugin(Plugin):
         {
             'match': '^servers\.(?P<server>[^\.]+)\.cpu\.(?P<core>[^\.]+)\.(?P<type>.*)$',
             'target_type': 'gauge_pct',
-            'configure': [
-                lambda self, target: self.add_tag(target, 'unit', 'Jiff'),
-                lambda self, target: self.add_tag(target, 'what', 'cpu_usage')
-            ]
+            'tags': {
+                'unit': 'Jiff',
+                'what': 'cpu_usage'
+            }
         }
     ]
 

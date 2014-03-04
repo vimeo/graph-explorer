@@ -14,11 +14,11 @@ class CatchallPlugin(Plugin):
         {
             'match': '^(?P<tosplit>[^=]*)$',
             'target_type': 'unknown',
-            'configure': [
-                lambda self, target: self.add_tag(target, 'unit', 'unknown'),
-                lambda self, target: self.add_tag(target, 'source', 'unknown'),
-                lambda self, target: self.autosplit(target)
-            ]
+            'tags': {
+                 'unit': 'unknown',
+                 'source': 'unknown'
+            },
+            'configure': self.autosplit(target)
         },
     ]
 

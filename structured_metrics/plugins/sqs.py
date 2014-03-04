@@ -6,9 +6,7 @@ class SqsPlugin(Plugin):
         {
             'match': '^servers\.(?P<server>[^\.]+)\.sqs\.(?P<region>[^\.]+)\.(?P<queue>[^\.]+)\.(?P<type>ApproximateNumberOfMessages.*)$',
             'target_type': 'gauge',
-            'configure': [
-                lambda self, target: self.add_tag(target, 'unit', 'Msg'),
-            ]
+            'tags': {'unit': 'Msg'}
         }
     ]
 

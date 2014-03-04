@@ -6,7 +6,7 @@ class VmstatPlugin(Plugin):
         {
             'match': '^servers\.(?P<server>[^\.]+)\.vmstat\.(?P<type>.*)$',
             'target_type': 'rate',
-            'configure': lambda self, target: self.add_tag(target, 'unit', 'Page')
+            'tags': {'unit': 'Page'}
         }
     ]
 
