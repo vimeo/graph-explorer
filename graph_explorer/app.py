@@ -1,20 +1,21 @@
 #!/usr/bin/env python2
 import bottle
-from bottle import route, template, request, static_file, response
+from bottle import route, template, request, static_file, response, hook, BaseTemplate, post, redirect
 import config
 import preferences
 from urlparse import urljoin
 import structured_metrics
 from graphs import Graphs
-from backend import Backend, get_action_on_rules_match, make_config
+import graphs as g
+from backend import Backend, make_config
 from simple_match import filter_matching
+from log import make_logger
 from query import Query
+from validation import RuleEditForm, RuleAddForm
 
-from target import Target
-import logging
-import convert
 import os
 import traceback
+from alerting import Db, rule_from_form
 
 
 # contains all errors as key:(title,msg) items.
@@ -26,16 +27,7 @@ last_update = None
 
 config = make_config(config)
 
-logger = logging.getLogger('app')
-logger.setLevel(logging.DEBUG)
-chandler = logging.StreamHandler()
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-chandler.setFormatter(formatter)
-logger.addHandler(chandler)
-if config.log_file:
-    fhandler = logging.FileHandler(config.log_file)
-    fhandler.setFormatter(formatter)
-    logger.addHandler(fhandler)
+logger = make_logger('app', config)
 
 logger.debug('app starting')
 backend = Backend(config, logger)
@@ -48,13 +40,11 @@ bottle.TEMPLATE_PATH.insert(0, os.path.dirname(__file__))
 
 
 @route('<path:re:/assets/.*>')
-@route('<path:re:/timeserieswidget/.*js>')
-@route('<path:re:/timeserieswidget/.*css>')
+@route('<path:re:/timeserieswidget/.*(js|css)>')
 @route('<path:re:/timeserieswidget/timezone-js/src/.*js>')
 @route('<path:re:/timeserieswidget/tz/.*>')
 @route('<path:re:/DataTables/media/js/.*js>')
-@route('<path:re:/DataTablesPlugins/integration/bootstrap/.*js>')
-@route('<path:re:/DataTablesPlugins/integration/bootstrap/.*css>')
+@route('<path:re:/DataTablesPlugins/integration/bootstrap/.*(js|css)>')
 def static(path):
     return static_file(path, root=os.path.dirname(__file__))
 
@@ -70,8 +60,10 @@ def index(query=''):
 
 
 @route('/dashboard/<dashboard_name>')
-def slash_dashboard(dashboard_name=None):
-    dashboard = template('templates/dashboards/%s' % dashboard_name, errors=errors)
+@route('/dashboard/<dashboard_name>/')
+@route('/dashboard/<dashboard_name>/<apply_all_from_url>', method='GET')
+def slash_dashboard(dashboard_name=None, apply_all_from_url=''):
+    dashboard = template('templates/dashboards/%s' % dashboard_name, errors=errors, apply_all_from_url=apply_all_from_url)
     return render_page(dashboard)
 
 
@@ -91,233 +83,54 @@ def inspect_metric(metrics=''):
     metrics = map(s_metrics.load_metric, metrics.split(','))
     args = {'errors': errors,
             'metrics': metrics,
-            'config': config
             }
     body = template('templates/body.inspect', args)
     return render_page(body, 'inspect')
 
 
-def build_graphs(graphs, query):
-    for v in graphs.values():
-        v.update(query)
-    return graphs
+@route('/api/<query:path>', method='GET')
+def api(query=''):
+    try:
+        query = Query(query)
+        (query, targets_matching) = s_metrics.matching(query)
+    except Exception, e:  # pylint: disable=W0703
+        return e
 
+    tags = set()
+    for target in targets_matching.values():
+        for tag_name in target['tags'].keys():
+            tags.add(tag_name)
+    graphs_matching = filter_matching(query['ast'], graphs_all)
+    graphs_matching = g.build(graphs_matching, query)
+    stats = {'len_targets_all': s_metrics.count_metrics(),
+             'len_graphs_all': len(graphs_all),
+             'len_targets_matching': len(targets_matching),
+             'len_graphs_matching': len(graphs_matching),
+             }
+    graphs = []
+    targets_list = {}
+    if query['statement'] in ('graph', 'lines', 'stack'):
+        graphs_targets_matching = g.build_from_targets(targets_matching, query, preferences)[0]
+        stats['len_graphs_targets_matching'] = len(graphs_targets_matching)
+        graphs_matching.update(graphs_targets_matching)
+        stats['len_graphs_matching_all'] = len(graphs_matching)
+        for key in sorted(graphs_matching.iterkeys()):
+            graphs.append((key, graphs_matching[key]))
+    elif query['statement'] == 'list':
+        # for now, only supports targets, not graphs
+        targets_list = targets_matching
+        stats['len_graphs_targets_matching'] = 0
+        stats['len_graphs_matching_all'] = 0
 
-def graphs_limit_targets(nolimit_graphs, limit):
-    targets_used = 0
-    limit_graphs = {}
-    for (graph_key, graph_config) in nolimit_graphs.items():
-        limit_graphs[graph_key] = graph_config
-        nolimit_targets = graph_config['targets']
-        limit_graphs[graph_key]['targets'] = []
-        for target in nolimit_targets:
-            targets_used += 1
-            limit_graphs[graph_key]['targets'].append(target)
-            if targets_used == limit:
-                return limit_graphs
-    return limit_graphs
-
-
-def graphite_func_aggregate(targets, agg_by_tags, aggfunc):
-    # differentiators is a list of tag values that set the contributing targets apart
-    # this will be used later in the UI
-    differentiators = {}
-    agg_by_tag = None
-    for t in targets:
-        for agg_by_tag in agg_by_tags.keys():
-            differentiators[agg_by_tag] = differentiators.get(agg_by_tag, [])
-            differentiators[agg_by_tag].append(t['variables'][agg_by_tag])
-        differentiators[agg_by_tag].sort()
-    tdict = {
-        'target': '%s(%s)' % (aggfunc, ','.join([t['target'] for t in targets])),
-        'id': [t['id'] for t in targets],
-        'variables': targets[0]['variables']
-    }
-    bucket_id = targets[0]['match_buckets'][agg_by_tag]
-    bucket_id_str = ''
-    if bucket_id:
-        bucket_id_str = "'%s' " % bucket_id
-    tdict['tags'] = targets[0]['tags']
-    for agg_by_tag in agg_by_tags:
-        tag_val = ('%s%s (%s values)' % (bucket_id_str, aggfunc, len(targets)), differentiators[agg_by_tag])
-        tdict['variables'][agg_by_tag] = tag_val
-        tdict['tags'][agg_by_tag] = tag_val
-    return Target(tdict)
-
-
-def build_graphs_from_targets(targets, query):
-    graphs = {}
-    if not targets:
-        return (graphs, query)
-    group_by = query['group_by']
-    sum_by = query['sum_by']
-    avg_by = query['avg_by']
-    avg_over = query['avg_over']
-    # i'm gonna assume you never use second and your datapoints are stored with
-    # minutely resolution. later on we can use config options for this (or
-    # better: somehow query graphite about it)
-    # note, the day/week/month numbers are not technically accurate, but
-    # since we're doing movingAvg that's ok
-    averaging = {
-        'M': 1,
-        'h': 60,
-        'd': 60 * 24,
-        'w': 60 * 24 * 7,
-        'mo': 60 * 24 * 30
-    }
-    if avg_over is not None:
-        avg_over_amount = avg_over[0]
-        avg_over_unit = avg_over[1]
-        if avg_over_unit in averaging.keys():
-            multiplier = averaging[avg_over_unit]
-            query['target_modifiers'].append(
-                Query.graphite_function_applier('movingAverage', avg_over_amount * multiplier))
-
-    # for each group_by bucket, make 1 graph.
-    # so for each graph, we have:
-    # the "constants": tags in the group_by
-    # the "variables": tags not in the group_by, which can have arbitrary
-    # values, or different values from a group_by tag that match the same
-    # bucket pattern
-    # go through all targets and group them into graphs:
-    for _target_id, target_data in sorted(targets.items()):
-        # FWIW. has an 'id' which timeserieswidget doesn't care about
-        target = Target(target_data)
-        target['target'] = target['id']
-
-        (graph_key, constants) = target.get_graph_info(group_by)
-        if graph_key not in graphs:
-            graph = {'from': query['from'], 'until': query['to']}
-            graph.update({'constants': constants, 'targets': []})
-            graphs[graph_key] = graph
-        graphs[graph_key]['targets'].append(target)
-
-    # ok so now we have a graphs dictionary with a graph for every appropriate
-    # combination of group_by tags, and each graph contains all targets that
-    # should be shown on it.  but the user may have asked to aggregate certain
-    # targets together, by summing and/or averaging across different values of
-    # (a) certain tag(s). let's process the aggregations now.
-    if (sum_by or avg_by):
-        for (graph_key, graph_config) in graphs.items():
-            graph_config['targets_sum_candidates'] = {}
-            graph_config['targets_avg_candidates'] = {}
-            graph_config['normal_targets'] = []
-
-            for target in graph_config['targets']:
-                sum_id = target.get_agg_key(sum_by)
-                if sum_id not in graph_config['targets_sum_candidates']:
-                    graphs[graph_key]['targets_sum_candidates'][sum_id] = []
-                graph_config['targets_sum_candidates'][sum_id].append(target)
-
-            for (sum_id, targets) in graph_config['targets_sum_candidates'].items():
-                if len(targets) > 1:
-                    for t in targets:
-                        graph_config['targets'].remove(t)
-                    graph_config['targets'].append(
-                        graphite_func_aggregate(targets, sum_by, "sumSeries"))
-
-            for target in graph_config['targets']:
-                # Now that any summing is done, we look at aggregating by
-                # averaging because avg(foo+bar+baz) is more efficient
-                # than avg(foo)+avg(bar)+avg(baz)
-                # aggregate targets (whether those are sums or regular ones)
-                avg_id = target.get_agg_key(avg_by)
-                if avg_id not in graph_config['targets_avg_candidates']:
-                    graph_config['targets_avg_candidates'][avg_id] = []
-                graph_config['targets_avg_candidates'][avg_id].append(target)
-
-            for (avg_id, targets) in graph_config['targets_avg_candidates'].items():
-                if len(targets) > 1:
-                    for t in targets:
-                        graph_config['targets'].remove(t)
-                    graph_config['targets'].append(
-                        graphite_func_aggregate(targets, avg_by, "averageSeries"))
-
-    # remove targets/graphs over the limit
-    graphs = graphs_limit_targets(graphs, query['limit_targets'])
-
-    # Apply target modifiers (like movingAverage, summarize, ...)
-    for (graph_key, graph_config) in graphs.items():
-        for target in graph_config['targets']:
-            for target_modifier in query['target_modifiers']:
-                target_modifier(target, graph_config)
-
-    # if in a graph all targets have a tag with the same value, they are
-    # effectively constants, so promote them.  this makes the display of the
-    # graphs less rendundant and makes it easier to do config/preferences
-    # on a per-graph basis.
-    for (graph_key, graph_config) in graphs.items():
-        # get all variable tags throughout all targets in this graph
-        tags_seen = set()
-        for target in graph_config['targets']:
-            for tag_name in target['variables'].keys():
-                tags_seen.add(tag_name)
-
-        # find effective constants from those variables,
-        # and effective variables. (unset tag is a value too)
-        first_values_seen = {}
-        effective_variables = set()  # tags for which we've seen >1 values
-        for target in graph_config['targets']:
-            for tag_name in tags_seen:
-                # already known that we can't promote, continue
-                if tag_name in effective_variables:
-                    continue
-                tag_value = target['variables'].get(tag_name, None)
-                if tag_name not in first_values_seen:
-                    first_values_seen[tag_name] = tag_value
-                elif tag_value != first_values_seen[tag_name]:
-                    effective_variables.add(tag_name)
-        effective_constants = tags_seen - effective_variables
-
-        # promote the effective_constants by adjusting graph and targets:
-        graph_config['promoted_constants'] = {}
-        for tag_name in effective_constants:
-            graph_config['promoted_constants'][tag_name] = first_values_seen[tag_name]
-            for target in graph_config['targets']:
-                target['variables'].pop(tag_name, None)
-
-        # now that graph config is "rich", merge in settings from preferences
-        constants = dict(graph_config['constants'].items() + graph_config['promoted_constants'].items())
-        for graph_option in get_action_on_rules_match(preferences.graph_options, constants):
-            if isinstance(graph_option, dict):
-                graph_config.update(graph_option)
-            else:
-                graph_config = graphs[graph_key] = graph_option(graph_config)
-
-        # but, the query may override some preferences:
-        override = {}
-        if query['statement'] == 'lines':
-            override['state'] = 'lines'
-        if query['statement'] == 'stack':
-            override['state'] = 'stacked'
-        if query['min'] is not None:
-            override['yaxis'] = override.get('yaxis', {})
-            override['yaxis'].update({'min': convert.parse_str(query['min'])})
-        if query['max'] is not None:
-            override['yaxis'] = override.get('yaxis', {})
-            override['yaxis'].update({'max': convert.parse_str(query['max'])})
-
-        graphs[graph_key].update(override)
-
-    # now that some constants are promoted, we can give the graph more
-    # unique keys based on all (original + promoted) constants. this is in
-    # line with the meaning of the graph ("all targets with those constant
-    # tags"), but more importantly: this fixes cases where some graphs
-    # would otherwise have the same key, even though they have a different
-    # set of constants, this can manifest itself on dashboard pages where
-    # graphs for different queries are shown.
-    # note that we can't just compile constants + promoted_constants,
-    # part of the original graph key is also set by the group by (which, by
-    # means of the bucket patterns doesn't always translate into constants),
-    # we solve this by just including the old key.
-    new_graphs = {}
-    for (graph_key, graph_config) in graphs.items():
-        new_key = ','.join('%s=%s' % i for i in graph_config['promoted_constants'].items())
-        new_key = '%s__%s' % (graph_key, new_key)
-        new_graphs[new_key] = graph_config
-    graphs = new_graphs
-
-    return (graphs, query)
+    del query['target_modifiers']  # callback functions that are not serializable
+    args = {'errors': errors,
+            'query': query,
+            'graphs': graphs,
+            'targets_list': targets_list,
+            'tags': list(tags),
+            }
+    args.update(stats)
+    return args
 
 
 @route('/graphs/', method='POST')
@@ -373,6 +186,103 @@ def graphs_minimal_deps(query=''):
     return handle_graphs_minimal(query, True)
 
 
+@route('/rules')
+@route('/rules/')
+def rules_list():
+    db = Db(config.alerting_db)
+    if 'rules' in errors:
+        del errors['rules']
+    try:
+        body = template('templates/body.rules', errors=errors, rules=db.get_rules())
+    except Exception, e:
+        errors['rules'] = ("Couldn't list rules: %s" % e, traceback.format_exc())
+    if errors:
+        body = template('templates/snippet.errors', errors=errors)
+        return render_page(body)
+    return render_page(body, 'rules')
+
+
+@route('/rules/edit/<Id>')
+@post('/rules/edit')
+def rules_edit(Id=None):
+    db = Db(config.alerting_db)
+    if Id is not None:
+        rule = db.get_rule(int(Id))
+    else:
+        rule = db.get_rule(int(request.forms['Id']))
+    form = RuleEditForm(request.forms, rule)
+    if request.method == 'POST' and form.validate():
+        try:
+            if 'rules_add' in errors:
+                del errors['rules_add']
+            form.populate_obj(rule)
+            db = Db(config.alerting_db)
+            db.edit_rule(rule)
+        except Exception, e:  # pylint: disable=W0703
+            errors["rules_add"] = ("Couldn't add rule: %s" % e, traceback.format_exc())
+        return redirect('/rules')
+    args = {'errors': errors,
+            'form': form
+            }
+    body = template('templates/body.rules_edit', args)
+    return render_page(body, 'rules_edit')
+
+
+@route('/rules/add')
+@route('/rules/add/')
+@route('/rules/add/<expr>')
+@post('/rules/add')
+def rules_add(expr=''):
+    form = RuleAddForm(request.forms)
+    if request.method == 'GET':
+        form.expr.data = expr
+    if request.method == 'POST' and form.validate():
+        try:
+            if 'rules_add' in errors:
+                del errors['rules_add']
+            rule = rule_from_form(form)
+            db = Db(config.alerting_db)
+            db.add_rule(rule)
+        except Exception, e:  # pylint: disable=W0703
+            errors["rules_add"] = ("Couldn't add rule: %s" % e, traceback.format_exc())
+        return redirect('/rules')
+    args = {'errors': errors,
+            'form': form
+            }
+    body = template('templates/body.rules_add', args)
+    return render_page(body, 'rules_add')
+
+
+@route('/rules/view/<Id>')
+def rules_view(Id):
+    db = Db(config.alerting_db)
+    rule = db.get_rule(int(Id))
+    body = template('templates/body.rule', errors=errors, rule=rule)
+    return render_page(body)
+
+
+@route('/rules/delete/<Id>')
+def rules_delete(Id):
+    db = Db(config.alerting_db)
+    try:
+        db.delete_rule(int(Id))
+    except Exception, e:  # pylint: disable=W0703
+        errors["rules_delete"] = ("Couldn't delete rule: %s" % e, traceback.format_exc())
+    if errors:
+        body = template('templates/snippet.errors', errors=errors)
+        return render_page(body)
+    return redirect('/rules')
+
+
+@hook('before_request')
+def seedviews():
+    # templates need to know the relative path to get resources from
+    root = '../' * request.path.count('/')
+    BaseTemplate.defaults['root'] = root
+    BaseTemplate.defaults['config'] = config
+    BaseTemplate.defaults['preferences'] = preferences
+
+
 def handle_graphs_minimal(query, deps):
     '''
     like handle_graphs(), but without extra decoration, so can be used on
@@ -395,6 +305,12 @@ def render_graphs(query, minimal=False, deps=False):
         body = template('templates/snippet.errors', errors=errors)
         return render_page(body)
 
+    # TODO: something goes wrong here.
+    # if you do a query that will give an ES error (say 'foo(')
+    # and then fix the query and hit enter, this code will see the new query
+    # and ES will process the query fine, but for some reason the old error
+    # doesn't clear and sticks instead.
+
     if "match_metrics" in errors:
         del errors["match_metrics"]
     try:
@@ -410,7 +326,7 @@ def render_graphs(query, minimal=False, deps=False):
         for tag_name in target['tags'].keys():
             tags.add(tag_name)
     graphs_matching = filter_matching(query['ast'], graphs_all)
-    graphs_matching = build_graphs(graphs_matching, query)
+    graphs_matching = g.build(graphs_matching, query)
     stats = {'len_targets_all': s_metrics.count_metrics(),
              'len_graphs_all': len(graphs_all),
              'len_targets_matching': len(targets_matching),
@@ -422,7 +338,7 @@ def render_graphs(query, minimal=False, deps=False):
     # the code to handle different statements, and the view
     # templates could be a bit prettier, but for now it'll do.
     if query['statement'] in ('graph', 'lines', 'stack'):
-        graphs_targets_matching = build_graphs_from_targets(targets_matching, query)[0]
+        graphs_targets_matching = g.build_from_targets(targets_matching, query, preferences)[0]
         stats['len_graphs_targets_matching'] = len(graphs_targets_matching)
         graphs_matching.update(graphs_targets_matching)
         stats['len_graphs_matching_all'] = len(graphs_matching)
@@ -438,11 +354,9 @@ def render_graphs(query, minimal=False, deps=False):
 
     args = {'errors': errors,
             'query': query,
-            'config': config,
             'graphs': graphs,
             'targets_list': targets_list,
             'tags': tags,
-            'preferences': preferences
             }
     args.update(stats)
     if minimal:

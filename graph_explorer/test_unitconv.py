@@ -109,7 +109,7 @@ def run_scenario(user_asked_for, data_exists_as, allow_derivation=True,
 class TestDetermineCompatible(unittest.TestCase):
     def test_compatible_to_simple_primary_type(self):
         all_time_units = [pair[0] for pair in unitconv.unit_classes_by_name['time']]
-        u = unitconv.determine_compatible_units('s', 'time')
+        u = unitconv.determine_compatible_units('s', 'time', allow_integration=False)
         compatunits = u.keys()
 
         for timeunit in all_time_units:
@@ -122,7 +122,7 @@ class TestDetermineCompatible(unittest.TestCase):
                          [None] * len(u))
 
     def test_allow_derivation(self):
-        u = unitconv.determine_compatible_units('b', 'datasize', 1, 's', 'time')
+        u = unitconv.determine_compatible_units('b', 'datasize', 1, 's', 'time', allow_integration=False)
         self.assertEqual(u['b'], (1.0, 'derive'))
         self.assertEqual(u['B'], (8.0, 'derive'))
         self.assertEqual(u['b/s'], (1.0, None))

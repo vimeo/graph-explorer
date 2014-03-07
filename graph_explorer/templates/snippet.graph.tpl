@@ -35,6 +35,28 @@
             }
             return get_inspect_url(data, name);
         }
+        var $msgModal = $('#scrap-modal').modal({
+          backdrop: true,
+          show: false,
+          keyboard: false
+        });
+
+        showModal = function (data, unix_timestamp, val) {
+            unix_timestamp = Math.round(unix_timestamp);
+            var date = new Date(unix_timestamp * 1000);
+            $msgModal
+                .find('.modal-header > h3').text(data['id']).end()
+                .find('.timestamp').text(unix_timestamp).end()
+                .find('.datetime-local').text(date.toLocaleString()).end()
+                .find('.datetime-utc').text(date.toUTCString()).end()
+                 % if config.anthracite_add_url is not None:
+                .find('.add_event').attr('href', '{{config.anthracite_add_url}}/ts=' + unix_timestamp).end()
+                % end
+                .find('.add_rule').attr('href', '/rules/add/' + data['target']).end()
+                .find('.val').text(val).end()
+                .modal('show');
+        };
+
         $.map(graph_data['targets'], function (v,k) {
             v["name"] = JSON.stringify(v, null, 2);
         });
@@ -51,8 +73,13 @@
 		    series: {stack: true, lines: { show: true, lineWidth: 0, fill: true }},
 		    legend: {container: '#legend_flot_{{graph_id}}', noColumns: 1, labelFormatter: labelFormatter },
             hover_details: true,
-            zoneFileBasePath: '../timeserieswidget/tz',
+            zoneFileBasePath: '{{root}}timeserieswidget/tz',
+            drawNullAsZero: true,
             tz: "{{preferences.timezone}}",
+            on_click: function (label, unix_timestamp, val, event) {
+                var data = JSON.parse(label);
+                showModal(data, unix_timestamp, val);
+            },
 		};
 		var graph_flot_{{graph_id}} = $.extend({}, defaults, graph_data);
         var error_cb = function(err) {
@@ -66,3 +93,27 @@
 		//$("#chart_flot_{{graph_id}}").graphiteHighcharts(graph_flot_{{graph_id}}, function(err) { console.log(err); });
 	});
         </script>
+
+<!--- http://davidrs.com/wp/code-dynamic-modal-with-twitter-bootstrap-and-jquery/ -->
+<div id="scrap-modal" class="modal hide fade">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h3></h3>
+  </div>
+  <div class="modal-body">
+<ul>
+<li>Timestamp: <span class="timestamp"></span></li>
+<li>Local Time: <span class="datetime-local"></span></li>
+<li>UTC Time: <span class="datetime-utc"></span></li>
+<li>Value: <span class="val"></span></li>
+</ul>
+    <ul>
+        <li>An event happend here?  <a href="http://you-need-to-enable-anthracite-in-config-to-use-this" class="add_event">Add it to anthracite</a></li>
+        <li>I want to <a href="#" class="add_rule">add an alerting rule</a> for this metric</li>
+    </ul>
+  </div>
+  <div class="modal-footer">
+    <a href="#" data-dismiss="modal" class="btn">Close</a>
+    </a>
+  </div>
+</div>

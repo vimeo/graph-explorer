@@ -1,1 +1,18 @@
-templates/TODO.tpl
+TODO:
+* better datapoint inspection popup that just shows the tags for that target, not the full targetstring
+* zoom sometimes doesn't work
+* reset zoom button
+* on graphs and inspect view, point to unit information in text, maybe wiki page
+* some kind of UI feature that suggests tags keys/vals, to make it easier for newbies. in list and graph mode, and whether or not we already have a query
+* "global" rules to set extra tags-> everything with server:df.* -> tag env=prod-df, allows user to search on 'env' tag
+* group by scale automatically: if things differ by orders of magnitude, put them on different graphs
+* order by graph_name DESC etc
+* filestat: display percentage as assigned/max ? same idea for disk used and others. maybe a new generic target type thing
+* auto adjust height of graphs based on #targets. with many targets, the legends start to overlap
+* filter by expression (graphite function(s) or simplified). example: "where movingAverage(10h) > 100"
+
+MAYBE / PONDERINGS:
+
+* load plugin has stored 5/15M averages, use those when user does 'avg over 5M or 15M'? 
+* interactive slider akin to 'avg over' (rickshaw has this)
+* remove statically configured "suggested queries" (or make it an optional module). instead, track last_use and times_used of each query (after ordering), and show popular queries based on frecency. and/or allow saving queries with manual notes

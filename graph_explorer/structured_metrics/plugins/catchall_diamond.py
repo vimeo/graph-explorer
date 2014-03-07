@@ -11,11 +11,10 @@ class CatchallDiamondPlugin(Plugin):
         {
             'match': '^servers\.(?P<server>[^\.]+)\.(?P<tosplit>.*)',
             'target_type': 'unknown',
-            'configure': [
-                lambda self, target: self.add_tag(target, 'what', 'unknown'),
-                lambda self, target: self.add_tag(target, 'source', 'diamond'),
-                lambda self, target: self.autosplit(target)
-            ]
+            'tags': {
+                'unit': 'unknown',
+                'source': 'diamond'
+            }
         },
     ]
 

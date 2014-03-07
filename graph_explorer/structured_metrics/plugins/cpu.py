@@ -11,8 +11,15 @@ class CpuPlugin(Plugin):
         {
             'match': '^servers\.(?P<server>[^\.]+)\.cpu\.(?P<core>[^\.]+)\.(?P<type>.*)$',
             'target_type': 'gauge_pct',
-            'configure': lambda self, target: self.add_tag(target, 'what', 'cpu_state')
+            'tags': {
+                'unit': 'Jiff',
+                'what': 'cpu_usage'
+            }
         }
     ]
+
+    def default_configure_target(self, target):
+        if target['tags']['core'] == 'total':
+            target['tags']['core'] = '_sum_'
 
 # vim: ts=4 et sw=4:

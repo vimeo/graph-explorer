@@ -6,7 +6,7 @@ class SockstatPlugin(Plugin):
         {
             'match': '^servers\.(?P<server>[^\.]+)\.sockets\.(?P<protocol>tcp|udp)?_?(?P<type>[^\.]+)$',
             'target_type': 'gauge',
-            'configure': lambda self, target: self.add_tag(target, 'what', 'sockets')
+            'tags': {'unit': 'Sock'}
         }
     ]
 

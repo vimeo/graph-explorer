@@ -1,9 +1,8 @@
 import os
+import glob
+
 
 def list_dashboards():
-    dashboards = []
-    for f in os.listdir(os.path.join(os.path.dirname(__file__), "templates", "dashboards")):
-        filename, extension = os.path.splitext(f)
-        if extension == ".tpl":
-            dashboards.append(filename)
+    tpl_list = glob.glob('templates/dashboards/*.tpl')
+    dashboards = map(lambda tpl: os.path.basename(tpl)[:-4], tpl_list)
     return sorted(dashboards)

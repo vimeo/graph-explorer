@@ -4,3 +4,4 @@
 metrics.json
 *.egg-info/
 tags
+*.db

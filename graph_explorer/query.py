@@ -7,6 +7,7 @@ import warnings
 # note, consider "query" in the broad sense.  it is used for user input, as
 # well as the blueprint config for graphs, i.e. "spec"
 
+
 class Query(dict):
     default = {
         'statement': 'graph',
@@ -28,6 +29,7 @@ class Query(dict):
         tmp = copy.deepcopy(Query.default)
         self.update(tmp)
         self.parse(query_str)
+        self.prepare()
         self['ast'] = self.build_ast(self['patterns'])
         self.allow_compatible_units()
 
@@ -90,23 +92,24 @@ class Query(dict):
                 if tag_check in self['group_by'] and tag_check not in explicit_group_by.keys():
                     del self['group_by'][tag_check]
 
-        sum_individual_keys = len(self['group_by']) + len(self['sum_by']) + len(self['avg_by'])
-        sum_unique_keys = len(set(self['group_by'].keys() + self['sum_by'].keys() + self['avg_by'].keys()))
-        if sum_individual_keys != sum_unique_keys:
-            raise Exception("'group by' (%s), 'sum by (%s)' and 'avg by (%s)' "
-                            "cannot list the same tag keys" %
-                            (', '.join(self['group_by'].keys()),
-                             ', '.join(self['sum_by'].keys()),
-                             ', '.join(self['avg_by'].keys())))
+        # doing this sanity check would now be tricky: basically you can have the same keys in more than 1 of sum/avg/group by,
+        # it now depends on the bucket configuration.  since i can't wrap my head around it anymore, let's just leave it be for now.
+        # it's up to people to construct sane queries, and if they do a stupid query, then at least GE shouldn't crash or anything.
+        # sum_individual_keys = len(self['group_by']) + len(self['sum_by']) + len(self['avg_by'])
+        # sum_unique_keys = len(set(self['group_by'].keys() + self['sum_by'].keys() + self['avg_by'].keys()))
+        # if sum_individual_keys != sum_unique_keys:
+        #     raise Exception("'group by' (%s), 'sum by (%s)' and 'avg by (%s)' "
+        #                     "cannot list the same tag keys" %
+        #                     (', '.join(self['group_by'].keys()),
+        #                      ', '.join(self['sum_by'].keys()),
+        #                      ', '.join(self['avg_by'].keys())))
+
         if avg_over_str is not None:
             # avg_over_str should be something like 'h', '10M', etc
             avg_over = re.match(avg_over_match, avg_over_str)
             if avg_over is not None:  # if None, that's an invalid request. ignore it. TODO error to user
                 avg_over = avg_over.groups()
                 self['avg_over'] = (int(avg_over[0]), avg_over[1])
-        for tag in self['group_by'].keys():
-            if tag.endswith('='):
-                self['patterns'].append(tag)
 
         (query_str, self['limit_targets']) = parse_val(query_str, 'limit ', '[^ ]+', self['limit_targets'])
         self['limit_targets'] = int(self['limit_targets'])
@@ -115,18 +118,34 @@ class Query(dict):
         # this allows you write patterns in any order, and also makes it easy to use negations
         self['patterns'] += query_str.split()
 
+    # process the syntactic sugar
+    def prepare(self):
+        # we want to put these ones in front of the patterns list
+        new_patterns = []
+        for (tag, cfg) in self['group_by'].items():
+            if tag.endswith('='):
+                # add the pattern for the strong tag
+                new_patterns.append(tag)
+                # remove it from the struct so that from here on we have a consistent format
+                # a spec coming from group by can be like 'foo=', 'foo=,bar', or 'foo=:bucket1,bar'
+                self['group_by'][tag[:-1]] = cfg
+                del self['group_by'][tag]
+        new_patterns.extend(self['patterns'])
+        self['patterns'] = new_patterns
 
     @staticmethod
     def apply_graphite_function_to_target(target, funcname, *args):
-        target['target'] = "%s(%s)" % (funcname, ','.join([target['target']] + map(str, args)))
-
+        def format_arg(arg):
+            if isinstance(arg, basestring):
+                return '"%s"' % arg
+            return str(arg)
+        target['target'] = "%s(%s)" % (funcname, ','.join([target['target']] + map(format_arg, args)))
 
     @classmethod
     def graphite_function_applier(cls, funcname, *args):
         def apply_graphite_function(target, _graph_config):
             cls.apply_graphite_function_to_target(target, funcname, *args)
         return apply_graphite_function
-
 
     @staticmethod
     def variable_applier(**tags):
@@ -138,13 +157,11 @@ class Query(dict):
                     target['variables'][new_k] = new_v
         return apply_variables
 
-
     @staticmethod
     def graph_config_applier(**configs):
         def apply_graph_config(_target, graph_config):
             graph_config.update(configs)
         return apply_graph_config
-
 
     @classmethod
     def convert_to_requested_unit_applier(cls, compatibles):
@@ -167,27 +184,27 @@ class Query(dict):
                 if scale != 1.0:
                     cls.apply_graphite_function_to_target(target, 'scale', scale)
                 if extra_op == 'integrate':
-                    cls.apply_graphite_function_to_target(target, 'integrate')
+                    # graphite assumes that anything you integrate is per minute.
+                    # hitcount assumes that incoming data is per second.
+                    cls.apply_graphite_function_to_target(target, 'hitcount', '1min')
+                    cls.apply_graphite_function_to_target(target, 'integral')
         return apply_requested_unit
-
 
     @classmethod
     def derive_counters(cls, target, _graph_config):
         if target['tags'].get('target_type') == 'counter':
             cls.apply_derivative_to_target(target, known_non_negative=True)
 
-
     @classmethod
     def apply_derivative_to_target(cls, target, scale=1, known_non_negative=False):
         wraparound = target['tags'].get('wraparound')
         if wraparound is not None:
-            cls.apply_graphite_function_to_target(target, 'nonNegativeDerivative', wraparound)
+            cls.apply_graphite_function_to_target(target, 'nonNegativeDerivative', int(wraparound))
         elif known_non_negative:
             cls.apply_graphite_function_to_target(target, 'nonNegativeDerivative')
         else:
             cls.apply_graphite_function_to_target(target, 'derivative')
         cls.apply_graphite_function_to_target(target, 'scaleToSeconds', scale)
-
 
     def allow_compatible_units(self):
         newpat, mods = self.transform_ast_for_compatible_units(self['ast'])
@@ -197,7 +214,6 @@ class Query(dict):
             mods = [self.derive_counters]
         self['ast'] = newpat
         self['target_modifiers'].extend(mods)
-
 
     @classmethod
     def transform_ast_for_compatible_units(cls, ast):
@@ -237,7 +253,6 @@ class Query(dict):
             return ast, new_target_modifiers
         return ast, []
 
-
     query_pattern_re = re.compile(r'''
         # this should accept any string
         ^
@@ -250,6 +265,16 @@ class Query(dict):
         $
     ''', re.X)
 
+    @classmethod
+    def filtered_on(cls, query, tag):
+        """
+        does the given query filter on given tag? if so return first filter
+        """
+        # ! this assumes the ast is in the simple format without nests etc.
+        for cond in query['ast']:
+            if cond[0].startswith('match_tag') and cond[1] == tag:
+                return cond
+        return False
 
     @classmethod
     def build_ast(cls, patterns):
@@ -303,22 +328,29 @@ class Query(dict):
             return asts[0]
         return ('match_and',) + tuple(asts)
 
-
     # avg by foo
     # avg by foo,bar
     # avg by n3:bucketmatch1|bucketmatch2|..,othertag
     # group by target_type=,region:us-east|us-west|..
     @classmethod
     def build_buckets(cls, spec):
+        # http://stackoverflow.com/questions/480214/how-do-you-remove-duplicates-from-a-list-in-python-whilst-preserving-order
+        def uniq_list(seq):
+            seen = set()
+            seen_add = seen.add
+            return [x for x in seq if x not in seen and not seen_add(x)]
         tag_specs = spec.split(',')
         struct = {}
         for tag_spec in tag_specs:
             if ':' in tag_spec:
                 tag_spec = tag_spec.split(':', 2)
+                tag = tag_spec[0]
                 buckets = tag_spec[1].split('|')
-                struct[tag_spec[0]] = buckets
             else:
-                # this tag has one bucket, the empty string, which matches all
-                # values
-                struct[tag_spec] = ['']
+                tag = tag_spec
+                buckets = []
+            # there should always be a fallback ('' bucket), which matches all values
+            # while we're add it, remove dupes
+            buckets.append('')
+            struct[tag] = uniq_list(buckets)
         return struct

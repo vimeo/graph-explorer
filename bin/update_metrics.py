@@ -1,28 +1,19 @@
 #!/usr/bin/env python2
 import os
 import sys
-import logging
 
 from graph_explorer import config
 from graph_explorer.backend import Backend, make_config
 from graph_explorer import structured_metrics
+from graph_explorer.log import make_logger
 
 config = make_config(config)
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-if __name__ == "__main__":
-    logger = logging.getLogger('update_metrics')
-    logger.setLevel(logging.DEBUG)
-    chandler = logging.StreamHandler()
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    chandler.setFormatter(formatter)
-    logger.addHandler(chandler)
-    if config.log_file:
-        fhandler = logging.FileHandler(config.log_file)
-        fhandler.setFormatter(formatter)
-        logger.addHandler(fhandler)
+logger = make_logger('update_metrics', config)
 
+try:
     backend = Backend(config, logger)
     s_metrics = structured_metrics.StructuredMetrics(config, logger)
     errors = s_metrics.load_plugins()
@@ -35,3 +26,8 @@ if __name__ == "__main__":
     logger.info("generating structured metrics data...")
     backend.update_data(s_metrics)
     logger.info("success!")
+except Exception, e:  # pylint: disable=W0703
+    logger.error("sorry, something went wrong: %s", e)
+    from traceback import print_exc
+    print_exc()
+    sys.exit(2)

@@ -9,7 +9,7 @@
     <meta name="author" content="">
 
     <!-- Le styles -->
-    <link href="../assets/css/bootstrap.css" rel="stylesheet">
+    <link href="{{root}}assets/css/bootstrap.css" rel="stylesheet">
     <style type="text/css">
       body {
         padding-top: 60px;
@@ -26,13 +26,14 @@
     <![endif]-->
 
     <!-- Le fav and touch icons -->
-    <link rel="shortcut icon" href="../assets/img/favicon.ico">
-    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="../assets/ico/apple-touch-icon-144-precomposed.png">
-    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="../assets/ico/apple-touch-icon-114-precomposed.png">
-    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="../assets/ico/apple-touch-icon-72-precomposed.png">
-    <link rel="apple-touch-icon-precomposed" href="../assets/ico/apple-touch-icon-57-precomposed.png">
-<script src="../assets/js/jquery-1.7.2.js"></script>
-<script src="../assets/js/bootstrap.js"></script>
+    <link rel="shortcut icon" href="{{root}}assets/img/favicon.ico">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="{{root}}assets/ico/apple-touch-icon-144-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="{{root}}assets/ico/apple-touch-icon-114-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="{{root}}assets/ico/apple-touch-icon-72-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" href="{{root}}assets/ico/apple-touch-icon-57-precomposed.png">
+    <script src="{{root}}assets/js/jquery-1.7.2.js"></script>
+    <script src="{{root}}assets/js/bootstrap.js"></script>
+    <script src="{{root}}assets/js/bootbox.js"></script>
 %include templates/snippet.graph-deps
   </head>
 
@@ -63,6 +64,13 @@
                 % for dashboard in list_dashboards():
                   <li><a href="/dashboard/{{dashboard}}">{{dashboard}}</a></li>
                 % end
+            </ul>
+          </li>
+          <li class="dropdown" id="preview-menu">
+            <a class="dropdown-toggle" data-toggle="dropdown" href="#">Alerting <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+                  <li><a href="/rules/">Rules</a></li>
+                  <li><a href="/rules/add">Add rule</a></li>
             </ul>
           </li>
             <li><a target="_blank" href="https://github.com/vimeo/graph-explorer/wiki">Help</a></li>

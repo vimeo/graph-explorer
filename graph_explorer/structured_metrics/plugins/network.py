@@ -11,13 +11,13 @@ class NetworkPlugin(Plugin):
 
     def sanitize(self, target):
         if target['tags']['wt'].endswith('_bit'):
-            target['tags']['what'] = 'bits'
+            target['tags']['unit'] = 'B/s'
             target['tags']['type'] = target['tags']['wt'].split('_')[0]
         elif target['tags']['wt'].endswith('_errors'):
-            target['tags']['what'] = 'errors'
+            target['tags']['unit'] = 'Err/s'
             target['tags']['type'] = target['tags']['wt'].split('_')[0]
         else:
-            target['tags']['what'] = 'packets'
+            target['tags']['unit'] = 'Pckt/s'
             target['tags']['type'] = target['tags']['wt']
         del target['tags']['wt']
 

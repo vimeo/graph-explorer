@@ -6,10 +6,8 @@ class TcpPlugin(Plugin):
         {
             'match': '^servers\.(?P<server>[^\.]+)\.(?P<protocol>tcp)\.(?P<type>.*)$',
             'target_type': 'rate',
-            'configure': [
-                lambda self, target: self.fix_underscores(target, 'type'),
-                lambda self, target: self.add_tag(target, 'what', 'events'),
-            ]
+            'tags': {'unit': 'Event'},
+            'configure': lambda self, target: self.fix_underscores(target, 'type'),
         }
     ]
 

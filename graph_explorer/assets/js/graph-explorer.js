@@ -9,9 +9,14 @@ function display_tag(tag_name, tag_value) {
         differentiators = tag_value[1];
         tag_value = tag_value[0];
         body = "<ul>";
+        // show "2x this-value-appears-twice, [..]"
+        var differentiators_counted = {};
         differentiators.forEach(function (target, i) {
-            body += "<li>" + target + "</li>";
+            differentiators_counted[target] = differentiators_counted[target] + 1 || 1;
         });
+        for (var diff in differentiators_counted) {
+            body += "<li>" + differentiators_counted[diff] + "x " + diff + "</li>";
+        }
         body += "</ul>";
 
         //$(document).ready(function() {

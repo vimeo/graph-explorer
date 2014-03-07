@@ -12,16 +12,18 @@ Furthermore, we aim for minimal, hackable code and as simple as possible deploy/
 
 ![Screenshot](https://raw.github.com/vimeo/graph-explorer/master/screenshots/screenshot.png)
 
-It also has a dashboards feature which are pages that show N queries along with their results (0-N graphs each).
+It also has:
+
+* [dashboards](https://github.com/vimeo/graph-explorer/wiki/Dashboards) which are pages that show N queries along with their results (0-N graphs each) and a (url-driven) field that gets applied to all queries, which you can use to narrow down to a specific server, apply a timeframe, etc.
+* an [alerting system](https://github.com/vimeo/graph-explorer/wiki/Alerting) allowing you to set tresholds on queries or plain old graphite query strings.
 
 ## Learn the basics
 
 * [Tutorial](https://github.com/vimeo/graph-explorer/wiki/Tutorial)
 * [The query interface explained](https://github.com/vimeo/graph-explorer/wiki/the-Query-interface)
-* Slightly outdated screencast, but explains most of the concepts and tricks in less than 30minutes.
-[vimeo.com/67080202](http://vimeo.com/67080202)
+* introduction to metrics 2.0 & Graph-Explorer: [https://vimeo.com/87194301](https://vimeo.com/87194301)
 
-## Structured Metrics
+## Metrics 2.0
 
 In graphite, a metric has a name and a corresponding time series of values.
 Graph-explorer's metrics are structured: they contain key-value tags that describe all their attributes, the unit, the metric type, etc.
@@ -48,6 +50,8 @@ For more information see the [Graph-Explorer Query Language](https://github.com/
 
 * python2: python2.6 or higher
 * install elasticsearch and run it (super easy, see [docs](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/setup.html) just set a unique cluster name)
+* Graphite 0.9.10 or higher (tested with 0.9.12)
+* python2-pysqlite (if you want to use the alerting feature)
 
 ## Installation
 
@@ -97,11 +101,17 @@ if yes, check for any errors in the javascript console, (in firefox you need fir
 
 also check all network requests in the network tab, and make sure they return http 200 or 304
 especially, check that the http requests to `graphite/render/?<...>` return actual data.
-(if not, there's something wrong with the request uri/targets.  you may be suffering from [this graphite bug](https://github.com/graphite-project/graphite-web/issues/289))
+you may be suffering from [this graphite bug](https://github.com/graphite-project/graphite-web/issues/289)
+or [this graphite bug](https://github.com/graphite-project/graphite-web/issues/576) or maybe your graphite version is too old.
 
 * i get some error wrt graphite/apache cors access restriction
 
 see section 'Configuration of graphite server' above
+
+* Graph Explorer pulls too much data over the network
+
+This is because graphite 
+<a href="https://github.com/graphite-project/graphite-web/issues/153">doesn't support consolidation on its data API</a> yet.
 
 ## Documentation
 

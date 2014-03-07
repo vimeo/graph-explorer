@@ -38,25 +38,55 @@ class Plugin(object):
             target['tags'][keys] = camel_to_underscore(target['tags'][keys])
 
     @staticmethod
-    def add_tag(target, key, val):
-        '''
-        add tag to existing set of tags
-        overiddes any tag with the same name
-        '''
-        target['tags'][key] = val
+    def parse_statsd_timer(target):
+        # see if we can get info from the end of the metric string
+        nodes = target['tags']['tosplit'].split('.')
+        target['tags']['target_type'] = 'gauge'
+        if len(nodes) > 1 and nodes[-1].startswith('bin_') and nodes[-2] == 'histogram':
+            # graphite uses '.' as node delimiters, so decimal numbers use '_' instead of '.'
+            target['tags']['bin_upper'] = nodes[-1].replace('bin_', '').replace('_', '.', 1)
+            target['tags']['unit'] = 'freq_abs'
+            target['tags']['orig_unit'] = 'ms'
+            nodes = nodes[:-2]
+        # this is a workaround for buggy metric names like "stats.timers.foo.bar.histogram.bin_0.5"
+        # i.e. where the decimal '.' is not replaced by a '_'
+        elif len(nodes) > 2 and nodes[-2].startswith('bin_') and nodes[-3] == 'histogram':
+            target['tags']['bin_upper'] = "%s.%s" % (nodes[-2].replace('bin_', ''), nodes[-1])
+            target['tags']['unit'] = 'freq_abs'
+            target['tags']['orig_unit'] = 'ms'
+            nodes = nodes[:-3]
+        elif len(nodes) > 0:
+            if nodes[-1] in ('lower', 'mean', 'mean_90', 'median', 'std', 'sum', 'sum_90', 'upper', 'upper_90'):
+                target['tags']['stat'] = nodes[-1]
+                target['tags']['unit'] = 'ms'
+                nodes = nodes[:-1]
+            elif nodes[-1] == 'count_ps':
+                target['tags']['target_type'] = 'rate'
+                target['tags']['unit'] = 'Pckt/s'
+                nodes = nodes[:-1]
+            elif nodes[-1] == 'count':
+                target['tags']['target_type'] = 'count'
+                target['tags']['unit'] = 'Pckt'
+                nodes = nodes[:-1]
+        if nodes:
+            target['tags']['tosplit'] = '.'.join(nodes)
+        else:
+            del target['tags']['tosplit']
 
     @staticmethod
-    def autosplit(target, nodes=None):
+    def autosplit(target):
         '''
         for catchall plugins, automatically sets n1, n2, ... tags
         for those nodes that we don't know what they mean
         '''
-        if nodes is None:
-            nodes = target['tags']['tosplit'].split('.')
+        if 'tosplit' not in target['tags']:
+            return target
+        nodes = target['tags']['tosplit'].split('.')
         for n, val in enumerate(nodes):
             # put the remainders in n1, n2, .. tags
             target['tags']['n%d' % (n + 1)] = val
         del target['tags']['tosplit']
+        return target
 
     def get_targets(self):
         # "denormalize" dense configuration list into a new list of full-blown configs
@@ -124,7 +154,13 @@ class Plugin(object):
     @classmethod
     def __create_target(cls, match, target_config):
         tags = match.groupdict()
-        tags.update({'target_type': target_config['target_type'], 'plugin': cls.classname_to_tag()})
+        if 'tags' in target_config:
+            tags.update(target_config['tags'])
+        tags['plugin'] = cls.classname_to_tag()
+        try:
+            tags['target_type'] = target_config['target_type']
+        except:
+            pass
         target = {
             'id': match.string,  # graphite metric
             'config': target_config,
@@ -148,6 +184,13 @@ class Plugin(object):
             if out is not None:
                 target.update(out)
         return target
+
+    def __finish_target(self, target):
+        # this deals with any 'tosplit' tags left in target['tags']
+        # it's important we do this at the end, so that configure functions like
+        # parse_statsd_timer had their chance to do things based on what's in
+        # autosplit, assign some tags, and provide a modified tosplit set.
+        return self.autosplit(target)
 
     def sanitize(self, _target):  # pylint: disable=R0201
         return None
@@ -180,6 +223,7 @@ class Plugin(object):
                     target = self.__create_target(match, target)
                     target = self.__sanitize_target(target)
                     target = self.__configure_target(target)
+                    target = self.__finish_target(target)
                     del target['config']  # not needed beyond this point
                     self.targets_found += 1
                     return (self.get_target_id(target), target)
@@ -196,52 +240,59 @@ class Plugin(object):
     # experimental shortcut functions to easily define targets.
     # some of these would be better provided by the plugins themselves
     @staticmethod
-    def gauge(match):
+    def gauge(match, tags={}):
         return {
             'match': match,
-            'target_type': 'gauge'
+            'target_type': 'gauge',
+            'tags': tags
         }
 
     @staticmethod
-    def count(match):
+    def count(match, tags={}):
         return {
             'match': match,
-            'target_type': 'count'
+            'target_type': 'count',
+            'tags': tags
         }
 
     @staticmethod
-    def rate(match):
+    def rate(match, tags={}):
         return {
             'match': match,
-            'target_type': 'rate'
+            'target_type': 'rate',
+            'tags': tags
         }
 
     @staticmethod
-    def counter(match):
+    def counter(match, tags={}):
         return {
             'match': match,
-            'target_type': 'counter'
+            'target_type': 'counter',
+            'tags': tags
         }
 
     @staticmethod
-    def statsd_gauge(match):
+    def statsd_gauge(match, tags={}):
         return {
             'match': '^stats.gauges\.%s' % match,
-            'target_type': 'gauge'
+            'target_type': 'gauge',
+            'tags': tags
         }
 
     @staticmethod
-    def statsd_count(match):
+    def statsd_count(match, tags={}):
         return {
             'match': '^stats_counts\.%s' % match,
-            'target_type': 'count'
+            'target_type': 'count',
+            'tags': tags
         }
 
     @staticmethod
-    def statsd_rate(match):
+    def statsd_rate(match, tags={}):
         return {
             'match': '^stats\.%s' % match,
-            'target_type': 'rate'
+            'target_type': 'rate',
+            'tags': tags
         }
 
 # vim: ts=4 et sw=4:

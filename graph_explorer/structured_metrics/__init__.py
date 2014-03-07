@@ -152,9 +152,10 @@ class StructuredMetrics(object):
 
     def __init__(self, config=None, logger=logging):
         self.plugins = []
-        if hasattr(config, 'es_host') and hasattr(config, 'es_port'):
+        if hasattr(config, 'es_host') and hasattr(config, 'es_port') and hasattr(config, 'es_index'):
             es_host = config.es_host.replace('http://', '').replace('https://', '')
             self.es = Elasticsearch([{"host": es_host, "port": config.es_port}])
+            self.es_index = config.es_index
         self.logger = logger
         self.config = config
 
@@ -216,7 +217,10 @@ class StructuredMetrics(object):
         for plugin in self.plugins:
             (plugin_name, plugin_object) = plugin
         targets = {}
-        stats = {}
+        stats = {
+            'duplicate_ignored_graphite_bug': 0,
+            'duplicate': 0
+        }
         for plugin in self.plugins:
             stats[plugin[0]] = {
                 'ok': 0,
@@ -235,42 +239,36 @@ class StructuredMetrics(object):
                         break
                     (k, v) = proto2_metric
                     tags = v['tags']
-                    if 'target_type' not in tags or ('unit' not in tags and 'what' not in tags):
+                    if 'target_type' not in tags and 'unit' not in tags:
                         stats[plugin_name]['bad'] += 1
                         self.logger.warn("metric '%s' doesn't have the mandatory tags "
-                                         "('target_type' and either 'unit' or 'what').  "
+                                         "('target_type' and 'unit').  "
                                          "ignoring it...", v)
                     else:
-                        # old style tags: what, target_type
-                        # new style: unit, (and target_type, for now)
-                        # automatically convert
-                        if 'unit' not in tags and 'what' in tags:
-                            convert = {
-                                'bytes': 'B',
-                                'bits': 'b'
-                            }
-                            unit = convert.get(tags['what'], tags['what'])
-                            if tags['target_type'] is 'rate':
-                                v['tags']['unit'] = '%s/s' % unit
+                        if k in targets:
+                            if metric + '.' == targets[k]['id'] or targets[k]['id'] + '.' == metric:
+                                stats['duplicate_ignored_graphite_bug'] += 1
                             else:
-                                v['tags']['unit'] = unit
-                            del v['tags']['what']
+                                stats['duplicate'] += 1
+                                self.logger.warn("proto 2 metric '%s' upgraded from both '%s' and '%s'", k, metric, targets[k]['id'])
                         targets[k] = v
                         stats[plugin_name]['ok'] += 1
                         break
             if not found:
-                self.logger.warn("metric '%s' is not recognized by any of your plugins. this is very unusual", metric)
-        self.logger.debug("%20s %20s %20s %20s", "plugin name", "metrics upgrade ok", "metrics upgrade bad", "metrics ignored")
+                self.logger.warn("metric '%s' is not succesfully upgraded by any of your plugins. this is very unusual", metric)
+        self.logger.debug("%30s %20s %20s %20s", "plugin name", "metrics upgrade ok", "metrics upgrade bad", "metrics ignored")
         for plugin in self.plugins:
             plugin_name = plugin[0]
-            self.logger.debug("%20s %20d %20d %20d", plugin_name, stats[plugin_name]['ok'], stats[plugin_name]['bad'], stats[plugin_name]['ign'])
+            self.logger.debug("%30s %20d %20d %20d", plugin_name, stats[plugin_name]['ok'], stats[plugin_name]['bad'], stats[plugin_name]['ign'])
+        self.logger.debug("duplicate yields ignored due to graphite bug : %d", stats['duplicate_ignored_graphite_bug'])
+        self.logger.debug("real duplicate yields (check your plugins)   : %d", stats['duplicate'])
         return targets
 
     def es_bulk(self, bulk_list):
         if not len(bulk_list):
             return
         body = '\n'.join(map(json.dumps, bulk_list)) + '\n'
-        self.es.bulk(index='graphite_metrics', doc_type='metric', body=body)
+        self.es.bulk(index=self.es_index, doc_type='metric', body=body)
 
     def assure_index(self):
         body = {
@@ -289,7 +287,7 @@ class StructuredMetrics(object):
         }
         self.logger.debug("making sure index exists..")
         try:
-            self.es.indices.create(index='graphite_metrics', body=body)
+            self.es.indices.create(index=self.es_index, body=body)
         except TransportError, e:
             if 'IndexAlreadyExistsException' in e[1]:
                 pass
@@ -298,7 +296,7 @@ class StructuredMetrics(object):
 
         self.logger.debug("making sure shard is started..")
         # not sure what happens when this times out, an exception maybe?
-        self.es.cluster.health(index='graphite_metrics', wait_for_status='yellow')
+        self.es.cluster.health(index=self.es_index, wait_for_status='yellow')
         self.logger.debug("shard is ready!")
 
     def remove_metrics_not_in(self, metrics):
@@ -343,27 +341,24 @@ class StructuredMetrics(object):
 
     def count_metrics(self):
         self.assure_index()
-        ret = self.es.count(index='graphite_metrics', doc_type='metric')
+        ret = self.es.count(index=self.es_index, doc_type='metric')
         return ret['count']
 
     def get_metrics(self, query=None, size=1000):
         self.assure_index()
         self.logger.debug("Sending query to ES: %r", query)
-        try:
-            if query is None:
-                query = query_all
-            return self.es.search(index='graphite_metrics', doc_type='metric', size=size, body={
-                "query": query,
-            })
-        except Exception, e:  # pylint: disable=W0703
-            sys.stderr.write("Could not connect to ElasticSearch: %s" % e)
+        if query is None:
+            query = query_all
+        return self.es.search(index=self.es_index, doc_type='metric', size=size, body={
+            "query": query,
+        })
 
     def get_all_metrics(self, query=None, size=200):
         self.assure_index()
         try:
             if query is None:
                 query = query_all
-            d = self.es.search(index='graphite_metrics', doc_type='metric', size=size,
+            d = self.es.search(index=self.es_index, doc_type='metric', size=size,
                                search_type='scan', scroll='10m', body={"query": query})
             scroll_id = d['_scroll_id']
             d = None
@@ -376,7 +371,7 @@ class StructuredMetrics(object):
 
     def get(self, metric_id):
         self.assure_index()
-        return self.es.get(index='graphite_metrics', doc_type='metric', id=metric_id)
+        return self.es.get(index=self.es_index, doc_type='metric', id=metric_id)
 
     def matching(self, query):
         self.assure_index()
@@ -391,8 +386,8 @@ class StructuredMetrics(object):
         self.logger.debug("querying up to %d metrics from ES...", limit_es)
         my_es_query = build_es_query(query['ast'])
         metrics = self.get_metrics(my_es_query, limit_es)
-        self.logger.debug("got %d metrics!", len(metrics))
         results = {}
+        self.logger.debug("got %d metrics!", len(metrics))
         for hit in metrics['hits']['hits']:
             metric = hit_to_metric(hit)
             results[metric['id']] = metric
