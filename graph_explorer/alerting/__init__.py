@@ -5,8 +5,8 @@ from urlparse import urljoin
 import json
 import time
 import sqlite3
-from query import Query
-import graphs as g
+from ..query import Query
+from .. import graphs as g
 
 
 msg_codes = ['OK', 'WARN', 'CRITICAL', 'UNKNOWN']
