@@ -1,17 +1,16 @@
 #!/usr/bin/env python2
-import os
-import sys
-from pprint import pprint
-
-import structured_metrics
-
 """
 this program shows how the proto1 -> proto2 upgrade looks like for
 all metrics given as cmdline arguments.
 very convenient to verify the working of plugins etc.
 """
 
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
+import os
+import sys
+from pprint import pprint
+
+from graph_explorer import structured_metrics
+
 
 s_metrics = structured_metrics.StructuredMetrics()
 errors = s_metrics.load_plugins()
