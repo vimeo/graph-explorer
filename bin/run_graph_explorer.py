@@ -3,6 +3,8 @@
 import os
 import sys
 from bottle import run, debug, PasteServer
+from graph_explorer import config
+from graph_explorer.validation import ConfigValidator
 
 c = ConfigValidator(obj=config)
 if not c.validate():
