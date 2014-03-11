@@ -2,12 +2,3 @@
 	path = graph_explorer/timeserieswidget
 	url = https://github.com/vimeo/timeserieswidget.git
 	pushurl = git@github.com:vimeo/timeserieswidget.git
-[submodule "structured_metrics/elasticsearch-py"]
-	path = structured_metrics/elasticsearch-py
-	url = https://github.com/elasticsearch/elasticsearch-py.git
-[submodule "structured_metrics/urllib3"]
-	path = structured_metrics/urllib3
-	url = https://github.com/shazow/urllib3.git
-[submodule "wtforms"]
-	path = wtforms
-	url = https://github.com/wtforms/wtforms.git
