@@ -1,5 +1,6 @@
 from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
+from glob import glob
 import sys
 
 
@@ -20,6 +21,7 @@ setup_params = dict(
     name="graph-explorer",
     description="Graph-Explorer",
     packages=find_packages(),
+    scripts=glob("bin/*.py"),
     install_requires=[
         "bottle==0.11.6",
         "urllib3==1.7.1", # 71f84f9ab29b9a2818a138fa000bcf75bb05812a
