@@ -34,16 +34,15 @@ class Backend(object):
 
         response = urllib2.urlopen(url)
 
-        m = open('%s.tmp' % self.config.filename_metrics, 'w')
-        m.write(response.read())
-        m.close()
+        with open('%s.tmp' % self.config.filename_metrics, 'w') as m:
+            m.write(response.read())
         os.unlink(self.config.filename_metrics)
         os.rename('%s.tmp' % self.config.filename_metrics, self.config.filename_metrics)
 
     def load_metrics(self):
         try:
-            f = open(self.config.filename_metrics, 'r')
-            metrics = json.load(f)
+            with open(self.config.filename_metrics, 'r') as f:
+                metrics = json.load(f)
             # workaround for graphite bug where metrics can have leading dots
             # has been fixed (https://github.com/graphite-project/graphite-web/pull/293)
             # but older graphite versions still do it
