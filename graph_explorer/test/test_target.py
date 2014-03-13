@@ -1,4 +1,4 @@
-from target import Target
+from graph_explorer.target import Target
 
 
 def test_agg_key():

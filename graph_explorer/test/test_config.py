@@ -1,6 +1,6 @@
 def test_config_valid():
-    import config
-    from validation import ConfigValidator
+    from graph_explorer import config
+    from graph_explorer.validation import ConfigValidator
 
     c = ConfigValidator(obj=config)
     valid = c.validate()

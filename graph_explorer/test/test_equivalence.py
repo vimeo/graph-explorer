@@ -1,5 +1,5 @@
-from query import Query
-import graphs as g
+from graph_explorer.query import Query
+import graph_explorer.graphs as g
 from dummyprefs import DummyPrefs
 
 

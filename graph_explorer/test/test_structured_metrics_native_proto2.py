@@ -1,4 +1,4 @@
-import structured_metrics
+from graph_explorer import structured_metrics
 
 
 def test_native_proto2_disabled():
