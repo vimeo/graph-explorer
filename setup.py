@@ -1,4 +1,19 @@
 from setuptools import setup, find_packages
+from setuptools.command.test import test as TestCommand
+import sys
+
+
+class PyTest(TestCommand):
+    def finalize_options(self):
+        TestCommand.finalize_options(self)
+        self.test_args = []
+        self.test_suite = True
+    def run_tests(self):
+        #import here, cause outside the eggs aren't loaded
+        import pytest
+        errno = pytest.main(self.test_args)
+        sys.exit(errno)
+
 
 setup_params = dict(
     setup_requires=["setuptools_git >= 0.3",],
@@ -12,6 +27,10 @@ setup_params = dict(
         "paste==1.7.5.1",
         "wtforms",
     ],
+    tests_require=[
+        "pytest>=2.5.2",
+    ],
+    cmdclass={"test": PyTest},
     include_package_data=True,
 )
 
