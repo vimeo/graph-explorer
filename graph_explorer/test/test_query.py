@@ -1,4 +1,4 @@
-from query import Query
+from graph_explorer.query import Query
 import copy
 import unittest
 

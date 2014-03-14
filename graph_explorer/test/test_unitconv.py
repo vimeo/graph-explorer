@@ -2,7 +2,7 @@ from __future__ import division
 
 import doctest
 import unittest
-import unitconv
+from graph_explorer import unitconv
 
 
 def test_unitconv():
