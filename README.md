@@ -28,7 +28,7 @@ It also has:
 In graphite, a metric has a name and a corresponding time series of values.
 Graph-explorer's metrics are structured: they contain key-value tags that describe all their attributes, the unit, the metric type, etc.
 You can generate the tag database by using plugins that parse metrics using regular expressions, or by tagging them as they flow into graphite.
-See the [Structured Metrics page](https://github.com/vimeo/graph-epytlorer/wiki/Structured-Metrics)
+See the [Structured Metrics page](https://github.com/vimeo/graph-explorer/wiki/Structured-Metrics)
 
 
 ## GEQL, the Graph-Explorer Query Language
