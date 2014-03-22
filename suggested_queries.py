@@ -38,6 +38,6 @@ queries = [
     }
 ]
 suggested_queries = {
-    'notes': 'example queries which may or may not work depending on whether you have the metrics',
+    'notes': 'these will only work if you have the corresponding metrics',
     'queries': queries
 }
