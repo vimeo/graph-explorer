@@ -97,6 +97,12 @@
                   </li>
             </ul>
           </li>
+<li>
+<p class="navbar-text">
+   <span id="tag_legend"></span>
+</p>
+</li>
+
             </ul>
           </div><!--/.nav-collapse -->
             <ul class="nav pull-right">
