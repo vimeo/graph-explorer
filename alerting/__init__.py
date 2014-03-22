@@ -123,8 +123,16 @@ class Db():
         self.exists = False
 
     def assure_db(self):
-        self.cursor.execute("""CREATE TABLE IF NOT EXISTS rules
-                (id integer primary key autoincrement, expr text, val_warn float, val_crit float, dest text)""")
+        self.cursor.execute("""CREATE TABLE IF NOT EXISTS rules(
+                id integer primary key autoincrement,
+                alias text not null default '',
+                expr text,
+                val_warn float,
+                val_crit float,
+                dest text,
+                active bool not null default 0,
+                warn_on_null bool not null default 0
+        )""")
         self.cursor.execute("""CREATE TABLE IF NOT EXISTS notifications
                 (id integer primary key autoincrement, rule_id integer, timestamp int, status int)""")
         self.exists = True
