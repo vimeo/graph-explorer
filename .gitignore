@@ -6,3 +6,4 @@ metrics.json
 tags
 *.db
 *.egg/
+build/
