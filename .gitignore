@@ -2,5 +2,6 @@
 *.pyo
 *.log
 metrics.json
+*.egg-info/
 tags
 *.db

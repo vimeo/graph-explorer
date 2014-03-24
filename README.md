@@ -55,13 +55,27 @@ For more information see the [Graph-Explorer Query Language](https://github.com/
 
 ## Installation
 
-Just get a code checkout and initialize all git submodules, like so:
+Get a code checkout and initialize all git submodules, like so:
 
 ```
 git clone --recursive https://github.com/vimeo/graph-explorer.git
 ```
 This will give you the latest bleeding edge code (master branch), which may be buggy.
 You can switch to the latest stable release with `git checkout v<version>`
+
+You probably want to set up a [virtualenv](http://www.virtualenv.org/en/latest/) before installing.
+
+To install, along with required packages:
+
+```
+python setup.py install
+```
+
+Or, if you're planning on developing Graph Explorer, install in-place with setuptools "Development Mode":
+
+```
+python setup.py develop
+```
 
 The [releases page](https://github.com/vimeo/graph-explorer/releases) has more info, but don't download from there, the downloads don't contain
 the needed submodules!
@@ -84,11 +98,22 @@ For apache2 this works:
 
 ## Running
 
+### Linux / Unix
+
 * default, with Paste (included):
-`./graph-explorer.py` and your page is available at `<ip>:8080`
+
+`run_graph_explorer.py` and your page is available at `<ip>:8080`
 
 * alternatively, if you use gunicorn, you can run it with multi-workers like so:
 `gunicorn -w 4 app:'default_app()' -b 0.0.0.0:8080`
+
+### Windows
+
+`python %VIRTUAL_ENV%\scripts\run_graph_explorer.py` and your page is available at `<ip>:8080`
+
+or with Powershell:
+
+`python $env:VIRTUAL_ENV/scripts/run_graph_explorer.py`
 
 
 ## Troubleshooting
@@ -104,7 +129,7 @@ especially, check that the http requests to `graphite/render/?<...>` return actu
 you may be suffering from [this graphite bug](https://github.com/graphite-project/graphite-web/issues/289)
 or [this graphite bug](https://github.com/graphite-project/graphite-web/issues/576) or maybe your graphite version is too old.
 
-* i get some error wrt graphite/apache cors access restriction
+* I get some error wrt graphite/apache cors access restriction
 
 see section 'Configuration of graphite server' above
 
@@ -121,8 +146,7 @@ This is because graphite
 ## Unit tests
 
 ```
-sudo pip install -U pytest
-py.test
+python setup.py test
 ```
 
 ## Getting in touch
