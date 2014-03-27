@@ -73,7 +73,7 @@ function generate_title_from_dict(tags_dict, order_pre, order_post) {
     return title;
 }
 function generate_tag_legend_display(tags_list) {
-    var title = '';
+    var title = 'Tag legend: ';
     tags_list.sort();
     tags_order_pre.forEach(function(tag) {if($.inArray(tag, tags_list) >= 0) {title += display_tag_for_legend(tag); }});
     tags_list.forEach(function(tag) {if($.inArray(tag, tags_order_pre) < 0 && $.inArray(tag, tags_order_post) < 0) {title += display_tag_for_legend(tag); }});

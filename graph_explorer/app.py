@@ -54,8 +54,7 @@ def static(path):
 @route('/index/', method='GET')
 @route('/index/<query:path>', method='GET')
 def index(query=''):
-    from suggested_queries import suggested_queries
-    body = template('templates/body.index', errors=errors, query=query, suggested_queries=suggested_queries)
+    body = template('templates/body.index', errors=errors, query=query)
     return render_page(body)
 
 

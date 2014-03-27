@@ -1,4 +1,5 @@
 % setdefault('page', 'index')
+% import urllib
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -73,7 +74,35 @@
                   <li><a href="/rules/add">Add rule</a></li>
             </ul>
           </li>
-            <li><a target="_blank" href="https://github.com/vimeo/graph-explorer/wiki">Help</a></li>
+          % from suggested_queries import suggested_queries
+          <li class="dropdown" id="preview-menu">
+            <a class="dropdown-toggle" data-toggle="dropdown" href="#">Help<b class="caret"></b></a>
+            <ul class="dropdown-menu">
+                  <li><a target="_blank" href="https://github.com/vimeo/graph-explorer/wiki">Documentation</a></li>
+                  <li><a target="_blank" href="https://github.com/vimeo/graph-explorer/wiki#getting-started">Getting started</a></li>
+                  <li><a target="_blank" href="https://github.com/vimeo/graph-explorer/wiki/the-Query-interface">UI explained</a></li>
+                  <li><a target="_blank" href="https://github.com/vimeo/graph-explorer/wiki/Tutorial">Tutorial</a></li>
+                  <li><a target="_blank" href="https://github.com/vimeo/graph-explorer/wiki/GEQL">GEQL (query language)</a></li>
+                  <li class="divider"></li>
+                  <li class="dropdown-submenu">
+                      <a tabindex="-1" href="#">Query examples</a>
+                      <ul class="dropdown-menu">
+                      <i>{{!suggested_queries['notes']}}</i>
+                      % for suggested_query in suggested_queries['queries']:
+                        <li>
+                         <a href="/index/{{urllib.quote(suggested_query['query'], "")}}">{{suggested_query['desc']}}</a>
+                        </li>
+                      % end
+                      </ul>
+                  </li>
+            </ul>
+          </li>
+<li>
+<p class="navbar-text">
+   <span id="tag_legend"></span>
+</p>
+</li>
+
             </ul>
           </div><!--/.nav-collapse -->
             <ul class="nav pull-right">

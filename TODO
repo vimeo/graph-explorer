@@ -15,4 +15,3 @@ MAYBE / PONDERINGS:
 
 * load plugin has stored 5/15M averages, use those when user does 'avg over 5M or 15M'? 
 * interactive slider akin to 'avg over' (rickshaw has this)
-* remove statically configured "suggested queries" (or make it an optional module). instead, track last_use and times_used of each query (after ordering), and show popular queries based on frecency. and/or allow saving queries with manual notes

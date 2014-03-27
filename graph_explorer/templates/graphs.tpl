@@ -15,12 +15,14 @@
         $("#avg_by").html(generate_pattern_display({{!list(query['avg_by'])}}) || 'none');
         $("#sum_by").html(generate_pattern_display({{!list(query['sum_by'])}}) || 'none');
         </script>
-            <dl class="dl-horizontal span6" style="margin-top: 0px;">
+            <dl class="dl-horizontal span4" style="margin-top: 0px;">
                 <dt>Statement</dt><dd>{{query['statement']}}</dd>
-                <dt>Limit</dt><dd>{{query['limit_targets']}}</dd>
                 <dt>Patterns<dt><dd><span id="patterns"></span></dd>
                 <dt>Group by</dt><dd><span id="group_by"></span></dd>
                 <dt>Aggregation</dt><dd>avg by <span id="avg_by"></span>, sum by <span id="sum_by"></span></dd>
+            </dl>
+            <dl class="dl-horizontal span4" style="margin-top: 0px;">
+                <dt>Limit</dt><dd>{{query['limit_targets']}}</dd>
                 <dt>X-axis</dt><dd>from {{query['from']}}, to {{query['to']}}</dd>
                 <dt>Y-axis</dt><dd>min {{query['min']}}, max {{query['max']}}</dd>
                 % if query['avg_over']:
@@ -28,7 +30,7 @@
                     <dt>Avg over</dt><dd>{{query['avg_over'][0]}} {{avg_over_display[query['avg_over'][1]]}}</dd>
                 % end
             </dl>
-            <dl class="dl-horizontal span6">
+            <dl class="dl-horizontal span4" style="margin-top: 0px;">
                 % targets_class = ''
                 % if len_targets_matching == query['limit_es']:
                 %      targets_class = 'text-warning'
@@ -38,7 +40,6 @@
                 <dt>Graphs matching</dt><dd>{{len_graphs_matching}}/{{len_graphs_all}}</dd>
                 <dt>Graphs from matching targets</dt><dd>{{len_graphs_targets_matching}}</dd>
                 <dt>Total graphs</dt><dd>{{len_graphs_matching_all}}</dd>
-                <dt>Tag legend</dt><dd><span id="tag_legend"></span></dd>
             </dl>
         <div class="span12">
         % for (k,v) in graphs:
