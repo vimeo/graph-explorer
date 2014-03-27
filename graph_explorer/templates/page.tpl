@@ -74,7 +74,7 @@
                   <li><a href="/rules/add">Add rule</a></li>
             </ul>
           </li>
-          % from suggested_queries import suggested_queries
+          % from graph_explorer.suggested_queries import suggested_queries
           <li class="dropdown" id="preview-menu">
             <a class="dropdown-toggle" data-toggle="dropdown" href="#">Help<b class="caret"></b></a>
             <ul class="dropdown-menu">
