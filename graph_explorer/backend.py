@@ -36,7 +36,10 @@ class Backend(object):
 
         with open('%s.tmp' % self.config.filename_metrics, 'w') as m:
             m.write(response.read())
-        os.unlink(self.config.filename_metrics)
+        try:
+            os.unlink(self.config.filename_metrics)
+        except OSError:
+            pass
         os.rename('%s.tmp' % self.config.filename_metrics, self.config.filename_metrics)
 
     def load_metrics(self):
