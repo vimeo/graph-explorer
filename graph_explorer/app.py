@@ -314,6 +314,10 @@ def render_graphs(query, minimal=False, deps=False):
         del errors["match_metrics"]
     try:
         (query, targets_matching) = s_metrics.matching(query)
+        # presentation overrides. useful to make screenshots etc with
+        # specific query settings not visible in the UI
+        # query['from'] = "-3weeks"
+        # query['to'] = "-2weeks"
     except Exception, e:  # pylint: disable=W0703
         errors["match_metrics"] = ("Couldn't find matching metrics: %s" % e, traceback.format_exc())
     if errors:
