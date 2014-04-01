@@ -177,8 +177,7 @@ class StructuredMetrics(object):
             errors.extend(newerrors)
         return errors
 
-    @staticmethod
-    def load_plugins_from(plugin_dir, package, config):
+    def load_plugins_from(self, plugin_dir, package, config):
         # import in sorted order to let it be predictable; lets user plugins import
         # pieces of other plugins imported earlier
         plugins = []
@@ -191,6 +190,7 @@ class StructuredMetrics(object):
             qualifiedname = package.__name__ + '.' + mname
             imp.acquire_lock()
             try:
+                self.logger.debug("loading plugin %s" % qualifiedname)
                 module = imp.load_source(qualifiedname, os.path.join(plugin_dir, f))
                 sys.modules[qualifiedname] = module
                 setattr(package, mname, module)
