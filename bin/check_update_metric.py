@@ -5,14 +5,20 @@ all metrics given as cmdline arguments.
 very convenient to verify the working of plugins etc.
 """
 
-import os
 import sys
 from pprint import pprint
+import logging
 
 from graph_explorer import structured_metrics
+from graph_explorer import config
+from graph_explorer.backend import make_config
+from graph_explorer.log import make_logger
 
+config = make_config(config)
+logger = make_logger('check_update_metric', config)
+logger.setLevel(logging.WARN)
 
-s_metrics = structured_metrics.StructuredMetrics()
+s_metrics = structured_metrics.StructuredMetrics(config, logger)
 errors = s_metrics.load_plugins()
 if len(errors) > 0:
     print 'errors encountered while loading plugins:'
