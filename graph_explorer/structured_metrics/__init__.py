@@ -175,6 +175,8 @@ class StructuredMetrics(object):
             newplugins, newerrors = self.load_plugins_from(plugin_dir, plugins, self.config)
             self.plugins.extend(newplugins)
             errors.extend(newerrors)
+        # sort plugins by their matching priority
+        self.plugins = sorted(self.plugins, key=lambda t: t[1].priority, reverse=True)
         return errors
 
     def load_plugins_from(self, plugin_dir, package, config):
@@ -209,8 +211,7 @@ class StructuredMetrics(object):
                         errors.append(PluginError(mname, "Failed to add plugin '%s'" % mname, e))
                     except Exception, e:  # pylint: disable=W0703
                         errors.append(PluginError(mname, "Failed to add plugin '%s'" % mname, e))
-        # sort plugins by their matching priority
-        return sorted(plugins, key=lambda t: t[1].priority, reverse=True), errors
+        return plugins, errors
 
     def list_metrics(self, metrics):
         self.logger.debug("list_metrics with %d plugins and %d metrics", len(self.plugins), len(metrics))
