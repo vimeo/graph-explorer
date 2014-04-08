@@ -65,12 +65,15 @@
             % if config.anthracite_url is not None:
 		    anthracite_url: "{{config.anthracite_url}}",
             % end
+            % if config.es_events_host is not None:
+		    es_url: "http://{{config.es_events_host}}:{{config.es_events_port}}/{{config.es_events_index}}/_search",
+            % end
 		    from: "-24hours",
 		    until: "now",
 		    height: "300",
 		    width: "740",
 		    line_stack_toggle: 'line_stack_form_flot_{{graph_id}}',
-		    series: {stack: true, lines: { show: true, lineWidth: 0, fill: true }},
+		    series: {stack: true, lines: { show: true, lineWidth: 0, fill: true }, bars: { stack: 0 }},
 		    legend: {container: '#legend_flot_{{graph_id}}', noColumns: 1, labelFormatter: labelFormatter },
             hover_details: true,
             zoneFileBasePath: '{{root}}timeserieswidget/tz',
