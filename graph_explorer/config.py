@@ -13,8 +13,14 @@ graphite_password = None
 
 ## optional, to get annotated events on your graphs
 # (the clientside graph renderer talks directly to it)
-# anthracite_url = "http://anthracite-machine"
-anthracite_url = None
+# this will point to your anthracite index in elastic search
+# anthracite_host = "localhost"
+# anthracite_port = 9200
+# anthracite_index = "anthracite"
+anthracite_host = None
+anthracite_port = None
+anthracite_index = None
+
 # url to add events by clicking on graphs. usually this is just an extra /events/add
 # but if you use plugins the path can be different.  None to disable
 # anthracite_add_url = "http://anthracite-machine/events/add"
