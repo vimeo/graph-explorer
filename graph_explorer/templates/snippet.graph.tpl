@@ -62,11 +62,8 @@
         });
 		var defaults = {
 		    graphite_url: "{{urljoin(config.graphite_url_client, "render")}}",
-            % if config.anthracite_url is not None:
-		    anthracite_url: "{{config.anthracite_url}}",
-            % end
-            % if config.es_events_host is not None:
-		    es_url: "http://{{config.es_events_host}}:{{config.es_events_port}}/{{config.es_events_index}}/_search",
+            % if config.anthracite_host is not None:
+		    events_url: "http://{{config.anthracite_host}}:{{config.anthracite_port}}/{{config.anthracite_index}}/_search",
             % end
 		    from: "-24hours",
 		    until: "now",
