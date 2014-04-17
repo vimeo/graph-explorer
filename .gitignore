@@ -5,5 +5,5 @@ metrics.json
 *.egg-info/
 tags
 *.db
-*.egg/
+*.egg
 build/
