@@ -83,7 +83,7 @@ Graph Explorer version numbering is based on [semver](http://semver.org/).
 
 ## Configuration of graph-explorer
 
-* edit config.py for basic config options.  If you want annotated events using [anthracite](https://github.com/Dieterbe/anthracite) set `anthracite_url`
+* make a copy of graph_explorer_example.cfg and edit for basic config options.  If you want annotated events using [anthracite](https://github.com/Dieterbe/anthracite) set `anthracite_url`
 * have a look at preferences.py, this is where you can configure timezone, targets colors, a few graph options, etc.
 * [populate an elasticsearch database with structured metrics](https://github.com/vimeo/graph-explorer/wiki/Structured-Metrics)
 
@@ -102,18 +102,18 @@ For apache2 this works:
 
 * default, with Paste (included):
 
-`run_graph_explorer.py` and your page is available at `<ip>:8080`
+`run_graph_explorer.py my_config_file.cfg` and your page is available at `<ip>:8080`
 
 * alternatively, if you use gunicorn, you can run it with multi-workers like so:
 `gunicorn -w 4 app:'default_app()' -b 0.0.0.0:8080`
 
 ### Windows
 
-`python %VIRTUAL_ENV%\scripts\run_graph_explorer.py` and your page is available at `<ip>:8080`
+`python %VIRTUAL_ENV%\scripts\run_graph_explorer.py my_config_file.cfg` and your page is available at `<ip>:8080`
 
 or with Powershell:
 
-`python $env:VIRTUAL_ENV/scripts/run_graph_explorer.py`
+`python $env:VIRTUAL_ENV/scripts/run_graph_explorer.py my_config_file.cfg`
 
 
 ## Troubleshooting

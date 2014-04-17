@@ -1,62 +1,51 @@
-listen_host = '0.0.0.0'  # defaults to "all interfaces"
-listen_port = 8080
-filename_metrics = 'metrics.json'
-log_file = 'graph-explorer.log'
-
-## need to connect to graphite
-# the url that the graph-explorer daemon will use to connect to graphite
-graphite_url_server = 'http://localhost'
-# the url that the graph renderer in browser will use to connect to graphite
-graphite_url_client = 'http://graphite.machine.dns'
-graphite_username = None
-graphite_password = None
-
-## optional, to get annotated events on your graphs
-# (the clientside graph renderer talks directly to it)
-# this will point to your anthracite index in elastic search
-# anthracite_host = "localhost"
-# anthracite_port = 9200
-# anthracite_index = "anthracite"
-anthracite_host = None
-anthracite_port = None
-anthracite_index = None
-
-# url to add events by clicking on graphs. usually this is just an extra /events/add
-# but if you use plugins the path can be different.  None to disable
-# anthracite_add_url = "http://anthracite-machine/events/add"
-anthracite_add_url = None
-
-# load structured_metrics plugins from all of these directories, in order;
-# the magic string "**builtins**" refers to the graph-explorer builtin
-# plugins. if you don't want them loaded, take out "**builtins**".
-metric_plugin_dirs = ('**builtins**',)
-
-## graph explorer daemon needs to connect to elasticsearch,
-# you typically run an ES on the same host as GE.
-es_host = "localhost"
-es_port = 9200
-es_index = 'graphite_metrics2'
-# irrespective of 'limit', never get more metrics than this from ES:
-limit_es_metrics = 10000
-
-# if metrics stored in graphite already look like proto2 (they contain a '='),
-# should we still actively update them in ES?
-# change to False if you already have them up to date in ES,
-# for example when you use something like carbon-tagger.
-process_native_proto2 = True
+import sys
+from ConfigParser import SafeConfigParser
 
 
-## for users of the alerting service
-alerting = True
-alerting_db = 'alerting.db'
-alerting_from = 'Graph Explorer <graph-explorer@yourcompany.com>'
-# per rule, max 10 notifications per this many seconds.
-alert_backoff = 30 * 60
-# base location of graph-explorer, in emails we'll refer to this + '/rules/view/id'
-alerting_base_uri = 'http://graph-explorer:8080'
+class DummyConfigParser(object):
+    def __getattr__(self, name):
+        raise Exception("Configuration not initialised")
 
 
-## for users of collectd
-# whether the StoreRates is set in your collectd write_graphite plugin config
-collectd_StoreRates = True
-collectd_prefix = '^collectd\.'
+parser = DummyConfigParser()
+
+
+def init(filename):
+    global parser, config
+    parser = SafeConfigParser()
+    parser.read([filename])
+
+    # This is for backward-compatability. Code should probably be changed to get values
+    # from the ConfigParser object directly.
+    config = sys.modules[__name__]
+    config.listen_host = parser.get("graph_explorer", "listen_host")
+    config.listen_port = parser.getint("graph_explorer", "listen_port")
+    config.filename_metrics = parser.get("graph_explorer", "filename_metrics")
+    config.log_file = parser.get("graph_explorer", "log_file")
+
+    config.graphite_url_server = parser.get("graphite", "url_server")
+    config.graphite_url_client = parser.get("graphite", "url_client")
+    config.graphite_username = parser.get("graphite", "username") or None
+    config.graphite_password = parser.get("graphite", "password") or None
+
+    config.anthracite_host = parser.get("anthracite", "host") or None
+    config.anthracite_port = parser.get("anthracite", "port") or None
+    config.anthracite_index = parser.get("anthracite", "index") or None
+    config.anthracite_add_url = parser.get("anthracite", "add_url") or None
+
+    config.metric_plugin_dirs = parser.get("plugins", "metric_plugin_dirs").splitlines()
+
+    config.es_host = parser.get("elasticsearch", "host")
+    config.es_port = parser.getint("elasticsearch", "port")
+    config.es_index = parser.get("elasticsearch", "index")
+    config.limit_es_metrics = parser.getint("elasticsearch", "limit_es_metrics")
+    config.process_native_proto2 = parser.getboolean("elasticsearch", "process_native_proto2")
+
+    config.alerting = parser.getboolean("alerting", "alerting")
+    config.alerting_db = parser.get("alerting", "db")
+    config.alerting_from = parser.get("alerting", "from")
+    config.alert_backoff = parser.getint("alerting", "backoff")
+    config.alerting_base_uri = parser.get("alerting", "base_uri")
+
+    config.collectd_StoreRates = parser.getboolean("collectd", "StoreRates")
+    config.collectd_prefix = parser.get("collectd", "prefix")
