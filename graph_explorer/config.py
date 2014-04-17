@@ -29,7 +29,7 @@ def init(filename):
     config.graphite_password = parser.get("graphite", "password") or None
 
     config.anthracite_host = parser.get("anthracite", "host") or None
-    config.anthracite_port = parser.get("anthracite", "port") or None
+    config.anthracite_port = parser.get("anthracite", "port") or 9200
     config.anthracite_index = parser.get("anthracite", "index") or None
     config.anthracite_add_url = parser.get("anthracite", "add_url") or None
 
