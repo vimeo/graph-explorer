@@ -66,7 +66,7 @@ class ConfigValidator(Form):
     # anthracite_url = StringField('anthracite_url', [is_None_or(String_and(validators.Length(min=1)))])
     anthracite_host = StringField('es_host', [String_and(validators.Length(min=2))])
     anthracite_port = IntegerField('es_port', [validators.NumberRange(0, 65535)])
-    anthracite_index= StringField('es_index', [String_and(validators.Length(min=2))])
+    anthracite_index = StringField('es_index', [String_and(validators.Length(min=2))])
     anthracite_add_url = StringField('anthracite_add_url', [is_None_or(String_and(validators.Length(min=1)))])
     metric_plugin_dirs = Field('metric_plugin_dirs', [is_iterable()])
     es_host = StringField('es_host', [String_and(validators.Length(min=2))])
