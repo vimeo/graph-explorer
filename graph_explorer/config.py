@@ -1,5 +1,5 @@
 import sys
-from ConfigParser import SafeConfigParser
+from ConfigParser import SafeConfigParser, NoOptionError, NoSectionError
 
 
 class DummyConfigParser(object):
@@ -17,35 +17,68 @@ def init(filename):
 
     # This is for backward-compatability. Code should probably be changed to get values
     # from the ConfigParser object directly.
+    # no this is because we want to be able to validate the whole thing
     config = sys.modules[__name__]
-    config.listen_host = parser.get("graph_explorer", "listen_host")
-    config.listen_port = parser.getint("graph_explorer", "listen_port")
-    config.filename_metrics = parser.get("graph_explorer", "filename_metrics")
-    config.log_file = parser.get("graph_explorer", "log_file")
 
-    config.graphite_url_server = parser.get("graphite", "url_server")
-    config.graphite_url_client = parser.get("graphite", "url_client")
-    config.graphite_username = parser.get("graphite", "username") or None
-    config.graphite_password = parser.get("graphite", "password") or None
+    # no config parser allows for a value not to exist, will always raise exception
+    # but we want to be able to validate later and show all bad and missing values.
+    def get(section, option):
+        try:
+            return parser.get(section, option)
+        except (NoOptionError, NoSectionError):
+            pass
+        return None
 
-    config.anthracite_host = parser.get("anthracite", "host") or None
-    config.anthracite_port = parser.get("anthracite", "port") or 9200
-    config.anthracite_index = parser.get("anthracite", "index") or None
-    config.anthracite_add_url = parser.get("anthracite", "add_url") or None
+    def getlist(section, option):
+        try:
+            list_str = parser.get(section, option)
+            return list_str.splitlines()
+        except (NoOptionError, NoSectionError):
+            pass
+        return None
 
-    config.metric_plugin_dirs = parser.get("plugins", "metric_plugin_dirs").splitlines()
+    def getint(section, option):
+        try:
+            return parser.getint(section, option)
+        except (NoOptionError, NoSectionError):
+            pass
+        return None
 
-    config.es_host = parser.get("elasticsearch", "host")
-    config.es_port = parser.getint("elasticsearch", "port")
-    config.es_index = parser.get("elasticsearch", "index")
-    config.limit_es_metrics = parser.getint("elasticsearch", "limit_es_metrics")
-    config.process_native_proto2 = parser.getboolean("elasticsearch", "process_native_proto2")
+    def getboolean(section, option):
+        try:
+            return parser.getboolean(section, option)
+        except (NoOptionError, NoSectionError):
+            pass
+        return None
 
-    config.alerting = parser.getboolean("alerting", "alerting")
-    config.alerting_db = parser.get("alerting", "db")
-    config.alerting_from = parser.get("alerting", "from")
-    config.alert_backoff = parser.getint("alerting", "backoff")
-    config.alerting_base_uri = parser.get("alerting", "base_uri")
+    config.listen_host = get("graph_explorer", "listen_host")
+    config.listen_port = getint("graph_explorer", "listen_port")
+    config.filename_metrics = get("graph_explorer", "filename_metrics")
+    config.log_file = get("graph_explorer", "log_file")
 
-    config.collectd_StoreRates = parser.getboolean("collectd", "StoreRates")
-    config.collectd_prefix = parser.get("collectd", "prefix")
+    config.graphite_url_server = get("graphite", "url_server")
+    config.graphite_url_client = get("graphite", "url_client")
+    config.graphite_username = get("graphite", "username") or None
+    config.graphite_password = get("graphite", "password") or None
+
+    config.anthracite_host = get("anthracite", "host") or None
+    config.anthracite_port = getint("anthracite", "port") or 9200
+    config.anthracite_index = get("anthracite", "index") or None
+    config.anthracite_add_url = get("anthracite", "add_url") or None
+
+    config.metric_plugin_dirs = getlist("plugins", "metric_plugin_dirs")
+
+    config.es_host = get("elasticsearch", "host")
+    config.es_port = getint("elasticsearch", "port")
+    config.es_index = get("elasticsearch", "index")
+    config.limit_es_metrics = getint("elasticsearch", "limit_es_metrics")
+    config.process_native_proto2 = getboolean("elasticsearch", "process_native_proto2")
+
+    config.alerting = getboolean("alerting", "alerting")
+    config.alerting_db = get("alerting", "db")
+    config.alerting_from = get("alerting", "from")
+    config.alert_backoff = getint("alerting", "backoff")
+    config.alerting_base_uri = get("alerting", "base_uri")
+
+    config.collectd_StoreRates = getboolean("collectd", "StoreRates")
+    config.collectd_prefix = get("collectd", "prefix")
