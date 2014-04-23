@@ -53,55 +53,55 @@ def test_parse_timers():
     assert expected == real.values()[0]
 
     key = "stats.timers.memcached_default_get.lower"
-    expected = get_proto2(key, 'gauge', 'ms', {'type': 'lower'})
+    expected = get_proto2(key, 'gauge', 'ms', {'stat': 'lower'})
     real = s_metrics.list_metrics([key])
     assert len(real) == 1
     assert expected == real.values()[0]
 
     key = "stats.timers.memcached_default_get.mean"
-    expected = get_proto2(key, 'gauge', 'ms', {'type': 'mean'})
+    expected = get_proto2(key, 'gauge', 'ms', {'stat': 'mean'})
     real = s_metrics.list_metrics([key])
     assert len(real) == 1
     assert expected == real.values()[0]
 
     key = "stats.timers.memcached_default_get.mean_90"
-    expected = get_proto2(key, 'gauge', 'ms', {'type': 'mean_90'})
+    expected = get_proto2(key, 'gauge', 'ms', {'stat': 'mean_90'})
     real = s_metrics.list_metrics([key])
     assert len(real) == 1
     assert expected == real.values()[0]
 
     key = "stats.timers.memcached_default_get.median"
-    expected = get_proto2(key, 'gauge', 'ms', {'type': 'median'})
+    expected = get_proto2(key, 'gauge', 'ms', {'stat': 'median'})
     real = s_metrics.list_metrics([key])
     assert len(real) == 1
     assert expected == real.values()[0]
 
     key = "stats.timers.memcached_default_get.std"
-    expected = get_proto2(key, 'gauge', 'ms', {'type': 'std'})
+    expected = get_proto2(key, 'gauge', 'ms', {'stat': 'std'})
     real = s_metrics.list_metrics([key])
     assert len(real) == 1
     assert expected == real.values()[0]
 
     key = "stats.timers.memcached_default_get.sum"
-    expected = get_proto2(key, 'gauge', 'ms', {'type': 'sum'})
+    expected = get_proto2(key, 'gauge', 'ms', {'stat': 'sum'})
     real = s_metrics.list_metrics([key])
     assert len(real) == 1
     assert expected == real.values()[0]
 
     key = "stats.timers.memcached_default_get.sum_90"
-    expected = get_proto2(key, 'gauge', 'ms', {'type': 'sum_90'})
+    expected = get_proto2(key, 'gauge', 'ms', {'stat': 'sum_90'})
     real = s_metrics.list_metrics([key])
     assert len(real) == 1
     assert expected == real.values()[0]
 
     key = "stats.timers.memcached_default_get.upper"
-    expected = get_proto2(key, 'gauge', 'ms', {'type': 'upper'})
+    expected = get_proto2(key, 'gauge', 'ms', {'stat': 'upper'})
     real = s_metrics.list_metrics([key])
     assert len(real) == 1
     assert expected == real.values()[0]
 
     key = "stats.timers.memcached_default_get.upper_90"
-    expected = get_proto2(key, 'gauge', 'ms', {'type': 'upper_90'})
+    expected = get_proto2(key, 'gauge', 'ms', {'stat': 'upper_90'})
     real = s_metrics.list_metrics([key])
     assert len(real) == 1
     assert expected == real.values()[0]
