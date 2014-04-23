@@ -25,9 +25,10 @@ def main():
                 print "\n    %s" % e
         sys.exit(1)
 
-    app_dir = os.path.dirname(__file__)
-    if app_dir:
-        os.chdir(app_dir)
+    # tmp disabled. breaks config loading
+    #app_dir = os.path.dirname(__file__)
+    #if app_dir:
+    #    os.chdir(app_dir)
 
     debug(args.debug)
     run('graph_explorer.app',
