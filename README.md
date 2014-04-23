@@ -83,7 +83,7 @@ Graph Explorer version numbering is based on [semver](http://semver.org/).
 
 ## Configuration of graph-explorer
 
-* make a copy of graph_explorer_example.cfg and edit for basic config options.  If you want annotated events using [anthracite](https://github.com/Dieterbe/anthracite) set `anthracite_url`
+* make a copy of config_example.cfg and edit it.
 * have a look at preferences.py, this is where you can configure timezone, targets colors, a few graph options, etc.
 * [populate an elasticsearch database with structured metrics](https://github.com/vimeo/graph-explorer/wiki/Structured-Metrics)
 
