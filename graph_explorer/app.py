@@ -172,7 +172,7 @@ def proxy_render(query=''):
     body = request.body.read()
     f = urllib2.urlopen(url, body)
     # this can be very verbose:
-    #logger.debug("proxying graphite request: " + body)
+    # logger.debug("proxying graphite request: " + body)
     message = f.info()
     response.headers['Content-Type'] = message.gettype()
     return f.read()
