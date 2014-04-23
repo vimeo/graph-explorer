@@ -66,7 +66,8 @@ def init(filename):
     config.anthracite_index = get("anthracite", "index") or None
     config.anthracite_add_url = get("anthracite", "add_url") or None
 
-    config.metric_plugin_dirs = getlist("plugins", "metric_plugin_dirs")
+    config.locations_plugins_structured_metrics = getlist("locations", "plugins_structured_metrics")
+    config.locations_dashboards = getlist("locations", "dashboards")
 
     config.es_host = get("elasticsearch", "host")
     config.es_port = getint("elasticsearch", "port")

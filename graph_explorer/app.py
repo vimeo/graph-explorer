@@ -12,6 +12,7 @@ from simple_match import filter_matching
 from log import make_logger
 from query import Query
 from validation import RuleEditForm, RuleAddForm
+import dashboards
 
 import os
 import traceback
@@ -62,12 +63,14 @@ def index(query=''):
 @route('/dashboard/<dashboard_name>/')
 @route('/dashboard/<dashboard_name>/<apply_all_from_url>', method='GET')
 def slash_dashboard(dashboard_name=None, apply_all_from_url=''):
-    dashboard = template('templates/dashboards/%s' % dashboard_name, errors=errors, apply_all_from_url=apply_all_from_url)
+    bottle.TEMPLATE_PATH.extend(dashboards.get_dirs(config))
+    dashboard = template(dashboard_name, errors=errors, apply_all_from_url=apply_all_from_url)
     return render_page(dashboard)
 
 
 def render_page(body, page='index'):
-    return unicode(template('templates/page', body=body, page=page, last_update=last_update))
+    dashboard_names = dashboards.list_dashboards(config)
+    return unicode(template('templates/page', body=body, page=page, last_update=last_update, dashboards=dashboard_names))
 
 
 @route('/meta')

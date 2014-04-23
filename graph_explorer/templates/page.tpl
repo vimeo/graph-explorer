@@ -58,11 +58,10 @@
               <li><a href="/{{key}}">{{title}}</a></li>
 		% end
 	% end
-            % from graph_explorer.dashboards import list_dashboards
           <li class="dropdown" id="preview-menu">
             <a class="dropdown-toggle" data-toggle="dropdown" href="#">Dashboards <b class="caret"></b></a>
             <ul class="dropdown-menu">
-                % for dashboard in list_dashboards():
+                % for dashboard in dashboards:
                   <li><a href="/dashboard/{{dashboard}}">{{dashboard}}</a></li>
                 % end
             </ul>
