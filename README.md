@@ -98,6 +98,8 @@ For apache2 this works:
 
 ## Running
 
+Make sure Graph-Explorer can write to the directories that you configured the log (and if enabled, alerting database file) to be in.
+
 ### Linux / Unix
 
 * default, with Paste (included):
