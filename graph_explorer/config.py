@@ -1,5 +1,6 @@
 import sys
 from ConfigParser import SafeConfigParser, NoOptionError, NoSectionError
+from graph_explorer.validation import ConfigValidator
 
 
 class DummyConfigParser(object):
@@ -8,10 +9,12 @@ class DummyConfigParser(object):
 
 
 parser = DummyConfigParser()
+file_name = ""
 
 
 def init(filename):
-    global parser, config
+    global parser, config, file_name
+    file_name = filename
     parser = SafeConfigParser()
     parser.read([filename])
 
@@ -84,3 +87,17 @@ def init(filename):
 
     config.collectd_StoreRates = getboolean("collectd", "StoreRates")
     config.collectd_prefix = get("collectd", "prefix")
+
+
+def valid_or_die():
+    global config, file_name
+    config = sys.modules[__name__]
+    c = ConfigValidator(obj=config)
+    if c.validate():
+        return
+    print "Configuration errors (%s):" % file_name
+    for (key, err) in c.errors.items():
+        print key,
+        for e in err:
+            print "\n    %s" % e
+    sys.exit(1)

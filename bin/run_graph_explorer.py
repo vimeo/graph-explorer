@@ -5,7 +5,6 @@ import sys
 from argparse import ArgumentParser
 from bottle import run, debug, PasteServer
 from graph_explorer import config
-from graph_explorer.validation import ConfigValidator
 
 
 def main():
@@ -15,15 +14,7 @@ def main():
     args = parser.parse_args()
 
     config.init(args.configfile)
-    
-    c = ConfigValidator(obj=config)
-    if not c.validate():
-        print "Configuration errors (%s):" % args.configfile
-        for (key, err) in c.errors.items():
-            print key,
-            for e in err:
-                print "\n    %s" % e
-        sys.exit(1)
+    config.valid_or_die()
 
     # tmp disabled. breaks config loading
     #app_dir = os.path.dirname(__file__)

@@ -4,7 +4,7 @@ import sys
 from argparse import ArgumentParser
 
 from graph_explorer import config
-from graph_explorer.backend import Backend, make_config
+from graph_explorer.backend import Backend
 from graph_explorer import structured_metrics
 from graph_explorer.log import make_logger
 

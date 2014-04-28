@@ -1,17 +1,22 @@
 #!/usr/bin/python2
-from alerting import msg_codes, Db, Result
-from alerting.emailoutput import EmailOutput
-from backend import make_config
+from graph_explorer.alerting import msg_codes, Db, Result
+from graph_explorer.alerting.emailoutput import EmailOutput
+from graph_explorer import structured_metrics
+from graph_explorer import config, preferences
 import os
-import structured_metrics
+from argparse import ArgumentParser
 
 app_dir = os.path.dirname(__file__)
 if app_dir:
     os.chdir(app_dir)
 
-import config
-config = make_config(config)
-import preferences
+parser = ArgumentParser(description="Process alerting rules")
+parser.add_argument("configfile", metavar="CONFIG_FILENAME", type=str)
+args = parser.parse_args()
+
+config.init(args.configfile)
+config.valid_or_die()
+
 
 if not config.alerting:
     print "alerting disabled in config"
