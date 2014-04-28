@@ -77,6 +77,7 @@ def init(filename):
 
     config.alerting = getboolean("alerting", "alerting")
     config.alerting_db = get("alerting", "db")
+    config.alerting_smtp = get("alerting", "smtp")
     config.alerting_from = get("alerting", "from")
     config.alert_backoff = getint("alerting", "backoff")
     config.alerting_base_uri = get("alerting", "base_uri")

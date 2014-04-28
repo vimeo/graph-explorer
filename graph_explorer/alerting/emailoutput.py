@@ -51,6 +51,6 @@ class EmailOutput(Output):
 
         msg.attach(img)
 
-        s = smtplib.SMTP('localhost')
+        s = smtplib.SMTP(self.config.alerting_smtp)
         s.sendmail(self.config.alerting_from, result.rule.dest, msg.as_string())
         s.quit()
