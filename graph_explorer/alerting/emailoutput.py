@@ -52,5 +52,6 @@ class EmailOutput(Output):
         msg.attach(img)
 
         s = smtplib.SMTP(self.config.alerting_smtp)
-        s.sendmail(self.config.alerting_from, result.rule.dest, msg.as_string())
+        dest = [to_addr.strip() for to_addr in result.rule.dest.split(',')]
+        s.sendmail(self.config.alerting_from, dest, msg.as_string())
         s.quit()
