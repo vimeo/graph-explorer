@@ -55,31 +55,43 @@ For more information see the [Graph-Explorer Query Language](https://github.com/
 
 ## Installation
 
-Get a code checkout and initialize all git submodules, like so:
+Get a code checkout, initialize all git submodules and go in the directory, like so:
 
 ```
-git clone --recursive https://github.com/vimeo/graph-explorer.git
+git clone --recursive https://github.com/vimeo/graph-explorer.git && cd graph-explorer
 ```
 This will give you the latest bleeding edge code (master branch), which may be buggy.
 You can switch to the latest stable release with `git checkout v<version>`
 
-You probably want to set up a [virtualenv](http://www.virtualenv.org/en/latest/) before installing.
+The [releases page](https://github.com/vimeo/graph-explorer/releases) has more info, but don't download from there, the downloads don't contain
+the needed submodules!
+Graph Explorer version numbering is based on [semver](http://semver.org/).
 
-To install, along with required packages:
+The following step is optional, but recommended.
+Using [virtualenv](http://www.virtualenv.org/en/latest/), you can install all packages in an isolated directory, so that you never
+have issues with conflicting library versions, you can easily remove the install, etc.
+
+```
+path=/where/do/want/to/install
+virtualenv $path
+source $path/bin/activate
+```
+
+The actual installation takes care of all dependencies and works the same whether you use virtualenv or not:
 
 ```
 python setup.py install
+cp -ax graph_explorer/timeserieswidget $VIRTUAL_ENV/lib/python2.*/site-packages/graph_explorer-0.0.0-py2.*.egg/graph_explorer
 ```
 
-Or, if you're planning on developing Graph Explorer, install in-place with setuptools "Development Mode":
+## Installation for developers
+You can install in-place with setuptools "Development Mode".
+All instructions are the same as above, except instead of `python setup.py install`, run:
 
 ```
 python setup.py develop
 ```
 
-The [releases page](https://github.com/vimeo/graph-explorer/releases) has more info, but don't download from there, the downloads don't contain
-the needed submodules!
-Graph Explorer version numbering is based on [semver](http://semver.org/).
 
 ## Configuration of graph-explorer
 
