@@ -29,6 +29,7 @@ setup_params = dict(
         "elasticsearch==0.4.3",  # 422d43f4f8c981a5d93b06eefc3ce8f261cfb48c
         "paste==1.7.5.1",
         "wtforms",
+        "argparse"
     ],
     tests_require=[
         "pytest>=2.5.2",
