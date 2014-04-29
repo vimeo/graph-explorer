@@ -275,6 +275,9 @@ def build_from_targets(targets, query, preferences):
 
         graphs[graph_key].update(override)
 
+        # also, set the events query.
+        graphs[graph_key]['events_query'] = query['events_query']
+
     # now that some constants are promoted, we can give the graph more
     # unique keys based on all (original + promoted) constants. this is in
     # line with the meaning of the graph ("all targets with those constant

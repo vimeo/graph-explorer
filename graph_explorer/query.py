@@ -21,6 +21,7 @@ class Query(dict):
         'from': '-24hours',
         'to': 'now',
         'limit_targets': 500,
+        'events_query': '',
         'target_modifiers': []
     }
 
@@ -45,6 +46,8 @@ class Query(dict):
                 value = match.groups(1)[0].replace(predicate_match, '')
                 query_str = query_str[:match.start(1)] + query_str[match.end(1):]
             return (query_str, value)
+
+        (query_str, _, self['events_query']) = query_str.partition('||')
 
         (query_str, self['statement']) = parse_val(query_str, '^', '(graph|list|stack|lines)\\b',
                                                    self['statement'])
