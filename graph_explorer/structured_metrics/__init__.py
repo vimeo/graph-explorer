@@ -168,7 +168,7 @@ class StructuredMetrics(object):
         '''
         from . import plugins
         errors = []
-        plugin_dirs = getattr(self.config, "metric_plugin_dirs", ('**builtins**',))
+        plugin_dirs = self.config.locations_plugins_structured_metrics
         for plugin_dir in plugin_dirs:
             if plugin_dir == '**builtins**':
                 plugin_dir = os.path.dirname(plugins.__file__)
