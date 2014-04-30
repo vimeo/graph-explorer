@@ -83,13 +83,16 @@ The actual installation takes care of all dependencies and works the same whethe
 python setup.py install
 ```
 
-## Installation for developers
-You can install in-place with setuptools "Development Mode".
-All instructions are the same as above, except instead of `python setup.py install`, run:
+Instead of that, if you want to hack on Graph-Explorer, you can run.
 
 ```
 python setup.py develop
 ```
+
+This is like an installation, but it links back to the code.  So when you run graph-explorer,
+it will automatically reload the server when you modify any python file,
+and changes in assets (js, css, ...) are visible for new requests.
+Templates however are cached by bottle and still need a manual restart for changes to become effective.
 
 
 ## Configuration of graph-explorer
