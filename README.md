@@ -81,7 +81,6 @@ The actual installation takes care of all dependencies and works the same whethe
 
 ```
 python setup.py install
-cp -ax graph_explorer/timeserieswidget $VIRTUAL_ENV/lib/python2.*/site-packages/graph_explorer-0.0.0-py2.*.egg/graph_explorer
 ```
 
 ## Installation for developers
