@@ -9,7 +9,7 @@ class StatsdPlugin(Plugin):
     targets = [
         Plugin.gauge('^statsd\.?(?P<server>[^\.]*)\.(?P<wtt>numStats)', {'service': 'statsd'}),
         Plugin.gauge('^stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>processing_time)$', {'service': 'statsd'}),
-        Plugin.rate('^stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>[^\.]+)$', {'service': 'statsd'}),  # packets_received, bad_lines_seen
+        Plugin.count('^stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>[^\.]+)$', {'service': 'statsd'}),  # packets_received, bad_lines_seen
         Plugin.gauge('^stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>graphiteStats\.calculationtime)$', {'service': 'statsd'}),
         Plugin.gauge('^stats\.statsd\.?(?P<server>[^\.]*)\.(?P<wtt>graphiteStats\.flush_[^\.]+)$', {'service': 'statsd'}),  # flush_length, flush_time
         {
@@ -34,10 +34,10 @@ class StatsdPlugin(Plugin):
         if 'wtt' not in target['tags']:
             return
         if target['tags']['wtt'] == 'packets_received':
-            target['tags']['unit'] = 'Pckt/s'
+            target['tags']['unit'] = 'Pckt/M'
             target['tags']['direction'] = 'in'
         if target['tags']['wtt'] == 'bad_lines_seen':
-            target['tags']['unit'] = 'Err/s'
+            target['tags']['unit'] = 'Err/M'
             target['tags']['direction'] = 'in'
             target['tags']['type'] = 'invalid_line'
         if target['tags']['wtt'] == 'numStats':
