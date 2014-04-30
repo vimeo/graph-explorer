@@ -61,7 +61,9 @@ not sure which distros have graph-explorer packages. TBA.
 
 ### Via python
 
-This step is optional, but recommended.
+There's two ways to go about this, from source and via pypi (see below).
+
+But first an optional, though recommended step.
 Using [virtualenv](http://www.virtualenv.org/en/latest/), you can install all packages in an isolated directory, so that you never
 have issues with conflicting library versions, conflicts with packages from other package managers, you can easily remove the install, etc.
 
@@ -72,7 +74,7 @@ source $path/bin/activate
 ```
 
 The actual installation takes care of all dependencies and works the same whether you use virtualenv or not.
-There's two ways to go about this:
+See below for either the pypi or the git source approach.
 
 #### From pypi
 
@@ -82,7 +84,7 @@ Pypi is the python package repository.
 pip install graph-explorer
 ```
 
-### From source
+#### From source
 
 Get a code checkout, initialize all git submodules and go in the directory, like so:
 
