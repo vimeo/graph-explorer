@@ -11,16 +11,21 @@ class PyTest(TestCommand):
         self.test_suite = True
 
     def run_tests(self):
-        #import here, cause outside the eggs aren't loaded
+        # import here, cause outside the eggs aren't loaded
         import pytest
         errno = pytest.main(self.test_args)
         sys.exit(errno)
 
 
 setup_params = dict(
+    author='Dieter Plaetinck',
+    author_email='dieter@plaetinck.be',
+    version='1.95',
+    license='apache2',
     setup_requires=["setuptools_git >= 0.3", ],
+    url='http://vimeo.github.io/graph-explorer/',
+    description='A graphite dashboard powered by structured metrics',
     name="graph-explorer",
-    description="Graph-Explorer",
     packages=find_packages(),
     scripts=glob("bin/*.py"),
     install_requires=[
