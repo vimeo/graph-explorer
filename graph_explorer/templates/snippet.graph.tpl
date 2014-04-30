@@ -89,6 +89,8 @@
                 "<br/>and the network requests debugger in your browser's dev tools");
             console.log("Error: " + err);
         }
+        %parts = config.anthracite_add_url.split("/events/add")
+        graph_flot_{{graph_id}}['anthracite_url'] = "{{parts[0]}}";
 		$("#chart_flot_{{graph_id}}").graphiteFlot(graph_flot_{{graph_id}}, error_cb);
 		//$("#chart_flot_{{graph_id}}").graphiteHighcharts(graph_flot_{{graph_id}}, function(err) { console.log(err); });
 	});
