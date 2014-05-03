@@ -146,7 +146,17 @@ function create_colormap(tags) {
         "n9": "777"
     }
     tags.forEach(function(tag){
-        colormap[tag] = (Math.round(crc32(tag)/256)).toString(16);
+        r = 0;
+        g = 0;
+        compute_of = tag
+        while (r < 50 && g < 50) {
+            color = Math.round(crc32(compute_of)/256).toString(16);
+            r = color.substring(0,2);
+            g = color.substring(2,4);
+            console.log(tag + "-" + compute_of + "-> color" + color);
+            compute_of += "a";
+        }
+        colormap[tag] = color;
     });
     $.extend(colormap, static_colors);
     return colormap;
