@@ -18,9 +18,9 @@
             <dl class="dl-horizontal span4" style="margin-top: 0px;">
                 <dt>Statement</dt><dd>{{query['statement']}}</dd>
                 <dt>Patterns</dt><dd><span id="patterns"></span></dd>
-                <dt>Events query</dt><dd>&nbsp;{{query['events_query']}}</dd>
                 <dt>Group by</dt><dd><span id="group_by"></span></dd>
                 <dt>Aggregation</dt><dd>avg by <span id="avg_by"></span>, sum by <span id="sum_by"></span></dd>
+                <dt>Events query</dt><dd>&nbsp;{{query['events_query']}}</dd>
             </dl>
             <dl class="dl-horizontal span4" style="margin-top: 0px;">
                 <dt>Limit</dt><dd>{{query['limit_targets']}}</dd>
