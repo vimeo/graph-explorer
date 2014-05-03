@@ -118,7 +118,7 @@ Templates however are cached by bottle and still need a manual restart for chang
 
 ## Configuration of graph-explorer
 
-* make a copy of config_example.cfg and edit it.
+* make a copy of config_example.cfg and edit it.  Note that string values don't need wrapping quotes.
 * have a look at preferences.py, this is where you can configure timezone, targets colors, a few graph options, etc.
 * [populate an elasticsearch database with structured metrics](https://github.com/vimeo/graph-explorer/wiki/Structured-Metrics)
 
