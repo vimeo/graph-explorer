@@ -122,7 +122,7 @@
             console.log("Error: " + err);
         };
 
-        % if config.anthracite_host is not None:
+        % if config.anthracite_host is not None and config.anthracite_add_url is not None:
             %parts = config.anthracite_add_url.split("/events/add")
             graph_flot_{{graph_id}}['anthracite_url'] = "{{parts[0]}}";
         % end
