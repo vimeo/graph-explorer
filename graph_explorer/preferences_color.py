@@ -111,19 +111,6 @@ def apply_colors(graph):
     # color targets based on tags, even when due to grouping metrics with the same tags (colors)
     # show up on the same graph
     rules_tags = [
-        # http stuff, for swift and others
-        [
-            {},
-            {
-                'http_method': {
-                    'GET': colors['blue'][0],
-                    'HEAD': colors['yellow'][0],
-                    'PUT': colors['green'][0],
-                    'REPLICATE': colors['brown'][0],
-                    'DELETE': colors['red'][0]
-                }
-            }
-        ],
         [
             {'stat': ['upper', 'upper_90']},
             {
@@ -141,6 +128,19 @@ def apply_colors(graph):
     # color targets based on tags, except when due to grouping metrics
     # with the same tags show up on the same graph
     rules_unique_tags = [
+        # http stuff, for swift and others
+        [
+            {},
+            {
+                'http_method': {
+                    'GET': colors['blue'][0],
+                    'HEAD': colors['yellow'][0],
+                    'PUT': colors['green'][0],
+                    'REPLICATE': colors['brown'][0],
+                    'DELETE': colors['red'][0]
+                }
+            }
+        ],
         [
             {'what': 'cpu_usage'},
             {
