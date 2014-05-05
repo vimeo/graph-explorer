@@ -78,7 +78,7 @@ class ConfigValidator(Form):
     alerting = Field('alerting', [isBool])
     alerting_db = StringField('alerting_db', [String_and(validators.Length(min=2))])
     alerting_smtp = StringField('alerting_smtp', [String_and(validators.Length(min=2))])
-    # note: validation.Email() doesn't recognize strings like 'Graph Explorer <graph-explorer@yourcompany.com>'
+    # note: validation.Email() doesn't recognize strings like 'Graph Explorer <graph-explorer@example.com>'
     alerting_from = StringField('alerting_from', [String_and(validators.Length(min=2))])
     alert_backoff = IntegerField('alerting_backoff', [validators.NumberRange(1, 99999)])
     alerting_base_uri = StringField('alerting_base_uri', [String_and(validators.Length(min=2))])
