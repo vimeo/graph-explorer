@@ -169,6 +169,12 @@ def handle_graphs(query, deps):
 def proxy_render(query=''):
     import urllib2
     url = urljoin(config.graphite_url_server, "/render/" + query)
+    if (config.graphite_username and config.graphite_password):
+        passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
+        passman.add_password(None, url, config.graphite_username, config.graphite_password)
+        authhandler = urllib2.HTTPBasicAuthHandler(passman)
+        opener = urllib2.build_opener(authhandler)
+        urllib2.install_opener(opener)
     body = request.body.read()
     f = urllib2.urlopen(url, body)
     # this can be very verbose:
