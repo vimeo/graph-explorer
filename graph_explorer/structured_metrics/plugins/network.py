@@ -11,6 +11,9 @@ class NetworkPlugin(Plugin):
 
     def sanitize(self, target):
         if target['tags']['wt'].endswith('_bit'):
+            target['tags']['unit'] = 'b/s'
+            target['tags']['type'] = target['tags']['wt'].split('_')[0]
+        elif target['tags']['wt'].endswith('_bytes'):
             target['tags']['unit'] = 'B/s'
             target['tags']['type'] = target['tags']['wt'].split('_')[0]
         elif target['tags']['wt'].endswith('_errors'):
