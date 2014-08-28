@@ -1,1 +1,2 @@
 graft graph_explorer/timeserieswidget
+recursive-include templates *.tpl
