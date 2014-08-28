@@ -27,6 +27,7 @@ setup_params = dict(
     description='A graphite dashboard powered by structured metrics',
     name="graph-explorer",
     packages=find_packages(),
+    package_data={'graph_explorer': ['templates/*.tpl', 'templates/dashboards/*.tpl']},
     scripts=glob("bin/*.py"),
     install_requires=[
         "bottle==0.11.6",
