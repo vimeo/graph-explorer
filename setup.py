@@ -20,7 +20,7 @@ class PyTest(TestCommand):
 setup_params = dict(
     author='Dieter Plaetinck',
     author_email='dieter@plaetinck.be',
-    version='2.0',
+    version='2.0.2',
     license='apache2',
     setup_requires=["setuptools_git >= 0.3", ],
     url='http://vimeo.github.io/graph-explorer/',
