@@ -1,3 +1,4 @@
 graft graph_explorer/timeserieswidget
 recursive-include templates *.tpl
 recursive-include assets *.ico *.png *.html *.css *.js
+recursive-include timeserieswidget *.js *.css

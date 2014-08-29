@@ -27,7 +27,20 @@ setup_params = dict(
     description='A graphite dashboard powered by structured metrics',
     name="graph-explorer",
     packages=find_packages(),
-    package_data={'graph_explorer': ['templates/*.tpl', 'templates/dashboards/*.tpl', 'assets/*.html', 'assets/img/*', 'assets/css/*', 'assets/js/*']},
+    package_data={'graph_explorer': [
+        'templates/*.tpl',
+        'templates/dashboards/*.tpl',
+        'assets/*.html',
+        'assets/img/*',
+        'assets/css/*',
+        'assets/js/*',
+        'timeserieswidget/*.js',
+        'timeserieswidget/flot/*.js',
+        'timeserieswidget/highcharts/*.js',
+        'timeserieswidget/highcharts/modules/*.js',
+        'timeserieswidget/rickshaw/*.css',
+        'timeserieswidget/rickshaw/*.js'
+    ]},
     scripts=glob("bin/*.py"),
     install_requires=[
         "bottle==0.11.6",
