@@ -45,11 +45,11 @@ class EmailOutput(Output):
 
         msgText = MIMEText("\n".join(content), 'html')
         msg.attach(msgText)
-        targets = [target for (target, value, status) in result.rule.results]
-        img = MIMEImage(get_png(targets, result.rule.val_warn, result.rule.val_crit, self.config, 400))
-        img.add_header('Content-ID', '<graph.png>')
-
-        msg.attach(img)
+        if result.rule.results is not None:
+            targets = [target for (target, value, status) in result.rule.results]
+            img = MIMEImage(get_png(targets, result.rule.val_warn, result.rule.val_crit, self.config, 400))
+            img.add_header('Content-ID', '<graph.png>')
+            msg.attach(img)
 
         s = smtplib.SMTP(self.config.alerting_smtp)
         dest = [to_addr.strip() for to_addr in result.rule.dest.split(',')]
