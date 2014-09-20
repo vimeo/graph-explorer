@@ -55,6 +55,12 @@ For more information see the [Graph-Explorer Query Language](https://github.com/
 
 ## Installation
 
+### Using docker
+
+you can easily use docker and the [vimeo/graph-explorer](https://registry.hub.docker.com/u/vimeo/graph-explorer/) docker image.
+Follow the instructions there
+
+
 ### Via operating system packages
 
 not sure which distros have graph-explorer packages. TBA.
