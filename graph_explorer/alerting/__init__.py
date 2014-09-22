@@ -250,7 +250,11 @@ def get_png(targets, warn, crit, config, width=800):
     for target in targets:
         url += "&target=" + target
     req = urllib2.Request(url, data)
-    response = urllib2.urlopen(req)
+    try:
+        response = urllib2.urlopen(req)
+    except urllib2.HTTPError, e:
+        raise Exception("http %d : %s (request was: %s)" % (e.code, e.reason, url))
+
     return response.read()
 
 
