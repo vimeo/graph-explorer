@@ -5,6 +5,7 @@ from graph_explorer import structured_metrics
 from graph_explorer import config, preferences
 import os
 from argparse import ArgumentParser
+import time
 
 app_dir = os.path.dirname(__file__)
 if app_dir:
@@ -21,6 +22,9 @@ config.valid_or_die()
 if not config.alerting:
     print "alerting disabled in config"
     os.exit(0)
+
+start_timestamp = int(time.time())
+success = True
 
 s_metrics = structured_metrics.StructuredMetrics(config)
 db = Db(config.alerting_db)
@@ -49,6 +53,7 @@ for rule in rules:
         result.body = ["Could not process your rule", str(e)]
         print result.log()
         submit_maybe(result)
+        success = False
         continue
     result = Result(db, config, "%s is %s" % (rule.name(), msg_codes[worst]), worst, rule)
     for (target, value, status) in results:
@@ -59,3 +64,8 @@ for rule in rules:
 
 if not rules:
     print "no rules defined!"
+
+if success:
+    print "run %d OK" % start_timestamp
+else:
+    print "run %d FAIL" % start_timestamp
