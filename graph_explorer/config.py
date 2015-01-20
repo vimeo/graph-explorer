@@ -16,7 +16,7 @@ def init(filename):
     global parser, config, file_name
     file_name = filename
     parser = SafeConfigParser()
-    parser.read([filename])
+    parser.readfp(open(filename))
 
     # This is for backward-compatability. Code should probably be changed to get values
     # from the ConfigParser object directly.
