@@ -37,7 +37,7 @@ def submit_maybe(result):
         print "no notification"
 
 for rule in rules:
-    print " >>> rule ", rule.name()
+    print " >>> rule", rule.name()
     if not rule.active:
         print "inactive. skipping..."
         continue
