@@ -7,17 +7,12 @@ import os
 from argparse import ArgumentParser
 import time
 
-app_dir = os.path.dirname(__file__)
-if app_dir:
-    os.chdir(app_dir)
-
 parser = ArgumentParser(description="Process alerting rules")
 parser.add_argument("configfile", metavar="CONFIG_FILENAME", type=str)
 args = parser.parse_args()
 
 config.init(args.configfile)
 config.valid_or_die()
-
 
 if not config.alerting:
     print "alerting disabled in config"
