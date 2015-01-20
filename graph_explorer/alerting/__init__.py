@@ -56,6 +56,8 @@ class Rule():
         if " " in self.expr:  # looks like a GEQL query
             query = Query(self.expr)
             (query, targets_matching) = s_metrics.matching(query)
+            if not targets_matching:
+                raise Exception("GEQL query '%s' matches no metrics" % self.expr)
             graphs_targets_matching = g.build_from_targets(targets_matching, query, preferences)[0]
 
             targets = [t['target'] for _id, graph in graphs_targets_matching.items() for t in graph['targets']]
