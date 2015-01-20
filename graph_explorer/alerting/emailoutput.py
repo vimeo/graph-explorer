@@ -46,7 +46,7 @@ class EmailOutput(Output):
         msgText = MIMEText("\n".join(content), 'html')
         msg.attach(msgText)
         if result.rule.results is not None:
-            targets = [target for (target, value, status) in result.rule.results]
+            targets = [r['target'] for r in result.rule.results]
             try:
                 img = MIMEImage(get_png(targets, result.rule.val_warn, result.rule.val_crit, self.config, 400))
                 img.add_header('Content-ID', '<graph.png>')

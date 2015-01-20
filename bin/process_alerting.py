@@ -1,5 +1,5 @@
 #!/usr/bin/python2
-from graph_explorer.alerting import msg_codes, Db, Result
+from graph_explorer.alerting import msg_codes, Db, Result, get_worst
 from graph_explorer.alerting.emailoutput import EmailOutput
 from graph_explorer import structured_metrics
 from graph_explorer import config, preferences
@@ -47,7 +47,7 @@ for rule in rules:
         print "inactive. skipping..."
         continue
     try:
-        results, worst = rule.check_values(config, s_metrics, preferences)
+        results = rule.check_values(config, s_metrics, preferences)
     except Exception, e:
         result = Result(db, config, "Could not process your rule", 3, rule)
         result.body = ["Could not process your rule", str(e)]
@@ -55,9 +55,10 @@ for rule in rules:
         submit_maybe(result)
         success = False
         continue
+    worst = get_worst([v['status'] for v in results])
     result = Result(db, config, "%s is %s" % (rule.name(), msg_codes[worst]), worst, rule)
-    for (target, value, status) in results:
-        line = " * %s value %s --> status %s" % (target, value, msg_codes[status])
+    for r in results:
+        line = " * %s value %s --> status %s" % (r['target'], r['value'], msg_codes[r['status']])
         result.body.append(line)
     print result.log()
     submit_maybe(result)

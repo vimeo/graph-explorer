@@ -39,30 +39,35 @@ class Rule():
         self.val_crit = float(self.val_crit)
 
     def check_values(self, config, s_metrics, preferences):
-        results = []
+        '''
+        returns all results like so [{"target": "key", "value": last_known}, "status": code}, {...}]
+        '''
+
+        def target_singular_result(target):
+            values = check_graphite(target, config)
+            assert (len(values) == 1), 'singular target should return exactly 1 result'
+            values[0]['target'] = target  # just in case graphite had a different opinion.
+            return values[0]
+
+        def value_add_status(value):
+            value.update({'status': self.check(value['value'])})
+            return value
+
         if " " in self.expr:  # looks like a GEQL query
             query = Query(self.expr)
             (query, targets_matching) = s_metrics.matching(query)
             graphs_targets_matching = g.build_from_targets(targets_matching, query, preferences)[0]
-            for graph_id, graph in graphs_targets_matching.items():
-                for target in graph['targets']:
-                    target = target['target']
-                    values = check_graphite(target, config)
-                    assert (len(values) == 1), 'singular target should return exactly 1 result'
-                    value = values[0]
-                    status = self.check(value)
-                    results.append((target, value, status))
+
+            targets = [t['target'] for _id, graph in graphs_targets_matching.items() for t in graph['targets']]
+            results = map(value_add_status, map(target_singular_result, targets))
 
         else:  # assumed to be a traditional graphite query
             target = self.expr
             values = check_graphite(target, config)
-            for value in values:
-                status = self.check(value)
-                results.append((target, value, status))
+            results = map(value_add_status, values)
 
         self.results = results
-        worst = get_worst([v[2] for v in results])
-        return results, worst
+        return results
 
     def check(self, value):
         if value is None:
@@ -220,22 +225,27 @@ def check_graphite(target, config):
     input target must be a string matching one or more series in graphite.
     returns the last known value of each series returned by graphite
     '''
+    # graphite returns:
+    # [{"target": "key", "datapoints": [[val, ts], ...]], {...}]
+    # we return:
+    # [{"target": "key", "value": last_known}, {...}]
     url = urljoin(config.graphite_url_server, "/render/?from=-3minutes&format=json")
     values = {'target': target}
     data = urllib.urlencode(values)
     req = urllib2.Request(url, data)
     response = urllib2.urlopen(req)
-    json_data = json.load(response)
-    if not len(json_data):
+    data = json.load(response)
+    if not len(data):
         raise Exception("graphite did not return data for %s" % target)
-    last_dps = []
-    for data in json_data:
+
+    def find_last(struct):
         last_dp = None
-        filtered = [p[0] for p in data['datapoints'] if p[0] is not None]
+        filtered = [p[0] for p in struct['datapoints'] if p[0] is not None]
         if filtered:
             last_dp = filtered[-1]
-        last_dps.append(last_dp)
-    return last_dps
+        return {'target': struct['target'], 'value': last_dp}
+
+    return map(find_last, data)
 
 
 def get_worst(statuses):
