@@ -39,7 +39,6 @@ class Rule():
         self.val_crit = float(self.val_crit)
 
     def check_values(self, config, s_metrics, preferences):
-        worst = 0
         results = []
         if " " in self.expr:  # looks like a GEQL query
             query = Query(self.expr)
@@ -48,24 +47,21 @@ class Rule():
             for graph_id, graph in graphs_targets_matching.items():
                 for target in graph['targets']:
                     target = target['target']
-                    value = check_graphite(target, config)
+                    values = check_graphite(target, config)
+                    assert (len(values) == 1), 'singular target should return exactly 1 result'
+                    value = values[0]
                     status = self.check(value)
                     results.append((target, value, status))
-                    # if worst so far is ok and we have an unknown, that takes precedence
-                    if status == 3 and worst == 0:
-                        worst = 3
-                    # if the current status is not unknown and it's worse than whatever we have, update worst
-                    if status != 3 and status > worst:
-                        worst = status
 
-        else:
+        else:  # assumed to be a traditional graphite query
             target = self.expr
-            value = check_graphite(target, config)
-            status = self.check(value)
-            results.append((target, value, status))
-            if status > worst:
-                worst = status
+            values = check_graphite(target, config)
+            for value in values:
+                status = self.check(value)
+                results.append((target, value, status))
+
         self.results = results
+        worst = get_worst([v[2] for v in results])
         return results, worst
 
     def check(self, value):
@@ -220,6 +216,10 @@ def rule_from_form(form):
 
 
 def check_graphite(target, config):
+    '''
+    input target must be a string matching one or more series in graphite.
+    returns the last known value of each series returned by graphite
+    '''
     url = urljoin(config.graphite_url_server, "/render/?from=-3minutes&format=json")
     values = {'target': target}
     data = urllib.urlencode(values)
@@ -228,14 +228,25 @@ def check_graphite(target, config):
     json_data = json.load(response)
     if not len(json_data):
         raise Exception("graphite did not return data for %s" % target)
-    # get the last non-null value
-    last_dp = None
-    for dp in json_data[0]['datapoints']:
-        if dp[0] is not None:
-            last_dp = dp
-    if last_dp is None:
-        return None
-    return last_dp[0]
+    last_dps = []
+    for data in json_data:
+        last_dp = None
+        filtered = [p[0] for p in data['datapoints'] if p[0] is not None]
+        if filtered:
+            last_dp = filtered[-1]
+        last_dps.append(last_dp)
+    return last_dps
+
+
+def get_worst(statuses):
+    '''
+    get the worst status code.  It's the one with the highest code out of 0/1/2
+    unknown (3) is only worse than 0
+    '''
+    worst = max([status for status in statuses if status < 3])
+    if worst == 0 and 3 in statuses:
+        return 3
+    return worst
 
 
 def get_png(targets, warn, crit, config, width=800):
