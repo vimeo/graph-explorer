@@ -255,7 +255,7 @@ def get_worst(statuses):
     get the worst status code.  It's the one with the highest code out of 0/1/2
     unknown (3) is only worse than 0
     '''
-    worst = max([status for status in statuses if status < 3])
+    worst = max([status for status in statuses if status < 3] + [0])
     if worst == 0 and 3 in statuses:
         return 3
     return worst
