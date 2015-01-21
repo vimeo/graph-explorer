@@ -57,7 +57,7 @@ class Rule():
             query = Query(self.expr)
             (query, targets_matching) = s_metrics.matching(query)
             if not targets_matching:
-                raise Exception("GEQL query '%s' matches no metrics" % self.expr)
+                return []
             graphs_targets_matching = g.build_from_targets(targets_matching, query, preferences)[0]
 
             targets = [t['target'] for _id, graph in graphs_targets_matching.items() for t in graph['targets']]
@@ -238,7 +238,7 @@ def check_graphite(target, config):
     response = urllib2.urlopen(req)
     data = json.load(response)
     if not len(data):
-        raise Exception("graphite did not return data for %s" % target)
+        return []
 
     def find_last(struct):
         last_dp = None

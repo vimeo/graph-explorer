@@ -50,11 +50,16 @@ for rule in rules:
         submit_maybe(result)
         success = False
         continue
-    worst = get_worst([v['status'] for v in results])
-    result = Result(db, config, "%s is %s" % (rule.name(), msg_codes[worst]), worst, rule)
+    if results:
+        status = get_worst([v['status'] for v in results])
+    else:
+        status = 1
+    result = Result(db, config, "%s is %s" % (rule.name(), msg_codes[status]), status, rule)
     for r in results:
         line = " * %s value %s --> status %s" % (r['target'], r['value'], msg_codes[r['status']])
         result.body.append(line)
+    if not results:
+        result.body.append("No results for given query '%s'" % rule.expr)
     print result.log()
     submit_maybe(result)
 
