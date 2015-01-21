@@ -57,7 +57,7 @@
             }
             name = "";
             // at some point, we'll probably want to order the variables; just like how we compose graph titles.
-            $.map(data["variables"], function (v,k) { name += " " + display_tag(k, v);});
+            $.map(data["variables"], function (v,k) { name += " " + display_tag(k, v, true);});
             // there's nothing about this target that's not already in the graph title
             if (name == "") {
                 name = "empty";

@@ -1,8 +1,12 @@
 tags_order_pre = ['unit', 'type', 'target_type'];
 tags_order_post = ['server', 'plugin'];
-function display_tag(tag_name, tag_value) {
+function display_tag(tag_name, tag_value, link) {
     // at some point it'll probably make sense to make the background color the inverse of the foreground color
     // cause there'll be so many foreground colors that are not always visible on any particular background.
+    if (link) {
+        // TODO better adjust url if it ends on ||
+        href = document.URL + " " + tag_name + "=" + tag_value;
+    }
     if (tag_value instanceof Array) {
         // v[0] -> the tag 'value' ("sumseries (x values)")
         // v [1] -> list of differentiators
@@ -25,13 +29,25 @@ function display_tag(tag_name, tag_value) {
         //});
         // leverage jquery to do html entity encoding, so we can put html code in the data attribute.
         title = jQuery('<div />').text('<span style="color:#' + colormap[tag_name] +';">' + tag_name + '</span>: ' + tag_value).html();
-        label = "<span class='label tag_label_popover' data-original-title='" + title + "' data-content='" + body + "' ";
-        label += "rel='popover' style='color:#" + colormap[tag_name] +"; background-color:#333;'>" + tag_value + "</span>";
+        if(link) {
+            label = "<a href='" + href + "' class='label tag_label_popover' data-original-title='" + title + "' data-content='" + body + "' ";
+            label += "rel='popover' style='color:#" + colormap[tag_name] +"; background-color:#333;'>" + tag_value + "</a>";
+        } else {
+            label = "<span class='label tag_label_popover' data-original-title='" + title + "' data-content='" + body + "' ";
+            label += "rel='popover' style='color:#" + colormap[tag_name] +"; background-color:#333;'>" + tag_value + "</span>";
+        }
     } else {
         title = jQuery('<div />').text('<span style="color:#' + colormap[tag_name] +';">' + tag_name + '</span>: ' + tag_value).html();
-        label = "<span class='label tag_label_tooltip' data-original-title='" + title + "' ";
-        label += "style='color:#" + colormap[tag_name] +"; background-color:#333;'>" + tag_value + "</span>";
+        if (link){
+            label = "<a href='" + href + "' class='label tag_label_tooltip' data-original-title='" + title + "' ";
+            label += "style='color:#" + colormap[tag_name] +"; background-color:#333;'>" + tag_value + "</a>";
+        } else {
+            label = "<span class='label tag_label_tooltip' data-original-title='" + title + "' ";
+            label += "style='color:#" + colormap[tag_name] +"; background-color:#333;'>" + tag_value + "</span>";
+        }
     }
+
+
     return label;
 }
 
@@ -52,7 +68,7 @@ function display_word(word) {
     }
     word = word.split('=')[0].split(':')[0];
     if (word in colormap) {
-        return display_tag(word, orig);
+        return display_tag(word, orig, false);
     }
     return "<span class='label'>" + orig + "</span>";
 }
@@ -67,9 +83,9 @@ function generate_title_from_dict(tags_dict, order_pre, order_post) {
     var title = '';
     var keys = Object.keys(tags_dict);
     keys.sort();
-    order_pre.forEach(function(tag) {if(tag in tags_dict) {title += display_tag(tag, tags_dict[tag]); }});
-    keys.forEach(function (tag) { tag_v = tags_dict[tag]; if($.inArray(tag, order_pre) < 0 && $.inArray(tag, order_post) < 0) {title += display_tag(tag,tag_v); }});
-    order_post.forEach(function(tag) {if(tag in tags_dict) {title += display_tag(tag, tags_dict[tag]); }});
+    order_pre.forEach(function(tag) {if(tag in tags_dict) {title += display_tag(tag, tags_dict[tag], true); }});
+    keys.forEach(function (tag) { tag_v = tags_dict[tag]; if($.inArray(tag, order_pre) < 0 && $.inArray(tag, order_post) < 0) {title += display_tag(tag,tag_v, true); }});
+    order_post.forEach(function(tag) {if(tag in tags_dict) {title += display_tag(tag, tags_dict[tag], true); }});
     return title;
 }
 function generate_tag_legend_display(tags_list) {
@@ -103,19 +119,19 @@ function get_vtitle(graph_data) {
     var vtitle = "";
     var target_type = "";
     if ('stat' in graph_data['constants_all']) {
-        vtitle += display_tag('stat', graph_data['constants_all']['stat']);
+        vtitle += display_tag('stat', graph_data['constants_all']['stat'], true);
     }
     if ('type' in graph_data['constants_all']) {
-        vtitle += display_tag('type', graph_data['constants_all']['type']);
+        vtitle += display_tag('type', graph_data['constants_all']['type'], true);
     }
     if ('target_type' in graph_data['constants_all']) {
         target_type = graph_data['constants_all']['target_type'];
     }
     if ('unit' in graph_data['constants_all']) {
         if (target_type == 'counter') {
-            vtitle += 'total' + display_tag('unit', graph_data['constants_all']['unit']);
+            vtitle += 'total' + display_tag('unit', graph_data['constants_all']['unit'], true);
         } else {
-            vtitle += display_tag('unit', graph_data['constants_all']['unit']);
+            vtitle += display_tag('unit', graph_data['constants_all']['unit'], true);
         }
     }
     // gauge_pct etc
@@ -128,7 +144,7 @@ function get_vtitle(graph_data) {
         }
     }
     if ('target_type' in graph_data['constants_all']) {
-        vtitle += "(" + display_tag('target_type', graph_data['constants_all']['target_type']) + ")";
+        vtitle += "(" + display_tag('target_type', graph_data['constants_all']['target_type'], true) + ")";
     }
     return vtitle;
 }
