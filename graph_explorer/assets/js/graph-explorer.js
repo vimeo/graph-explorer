@@ -177,14 +177,14 @@ function create_colormap(tags) {
     $.extend(colormap, static_colors);
     return colormap;
 }
-function get_inspect_url(data, name) {
+function get_inspect_url(data) {
     var q;
     if($.isArray(data['id'])) {
         q = data['id'].join(',');
     } else {
         q = data['id'];
     }
-    return "<a href='/inspect/" + q +"'>" + name + "</a>";
+    return "/inspect/" + q;
 }
 
 function update_dash_entry(key) {

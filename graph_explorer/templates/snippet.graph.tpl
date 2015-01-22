@@ -62,7 +62,7 @@
             if (name == "") {
                 name = "empty";
             }
-            return get_inspect_url(data, name);
+            return name + ' <a href="' + get_inspect_url(data) + '"><b>&nbsp;i</i></a>';
         }
         
         var $msgModal = $('#scrap-modal').modal({
