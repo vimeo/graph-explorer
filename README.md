@@ -15,7 +15,7 @@ Furthermore, we aim for minimal, hackable code and as simple as possible deploy/
 It also has:
 
 * [dashboards](https://github.com/vimeo/graph-explorer/wiki/Dashboards) which are pages that show N queries along with their results (0-N graphs each) and a (url-driven) field that gets applied to all queries, which you can use to narrow down to a specific server, apply a timeframe, etc.
-* an [alerting system](https://github.com/vimeo/graph-explorer/wiki/Alerting) allowing you to set tresholds on queries or plain old graphite query strings.
+* an [alerting system](https://github.com/vimeo/graph-explorer/wiki/Alerting) allowing you to set thresholds on queries or plain old graphite query strings.
 
 ## Learn the basics
 
