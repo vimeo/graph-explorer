@@ -232,7 +232,10 @@ class StructuredMetrics(object):
             found = False
             for plugin in self.plugins:
                 (plugin_name, plugin_object) = plugin
-                proto2_metric = plugin_object.upgrade_metric(metric)
+                try:
+                    proto2_metric = plugin_object.upgrade_metric(metric)
+                except Exception, e:
+                    self.logger.warn("metric '%s' triggered error: %s", metric, e)
                 if proto2_metric is not None:
                     found = True
                     if not proto2_metric:
