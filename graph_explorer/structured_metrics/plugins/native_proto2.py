@@ -6,9 +6,16 @@ class NativeProto2Plugin(Plugin):
     targets = []
 
     def upgrade_metric(self, metric):
-        if '=' in metric:
+        """
+        2 syntaxes are supported:
+        * foo=bar.baz=quux
+        * foo_is_bar.baz_is_quux
+        because some versions of graphite-api/graphite-web struggle with =
+        the 2nd format will probably prevail.
+        """
+        if '=' in metric or '_is_' in metric:
             if getattr(self.config, 'process_native_proto2', True):
-                nodes = metric.split('.')
+                nodes = metric.replace('_is_', '=').split('.')
                 tags = {}
                 for (i, node) in enumerate(nodes):
                     if '=' in node:
