@@ -320,7 +320,7 @@ class StructuredMetrics(object):
         self.es_bulk(bulk_list)
         self.logger.debug("removed %d metrics from elasticsearch", affected)
 
-    def update_targets(self, metrics):
+    def update_metrics(self, metrics):
         # using >1 threads/workers/connections would make this faster
         bulk_size = 1000
         bulk_list = []

@@ -67,11 +67,11 @@ class Backend(object):
         self.logger.debug("loading metrics")
         metrics = self.load_metrics()
 
-        self.logger.debug("removing outdated targets")
+        self.logger.debug("removing outdated metrics")
         s_metrics.remove_metrics_not_in(metrics)
 
-        self.logger.debug("updating targets")
-        s_metrics.update_targets(metrics)
+        self.logger.debug("updating metrics")
+        s_metrics.update_metrics(metrics)
 
 
 def make_config(config):
