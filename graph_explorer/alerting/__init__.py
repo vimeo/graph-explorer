@@ -263,8 +263,6 @@ def get_worst(statuses):
 
 def get_png(targets, warn, crit, config, width=800):
     url = urljoin(config.graphite_url_server, "/render/?from=-8hours&width=%d" % width)
-    # TODO: for some reason sending as POST somehow gets the same graph in multiple
-    # subsequent alerts. yeah wtf.
     # data = urllib.urlencode([('target', target) for target in targets])
     data = None
     # so for now use GET and hope/assume the url won't get too long (it could)
