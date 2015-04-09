@@ -45,7 +45,7 @@ class Rule():
 
         def target_singular_result(target):
             values = check_graphite(target, config)
-            assert (len(values) == 1), 'singular target should return exactly 1 result'
+            assert (len(values) == 1), "singular target '%s' returned %d results instead of exactly 1" % (target, len(values))
             values[0]['target'] = target  # just in case graphite had a different opinion.
             return values[0]
 
